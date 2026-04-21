@@ -1,0 +1,22 @@
+.
+├── app
+│   ├── __init__.py
+│   ├── blueprints
+│   │   └── auth.py
+│   ├── config.py
+│   ├── db.py
+│   ├── extensions.py
+│   ├── modles.py
+│   ├── static
+│   │   ├── css
+│   │   ├── img
+│   │   └── js
+│   ├── templates
+│   │   ├── login.html
+│   │   ├── profile.html
+│   │   └── register.html
+│   └── uploads
+├── run.py
+└── 架構.txt
+
+

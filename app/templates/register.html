@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <title>會員申辦</title>
+</head>
+<body>
+    <h2>會員申辦</h2>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <p style="color: {% if category == 'success' %}green{% else %}red{% endif %};">
+            {{ message }}
+          </p>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <form method="POST" action="{{ url_for('auth.register') }}">
+        <label>Email (必填，將作為登入帳號):</label><br>
+        <input type="email" name="email" required><br><br>
+        
+        <label>密碼 (必填):</label><br>
+        <input type="password" name="password" required><br><br>
+
+        <label>姓名 (必填):</label><br>
+        <input type="text" name="name" required><br><br>
+
+        <label>電話:</label><br>
+        <input type="text" name="phone"><br><br>
+
+        <label>縣市 (Region):</label><br>
+        <input type="text" name="region"><br><br>
+
+        <label>鄉鎮市區 (Locality):</label><br>
+        <input type="text" name="locality"><br><br>
+
+        <label>詳細地址:</label><br>
+        <input type="text" name="address"><br><br>
+        
+        <button type="submit">確認申辦</button>
+    </form>
+    <br>
+    <a href="{{ url_for('auth.login') }}">返回登入頁</a>
+</body>
+</html>

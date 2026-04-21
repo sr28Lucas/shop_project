@@ -1,0 +1,4 @@
+/.venv/
+/AI模板/
+/.env
+__pycache__
