@@ -1,3 +1,4 @@
+"""
 啟用.venv裝好依賴項
 執行create_env.py生成.env
 導入資料庫
@@ -26,3 +27,4 @@ git似乎不會追蹤空資料夾的樣子
 │   └── uploads
 ├── run.py
 └── 架構.txt
+"""
