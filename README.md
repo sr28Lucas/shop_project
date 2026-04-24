@@ -43,6 +43,6 @@ python run.py
 * **Password:** `root`
 
 ### 網站登入地址
-* **一般會員登入:** `http://[你的IPv4]:[Port(8080)]/auth/login`
-* **管理員登入:** `http://[你的IPv4]:[Port(8080)]/auth/admin-login`
+* **一般會員登入:** `[你的IPv4]:[Port(8080)]/auth/login`
+* **管理員登入:** `[你的IPv4]:[Port(8080)]/auth/admin-login`
 
