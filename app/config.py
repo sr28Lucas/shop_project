@@ -4,7 +4,7 @@ from pathlib import Path
 
 
 # 載入 .env 檔案中的變數
-dotenv_path = Path(__file__).resolve().parent / '..' / '.env.txt'
+dotenv_path = Path(__file__).resolve().parent / '..' / '.env'
 load_dotenv(dotenv_path = dotenv_path) 
 
 

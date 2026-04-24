@@ -19,17 +19,15 @@ def create_app():
 
     # 4. 註冊藍圖 (Blueprints) - 電商模組化關鍵
     from .blueprints.auth import auth_bp
-    # from .blueprints.catalog import catalog_bp
-    # from .blueprints.cart import cart_bp
-    # from .blueprints.checkout import checkout_bp
-    # from .blueprints.admin import admin_bp
+    from .blueprints.admin.dashboard import dashboard_bp
+    from .blueprints.member.center import center_bp
 
-    app.register_blueprint(auth_bp, url_perfix='auth') #登入功能
-    # app.register_blueprint(auth_bp, url_prefix='/auth')
-    # app.register_blueprint(catalog_bp)  # 首頁通常給商品目錄
-    # app.register_blueprint(cart_bp, url_prefix='/cart')
-    # app.register_blueprint(checkout_bp, url_prefix='/checkout')
-    # app.register_blueprint(admin_bp, url_prefix='/admin')
+
+
+    app.register_blueprint(auth_bp, url_prefix='/auth') #登入功能
+    app.register_blueprint(dashboard_bp, url_prefix="/admin") #管理員儀錶板 儀錶板裡的功能註冊在dashboard.py裡才能延續前綴 不要註冊在這 
+    app.register_blueprint(center_bp, url_prefix='/center') #會員中心 
+    #app.register_blueprint(home_bp, url_prefix='/home') #主頁
 
     # 5. 這裡可以放置全域的 context processor (例如在所有頁面顯示購物車數量)
     # @app.context_processor

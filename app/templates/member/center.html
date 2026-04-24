@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <title>會員中心</title>
+</head>
+<body>
+    <div class="top-bar">
+        <label>當前用戶 : {{user.name if user.name else "姓名讀取失敗"}}</label>
+        <a href="{{ url_for('auth.logout') }}">
+            <button type="button">登出</button>
+        </a>
+    </div>
+    <h2>會員中心</h2>
+    
+    <div class="card">
+        <div class="card-header">會員資料</div>
+        <ul class="card-body">
+            <li><a href="#">資料修改</a></li>
+            <li><a href="#">修改密碼</a></li>
+        </ul>
+    </div>
+    <div class="card">
+        <div class="card-header">訂單相關</div>
+        <ul class="card-body">
+            <li><a href="#">訂單歷史</a></li>
+            <li><a href="#">訂單退訂</a></li>
+        </ul>
+    </div>
+    <div class="card">
+        <div class="card-header">客服中心</div>
+        <ul class="card-body">
+            <li><a href="#">問題提問</a></li>
+            <li><a href="#">客服歷史</a></li>
+        </ul>
+    </div>
+       
+    
+
+</body>
+</html>

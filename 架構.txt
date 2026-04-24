@@ -1,8 +1,25 @@
 .
+├── README.md
 ├── app
 │   ├── __init__.py
+│   ├── __pycache__
+│   │   ├── __init__.cpython-310.pyc
+│   │   ├── __init__.cpython-312.pyc
+│   │   ├── config.cpython-310.pyc
+│   │   ├── db.cpython-310.pyc
+│   │   └── extensions.cpython-310.pyc
 │   ├── blueprints
-│   │   └── auth.py
+│   │   ├── __pycache__
+│   │   │   └── auth.cpython-310.pyc
+│   │   ├── admin
+│   │   │   ├── __pycache__
+│   │   │   │   └── dashboard.cpython-310.pyc
+│   │   │   └── dashboard.py
+│   │   ├── auth.py
+│   │   └── member
+│   │       ├── __pycache__
+│   │       │   └── center.cpython-310.pyc
+│   │       └── center.py
 │   ├── config.py
 │   ├── db.py
 │   ├── extensions.py
@@ -12,11 +29,22 @@
 │   │   ├── img
 │   │   └── js
 │   ├── templates
-│   │   ├── login.html
-│   │   ├── profile.html
-│   │   └── register.html
+│   │   ├── admin
+│   │   │   └── dashboard.html
+│   │   ├── auth
+│   │   │   ├── admin_login.html
+│   │   │   ├── login.html
+│   │   │   ├── profile.html
+│   │   │   └── register.html
+│   │   └── member
+│   │       └── center.html
 │   └── uploads
+├── create_env.py
+├── db_design_20260421.sql
+├── docs
+├── requirements.txt
 ├── run.py
+├── setup.py
 └── 架構.txt
 
-
+19 directories, 29 files
