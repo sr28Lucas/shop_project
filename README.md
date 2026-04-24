@@ -8,6 +8,9 @@
 應該就能用了 應該  
 
 
+database name: shop_project
+
+
 ##網站地址
 ###會員登入
 ipv4:port/auth/login
