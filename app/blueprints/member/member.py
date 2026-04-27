@@ -5,11 +5,11 @@ from datetime import datetime
 
 
 
-center_bp = Blueprint('center', __name__, template_folder = '../templates/member') #建立藍圖
+member_bp = Blueprint('member', __name__, template_folder = '../templates/member') #建立藍圖
 
 
 #儀錶板
-@center_bp.route('/center')
+@member_bp.route('/center')
 def center():
     #如果沒有登入狀態就重導向至登入畫面
     if 'member_id' not in session:

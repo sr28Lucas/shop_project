@@ -1,0 +1,44 @@
+<form method="POST" enctype="multipart/form-data">
+    <input type="text" name="name" value="{{ product.name if product else '' }}" required>
+    <select name="category_id">
+        {% for cat in categories %}
+        <option value="{{ cat.id }}" {{ 'selected' if product and product.category_id == cat.id }}>
+            {{ cat.name }}
+        </option>
+        {% endfor %}
+    </select>
+
+    <div id="image-management">
+        <h3>產品圖片</h3>
+        {% if product and product.images %}
+            <div class="existing-images">
+                {% for img in product.images %}
+                <div class="img-item">
+                    <img src="{{ url_for('static', filename='uploads/' + img.url) }}" width="100">
+                    <input type="checkbox" name="delete_images" value="{{ img.id }}"> 刪除此圖
+                </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+        
+        <label>上傳新圖片 (可多選):</label>
+        <input type="file" name="images" multiple accept="image/*" id="img-input">
+        <div id="preview-container"></div> </div>
+
+    <button type="submit">儲存產品</button>
+    <a href="{{ url_for('admin.product_list') }}">取消 (不儲存任何變更)</a>
+</form>
+
+<script>
+// JS 預覽邏輯：當選擇檔案時，僅在前端顯示，不觸發上傳
+document.getElementById('img-input').addEventListener('change', function(e) {
+    const container = document.getElementById('preview-container');
+    container.innerHTML = ''; 
+    Array.from(e.target.files).forEach(file => {
+        const img = document.createElement('img');
+        img.src = URL.createObjectURL(file);
+        img.width = 100;
+        container.appendChild(img);
+    });
+});
+</script>
