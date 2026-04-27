@@ -1,19 +1,26 @@
 from flask import Blueprint, session, render_template, redirect, url_for, flash
 from app.db import get_db_connection
-from app.extensions import bcrypt
-from datetime import datetime
 
 
 
-dashboard_bp = Blueprint('dashboard', __name__, template_folder = '../templates/admin') #建立藍圖
+#建立藍圖
+admin_bp = Blueprint('admin', __name__, template_folder = '../templates/admin') #建立藍圖
 
 
-#儀錶板
-@dashboard_bp.route('/dashboard')
+#註冊功能
+from .product import product_bp
+
+
+admin_bp.register_blueprint(product_bp, url_prefix='/product')
+
+
+
+
+@admin_bp.route('/dashboard')
 def dashboard():
     #如果沒有登入狀態就重導向至登入畫面
     if 'admin_id' not in session:
-        return redirect(url_for('auth.admin-login'))
+        return redirect(url_for('auth.admin_login'))
     
     #讀取admin資料
     conn = get_db_connection()
@@ -30,6 +37,7 @@ def dashboard():
     if not user:
         session.clear()
         flash("找不到管理員資料")
-        return redirect(url_for("auth.admin-login"))
+        return redirect(url_for("auth.admin_login"))
         
     return render_template('admin/dashboard.html', user = user, role = role)
+

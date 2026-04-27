@@ -48,7 +48,7 @@ def register():
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
     if 'member_id' in session:
-        return redirect(url_for('auth.profile'))
+        return redirect(url_for('member.center'))
 
     if request.method == 'POST':
         email = request.form['email']
@@ -64,7 +64,7 @@ def login():
         if user :
             if bcrypt.check_password_hash(user['password'], password):
                 session['member_id'] = user['id']
-                return redirect(url_for('center.center'))
+                return redirect(url_for('member.center'))
             else:
                 return "<script>alert('密碼錯囉，再試一次？'); window.history.back();</script>"
         else:
@@ -72,23 +72,7 @@ def login():
             
     return render_template('login.html')
 
-@auth_bp.route('/profile')
-def profile():
-    if 'member_id' not in session:
-        return redirect(url_for('auth.login'))
-        
-    conn = get_db_connection()
-    cursor = conn.cursor(dictionary=True)
-    cursor.execute("SELECT * FROM member WHERE id = %s", (session['member_id'],))
-    user = cursor.fetchone()
-    cursor.close()
-    conn.close()
-    
-    if not user:
-        session.clear()
-        return "找不到會員資料。"
-        
-    return render_template('profile.html', user=user)
+
 
 
 @auth_bp.route('/logout', methods=['GET','POST'])
@@ -97,10 +81,10 @@ def logout():
     return redirect(url_for('auth.login'))
 
 #管理員登入
-@auth_bp.route('/admin-login', methods=['GET', 'POST'])
+@auth_bp.route('/admin_login', methods=['GET', 'POST'])
 def admin_login():
     if 'admin_id' in session:
-        return redirect(url_for(''))
+        return redirect(url_for('admin.dashboard.dashboard'))
 
     if request.method == 'POST':
         email = request.form['email']
@@ -115,14 +99,14 @@ def admin_login():
 
         if user and bcrypt.check_password_hash(user['password'], password):
             session['admin_id'] = user['id']
-            return redirect(url_for('dashboard.dashboard'))
+            return redirect(url_for('admin.dashboard'))
         else:
             return "<script>alert('密碼錯囉，再試一次？'); window.history.back();</script>"
             
     return render_template('admin_login.html')
 
 #管理員登出
-@auth_bp.route('/admin-logout', methods=['GET','POST'])
+@auth_bp.route('/admin_logout', methods=['GET','POST'])
 def admin_logout():
     session.clear()
     return redirect(url_for('auth.admin_login'))

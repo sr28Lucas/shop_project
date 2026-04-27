@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <title>產品管理 - 後臺系統</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .filter-section { background: #f4f4f4; padding: 15px; margin-bottom: 20px; border-radius: 5px; }
+        .product-table { width: 100%; border-collapse: collapse; }
+        .product-table th, .product-table td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        .status-unlisted { color: gray; }
+        .status-enabled { color: green; }
+        .btn { padding: 5px 10px; text-decoration: none; border-radius: 3px; }
+        .btn-add { background: #28a745; color: white; }
+        .btn-edit { background: #007bff; color: white; }
+    </style>
+</head>
+<body>
+    <h1>產品管理</h1>
+
+    <div style="margin-bottom: 20px;">
+        <a href="{{ url_for('admin.product_add') }}" class="btn btn-add">+ 新增產品</a>
+    </div>
+
+    <section class="filter-section">
+        <form method="GET" action="{{ url_for('admin.product_list') }}">
+            <label for="category_id">類別：</label>
+            <select name="category_id" id="category_id">
+                <option value="">全部類別</option>
+                {% for cat in categories %}
+                <option value="{{ cat.id }}" {{ 'selected' if request.args.get('category_id')|int == cat.id }}>
+                    {{ cat.name }}
+                </option>
+                {% endfor %}
+            </select>
+
+            <label for="status">狀態：</label>
+            <select name="status" id="status">
+                <option value="">全部狀態</option>
+                <option value="enabled" {{ 'selected' if request.args.get('status') == 'enabled' }}>上架中</option>
+                <option value="unlisted" {{ 'selected' if request.args.get('status') == 'unlisted' }}>未上架</option>
+            </select>
+
+            <button type="submit">套用篩選</button>
+            <a href="{{ url_for('admin.product_list') }}">清除篩選</a>
+        </form>
+    </section>
+
+    <table class="product-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>類別</th>
+                <th>產品名稱</th>
+                <th>價格</th>
+                <th>庫存</th>
+                <th>狀態</th>
+                <th>推薦產品</th>
+                <th>操作</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for product in products %}
+            <tr>
+                <td>{{ product.id }}</td>
+                <td>{{ product.category_name }}</td>
+                <td>{{ product.name }}</td>
+                <td>${{ product.price }}</td>
+                <td>{{ product.stock }}</td>
+                <td class="status-{{ product.status }}">{{ product.status }}</td>
+                <td>{{ '★' if product.recommended else '-' }}</td>
+                <td>
+                    <a href="{{ url_for('admin.product_edit', id=product.id) }}" class="btn btn-edit">修改</a>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="8" style="text-align: center;">查無產品資料</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>
