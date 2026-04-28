@@ -1,13 +1,17 @@
 
 env_content = """
+#flask
 DEBUG=True
-SECRET_KEY=secret_key
+SECRET_KEY=secret_key   #flask加密模組金鑰
 
+#db參數
 DATABASE_HOST = 127.0.0.1
 DATABASE_USER = root
 DATABASE_PASSWORD = 
 DATABASE_USE = shop_project
 DATABASE_CHARSET = 	utf8mb4
+
+UPLOAD_FOLDER = 'upload'
 """
 
 # 将内容写入 .env 文件

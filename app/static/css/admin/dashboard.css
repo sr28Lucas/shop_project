@@ -1,0 +1,21 @@
+.menu{
+    display: flex;
+    gap: 30px;
+}
+
+.card-gap{
+    height: 30px;
+}
+
+.card{
+    min-width: 100px;
+    border: 4px solid #e0e0e0; /* 淺灰色實線框 */
+    border-radius: 8px;        /* 圓角 */
+    background-color: #ffffff;
+}
+
+
+.card-body{
+    list-style: none;
+    padding: 0;
+}

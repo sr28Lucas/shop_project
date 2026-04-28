@@ -3,6 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <title>儀錶板</title>
+    <link rel="stylesheet" href="{{url_for('static', filename='css/admin/dashboard.css')}}">
+
 </head>
 <body>
     <div class="top-bar">
@@ -13,66 +15,71 @@
         </a>
     </div>
     <h2>儀錶板</h2>
-    <div class="card">
-        <div class="card-header">頁面管理</div>
-        <ul class="card-body">
-            <li><a href="#">推薦管理</a></li>
-            <li><a href="#">分類管理</a></li>
-        </ul>
-    </div>
+    <div class="menu">
+        <div class="card">
+            <div class="card-header">頁面管理</div>
+            <ul class="card-body">
+                <li><a href="#">推薦管理</a></li>
+                <li><a href="#">分類管理</a></li>
+            </ul>
+        </div>
 
-    <div class="card">
-        <div class="card-header">商品管理</div>
-        <ul class="card-body">
-            <li><a href="#">修改商品</a></li>
-            <li><a href="#">定價管理</a></li>
-            <li><a href="#">庫存管理</a></li>    
-            <li><a href="#">上下架管理</a></li>
-        </ul>
-    </div>
+        <div class="card">
+            <div class="card-header">商品管理</div>
+            <ul class="card-body">
+                <li><a href="#">修改商品</a></li>
+                <li><a href="#">定價管理</a></li>
+                <li><a href="#">庫存管理</a></li>    
+                <li><a href="#">上下架管理</a></li>
+            </ul>
+        </div>
 
-    <div class="card">
-        <div class="card-header">訂單管理</div>
-        <ul class="card-body">
-            <li><a href="#">訂單歷史</a></li>
-            <li><a href="#">出貨管理</a></li>
-            <li><a href="#">修改訂單</a></li>
-        </ul>
-    </div>
+        <div class="card">
+            <div class="card-header">訂單管理</div>
+            <ul class="card-body">
+                <li><a href="#">訂單歷史</a></li>
+                <li><a href="#">出貨管理</a></li>
+                <li><a href="#">修改訂單</a></li>
+            </ul>
+        </div>
 
-    <div class="card">
-        <div class="card-header">會員管理</div>
-        <ul class="card-body">
-            <li><a href="#">會員資料</a></li>
-            <li><a href="#">訂購紀錄</a></li>
-            <li><a href="#">會員停權</a></li>
-        </ul>
+        <div class="card">
+            <div class="card-header">會員管理</div>
+            <ul class="card-body">
+                <li><a href="#">會員資料</a></li>
+                <li><a href="#">訂購紀錄</a></li>
+                <li><a href="#">會員停權</a></li>
+            </ul>
+        </div>
     </div>
+    <div class='card-gap'></div>
+    <div class="menu">
+        <div class="card">
+            <div class="card-header">客服管理</div>
+            <ul class="card-body">
+                <li><a href="#">問題回覆</a></li>
+                <li><a href="#">客服歷史</a></li>
+            </ul>
+        </div>
 
-    <div class="card">
-        <div class="card-header">客服管理</div>
-        <ul class="card-body">
-            <li><a href="#">問題回覆</a></li>
-            <li><a href="#">客服歷史</a></li>
-        </ul>
-    </div>
+        <div class="card">
+            <div class="card-header">數據統計</div>
+            <ul class="card-body">
+                <li><a href="#">營收統計</a></li>
+                <li><a href="#">熱銷分析</a></li>
+            </ul>
+        </div>
 
-    <div class="card">
-        <div class="card-header">數據統計</div>
-        <ul class="card-body">
-            <li><a href="#">營收統計</a></li>
-            <li><a href="#">熱銷分析</a></li>
-        </ul>
-    </div>
+        <div class="card">
+            <div class="card-header">系統管理</div>
+            <ul class="card-body">
+                <li><a href="#">帳戶資料</a></li>
+                <li><a href="#">修改密碼</a></li>
+                <li><a href="#">帳戶管理</a></li>
+                <li><a href="#">權限管理</a></li>
+            </ul>
+        </div>
 
-    <div class="card">
-        <div class="card-header">系統管理</div>
-        <ul class="card-body">
-            <li><a href="#">帳戶資料</a></li>
-            <li><a href="#">修改密碼</a></li>
-            <li><a href="#">帳戶管理</a></li>
-            <li><a href="#">權限管理</a></li>
-        </ul>
     </div>
 
 
