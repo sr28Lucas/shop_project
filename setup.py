@@ -17,7 +17,7 @@ conn = get_db_connection()
 cursor = conn.cursor(dictionary=True)
 
 # 檢查 Email 是否存在
-cursor.execute("SELECT id FROM admin WHERE email = %s", (email,))
+cursor.execute("SELECT id FROM staff WHERE email = %s", (email,))
 if cursor.fetchone():
     print('admin: root 已存在 程式中止')
     cursor.close()
@@ -30,36 +30,19 @@ now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
 
 try:
-
-    #建立權限
-    permissions = [
-        ('會員', 'member'),
-        ('訂單', 'orders'),
-        ('商品', 'product'),
-        ('詢問', 'inquiry'),
-        ('權限', 'permission')
-    ]
-    sql_perm = "INSERT IGNORE INTO permission (name,code) VALUES (%s,%s)"
-    cursor.executemany(sql_perm, permissions)
-
-    #建立角色
-    sql_role = "INSERT IGNORE INTO role (name) VALUES (%s)"
-    cursor.execute(sql_role, (rolename,))
-    
-    #賦予角色權限
-    sql_rp = """
-            INSERT IGNORE INTO role_permission (role_id, permission_id)
-            SELECT r.id, p.id
-            FROM role AS r CROSS JOIN permission AS p
-            WHERE r.name = %s
+    #建立root角色
+    sql_role = """
+            INSERT INTO role (name, member, orders, product, inquiry, statistic, staff, created_at, updated_at)
+            VALUES (%s, 1, 1, 1, 1, 1, 1, %s, %s)            
             """
-    cursor.execute(sql_rp, (rolename,))
+    cursor.execute(sql_role, (rolename, now, now))
+
 
     #建立root用戶
     cursor.execute("SELECT id FROM role WHERE name = %s", (rolename,))
     role_id = cursor.fetchone()['id']     
     sql_admin = """
-                INSERT INTO admin (email, password, name, role_id, created_at, updated_at) 
+                INSERT INTO staff (email, password, name, role_id, created_at, updated_at) 
                 VALUES (%s, %s, %s, %s, %s, %s)
                 """
     cursor.execute(sql_admin, (email, hashed_pw, name, role_id, now, now))

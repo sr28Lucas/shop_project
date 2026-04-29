@@ -22,7 +22,7 @@ def register():
         cursor = conn.cursor(dictionary=True)
         
         # 檢查 Email 是否存在
-        cursor.execute("SELECT id FROM member WHERE email = %s", (email,))
+        cursor.execute("SELECT id FROM customer WHERE email = %s", (email,))
         if cursor.fetchone():
             return "<script>alert('此 Email 已經註冊過囉！'); window.history.back();</script>"
         
@@ -32,7 +32,7 @@ def register():
         now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         
         try:
-            sql = """INSERT INTO member (email, password, name, phone, region, locality, address, created_at, updated_at) 
+            sql = """INSERT INTO customer (email, password, name, phone, region, locality, address, created_at, updated_at) 
                      VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)"""
             cursor.execute(sql, (email, hashed_pw, name, phone, region, locality, address, now, now))
             conn.commit()
@@ -47,8 +47,8 @@ def register():
 
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
-    if 'member_id' in session:
-        return redirect(url_for('member.center'))
+    if 'customer_id' in session:
+        return redirect(url_for('customer.center'))
 
     if request.method == 'POST':
         email = request.form['email']
@@ -56,15 +56,15 @@ def login():
         
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
-        cursor.execute("SELECT * FROM member WHERE email = %s", (email,))
+        cursor.execute("SELECT * FROM customer WHERE email = %s", (email,))
         user = cursor.fetchone()
         cursor.close()
         conn.close()
 
         if user :
             if bcrypt.check_password_hash(user['password'], password):
-                session['member_id'] = user['id']
-                return redirect(url_for('member.center'))
+                session['customer_id'] = user['id']
+                return redirect(url_for('customer.center'))
             else:
                 return "<script>alert('密碼錯囉，再試一次？'); window.history.back();</script>"
         else:
@@ -81,10 +81,10 @@ def logout():
     return redirect(url_for('auth.login'))
 
 #管理員登入
-@auth_bp.route('/admin_login', methods=['GET', 'POST'])
-def admin_login():
-    if 'admin_id' in session:
-        return redirect(url_for('admin.dashboard.dashboard'))
+@auth_bp.route('/staff_login', methods=['GET', 'POST'])
+def staff_login():
+    if 'staff_id' in session:
+        return redirect(url_for('staff.dashboard'))
 
     if request.method == 'POST':
         email = request.form['email']
@@ -92,21 +92,21 @@ def admin_login():
         
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
-        cursor.execute("SELECT * FROM admin WHERE email = %s", (email,))
+        cursor.execute("SELECT * FROM staff WHERE email = %s", (email,))
         user = cursor.fetchone()
         cursor.close()
         conn.close()
 
         if user and bcrypt.check_password_hash(user['password'], password):
-            session['admin_id'] = user['id']
-            return redirect(url_for('admin.dashboard'))
+            session['staff_id'] = user['id']
+            return redirect(url_for('staff.dashboard'))
         else:
             return "<script>alert('密碼錯囉，再試一次？'); window.history.back();</script>"
             
-    return render_template('admin_login.html')
+    return render_template('staff_login.html')
 
 #管理員登出
-@auth_bp.route('/admin_logout', methods=['GET','POST'])
-def admin_logout():
+@auth_bp.route('/staff_logout', methods=['GET','POST'])
+def staff_logout():
     session.clear()
-    return redirect(url_for('auth.admin_login'))
+    return redirect(url_for('auth.staff_login'))

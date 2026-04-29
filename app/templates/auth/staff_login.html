@@ -14,7 +14,7 @@
       {% endif %}
     {% endwith %}
 
-    <form method="POST" action="{{ url_for('auth.admin_login') }}">
+    <form method="POST" action="{{ url_for('auth.staff_login') }}">
         <label>帳號 (Email):</label><br>
         <input type="email" name="email" required><br><br>
 
