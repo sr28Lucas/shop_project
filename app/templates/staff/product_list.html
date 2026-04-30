@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>產品管理 - 後臺系統</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/staff/product_list.css') }}">
     <style>
         .filter-section { background: #f4f4f4; padding: 15px; margin-bottom: 20px; border-radius: 5px; }
         .product-table { width: 100%; border-collapse: collapse; }
@@ -19,11 +19,11 @@
     <h1>產品管理</h1>
 
     <div style="margin-bottom: 20px;">
-        <a href="{{ url_for('admin.product_add') }}" class="btn btn-add">+ 新增產品</a>
+        <a href="{{ url_for('staff.product.product_add') }}" class="btn btn-add">+ 新增產品</a>
     </div>
 
     <section class="filter-section">
-        <form method="GET" action="{{ url_for('admin.product_list') }}">
+        <form method="GET" action="{{ url_for('staff.product.product_list') }}">
             <label for="category_id">類別：</label>
             <select name="category_id" id="category_id">
                 <option value="">全部類別</option>
@@ -42,7 +42,7 @@
             </select>
 
             <button type="submit">套用篩選</button>
-            <a href="{{ url_for('admin.product_list') }}">清除篩選</a>
+            <a href="{{ url_for('staff.product.product_list') }}">清除篩選</a>
         </form>
     </section>
 
@@ -70,7 +70,7 @@
                 <td class="status-{{ product.status }}">{{ product.status }}</td>
                 <td>{{ '★' if product.recommended else '-' }}</td>
                 <td>
-                    <a href="{{ url_for('admin.product_edit', id=product.id) }}" class="btn btn-edit">修改</a>
+                    <a href="{{ url_for('staff.product.product_edit', id=product.id) }}" class="btn btn-edit">修改</a>
                 </td>
             </tr>
             {% else %}

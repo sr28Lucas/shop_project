@@ -14,8 +14,7 @@ CREATE TABLE `customer` (
 
 CREATE TABLE `wishlist` (
   `id` int PRIMARY KEY AUTO_INCREMENT,
-  `customer_id` int NOT NULL,
-  `name` varchar(30) NOT NULL,
+  `customer_id` int UNIQUE NOT NULL,
   `created_at` timestamp NOT NULL,
   `updated_at` timestamp NOT NULL
 );
@@ -57,11 +56,16 @@ CREATE TABLE `promo_code` (
   `updated_at` timestamp NOT NULL
 );
 
-CREATE TABLE `promo_code_scope` (
+CREATE TABLE `promo_code_category` (
   `promo_code_id` int,
-  `entity_type` varchar(30) NOT NULL,
-  `entity_id` int NOT NULL,
-  PRIMARY KEY (`promo_code_id`, `entity_type`, `entity_id`)
+  `category_id` int,
+  PRIMARY KEY (`promo_code_id`, `category_id`)
+);
+
+CREATE TABLE `promo_code_product` (
+  `promo_code_id` int,
+  `product_id` int,
+  PRIMARY KEY (`promo_code_id`, `product_id`)
 );
 
 CREATE TABLE `orders` (
@@ -93,6 +97,7 @@ CREATE TABLE `order_item` (
   `price` decimal(12,2) NOT NULL,
   `cost` decimal(12,2) NOT NULL,
   `discount_amount` decimal(12,2) NOT NULL,
+  `shipping_fee` decimal(12,2) NOT NULL,
   `line_total` decimal(12,2) NOT NULL,
   `created_at` timestamp NOT NULL,
   `updated_at` timestamp NOT NULL,
@@ -134,7 +139,8 @@ CREATE TABLE `message` (
   `id` int PRIMARY KEY AUTO_INCREMENT,
   `inquiry_id` int NOT NULL,
   `sender_type` varchar(30) NOT NULL,
-  `sender_id` int NOT NULL,
+  `staff_id` int,
+  `customer_id` int,
   `content` varchar(2000) NOT NULL,
   `sent_at` timestamp NOT NULL
 );
@@ -200,7 +206,7 @@ CREATE TABLE `sku` (
 CREATE TABLE `image` (
   `id` int PRIMARY KEY AUTO_INCREMENT,
   `product_id` int NOT NULL,
-  `url` varchar(500) NOT NULL,
+  `url` varchar(500),
   `sort_order` int NOT NULL,
   `created_at` timestamp NOT NULL,
   `updated_at` timestamp NOT NULL
@@ -222,6 +228,10 @@ ALTER TABLE `inquiry` ADD FOREIGN KEY (`customer_id`) REFERENCES `customer` (`id
 
 ALTER TABLE `message` ADD FOREIGN KEY (`inquiry_id`) REFERENCES `inquiry` (`id`);
 
+ALTER TABLE `message` ADD FOREIGN KEY (`customer_id`) REFERENCES `customer` (`id`);
+
+ALTER TABLE `message` ADD FOREIGN KEY (`staff_id`) REFERENCES `staff` (`id`);
+
 ALTER TABLE `staff` ADD FOREIGN KEY (`role_id`) REFERENCES `role` (`id`);
 
 ALTER TABLE `product` ADD FOREIGN KEY (`category_id`) REFERENCES `category` (`id`);
@@ -242,4 +252,10 @@ ALTER TABLE `order_item` ADD FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`)
 
 ALTER TABLE `order_item` ADD FOREIGN KEY (`sku_id`) REFERENCES `sku` (`id`);
 
-ALTER TABLE `promo_code_scope` ADD FOREIGN KEY (`promo_code_id`) REFERENCES `promo_code` (`id`);
+ALTER TABLE `promo_code_category` ADD FOREIGN KEY (`promo_code_id`) REFERENCES `promo_code` (`id`);
+
+ALTER TABLE `promo_code_product` ADD FOREIGN KEY (`promo_code_id`) REFERENCES `promo_code` (`id`);
+
+ALTER TABLE `promo_code_category` ADD FOREIGN KEY (`category_id`) REFERENCES `category` (`id`);
+
+ALTER TABLE `promo_code_product` ADD FOREIGN KEY (`product_id`) REFERENCES `product` (`id`);

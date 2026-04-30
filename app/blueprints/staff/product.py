@@ -32,69 +32,76 @@ def product_list():
     cursor.execute("SELECT * FROM category")
     categories = cursor.fetchall()
 
-    return render_template('admin/product_list.html', products=products, categories=categories)
+    return render_template('staff/product_list.html', products=products, categories=categories)
 
 
 @product_bp.route('/add', methods=['GET', 'POST'])
 def product_add():
     if request.method == 'POST':
-        # 1. 獲取表單資料
         name = request.form['name']
-        price = request.form['price']
-        stock = request.form['stock']
-        description = request.form['description']
-        status = 'inactive'
-        recommended = 0
-        now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        files = request.files.getlist('images') # 取得多張圖片
-        
+        category_id = request.form.get('category_id')
+        description = request.form.get('description')
+        files = request.files.getlist('images')
 
-        #寫入
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+
+        if not os.path.exists(config.UPLOAD_FOLDER):
+            os.makedirs(config.UPLOAD_FOLDER)
+
         try:
-            #連接資料庫
-            conn = get_db_connection()
-            cursor = conn.cursor(dictionary=True)
-
+            # 1. 插入商品主檔
             cursor.execute("""
-                           INSERT INTO product(name, price, stock, description, status, recommended, created_at, update_at)
-                           VALUES (%s, %d, %d, %s, %s, %d, %s, %s)
-                           """, (name, price, stock, description, status, recommended, now, now))
+                INSERT INTO product (category_id, name, description, is_active, created_at, updated_at)
+                VALUES (%s, %s, %s, 1, NOW(), NOW())
+            """, (category_id, name, description))
             
-            product_id = cursor.lastrowid()
+            product_id = cursor.lastrowid
 
-            # 3. 處理圖片上傳
+            # 2. 處理圖片 (此時 files 的順序已經是前端拖拽後的順序)
+            
+            now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             for index, file in enumerate(files):
                 if file:
-                    filename = secure_filename(f"{product_id}_{file.filename}")
-                    file.save(os.path.join(config['UPLOAD_FOLDER'], filename))
+                    # 先插入圖片紀錄以取得 image_id
+                    cursor.execute("""
+                        INSERT INTO image (product_id, url, sort_order, created_at, updated_at)
+                        VALUES (%s, %s, %s, %s, %s)
+                    """, (product_id, "", index, now, now)) # 暫時給空 url
                     
-                    # 寫入 image 表
-                    cursor.execute("INSERT INTO image (product_id, url, is_primary, sort_order) VALUES (%s, %s, %s,%d)"\
-                                   (product_id, filename, index))
-            conn.commit()
+                    image_id = cursor.lastrowid
+                    
+                    # 重新命名：product_id_image_id.副檔名
+                    ext = os.path.splitext(file.filename)[1]
+                    filename = f"{product_id}_{image_id}{ext}"
+                    
+                    # 儲存檔案
+                    upload_path = os.path.join(config.UPLOAD_FOLDER, filename)
+                    file.save(upload_path)
+                    
+                    # 更新資料庫中的 url
+                    cursor.execute("UPDATE image SET url = %s WHERE id = %s", (filename, image_id))
 
-            return redirect(url_for('admin.product_list'))
-        
+            conn.commit()
+            return "OK", 200 # 回應 fetch
+
         except Exception as e:
             conn.rollback()
-            for index, file in enumerate(files):
-                filename = secure_filename(f"{product_id}_{file.filename}")
-                file_path = os.path.exists(os.path.join(config['UPLOAD_FOLDER']), filename)
-                if os.path.exists(file_path):
-                    try:
-                        os.remove(file_path)
-                    except Exception as e:
-                        pass
+            print(f"Error: {e}")
+            return "Internal Server Error", 500
         finally:
             cursor.close()
             conn.close()
-
-        return "<script>alert('商品新增成功'); window.location.href = '/admin/product/list';</script>"
 
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
     cursor.execute("SELECT id, name FROM category")
     categories = cursor.fetchall()
-    return render_template('admin/product_add.html', categories = categories)
+    return render_template('staff/product_add.html', categories = categories)
 
 
+
+
+@product_bp.route('/edit', methods=['GET', 'POST'])
+def product_edit():
+    return 'pass', 200
