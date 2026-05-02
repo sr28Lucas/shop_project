@@ -5,14 +5,7 @@
     <title>產品管理 - 後臺系統</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/staff/product_list.css') }}">
     <style>
-        .filter-section { background: #f4f4f4; padding: 15px; margin-bottom: 20px; border-radius: 5px; }
-        .product-table { width: 100%; border-collapse: collapse; }
-        .product-table th, .product-table td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-        .status-unlisted { color: gray; }
-        .status-enabled { color: green; }
-        .btn { padding: 5px 10px; text-decoration: none; border-radius: 3px; }
-        .btn-add { background: #28a745; color: white; }
-        .btn-edit { background: #007bff; color: white; }
+
     </style>
 </head>
 <body>
@@ -34,11 +27,11 @@
                 {% endfor %}
             </select>
 
-            <label for="status">狀態：</label>
-            <select name="status" id="status">
+            <label for="is_active">狀態：</label>
+            <select name="is_active" id="is_active">
                 <option value="">全部狀態</option>
-                <option value="enabled" {{ 'selected' if request.args.get('status') == 'enabled' }}>上架中</option>
-                <option value="unlisted" {{ 'selected' if request.args.get('status') == 'unlisted' }}>未上架</option>
+                <option value=1 {{ 'selected' if request.args.get('status') == 'active' }}>上架中</option>
+                <option value=0 {{ 'selected' if request.args.get('status') == 'inactive' }}>未上架</option>
             </select>
 
             <button type="submit">套用篩選</button>
@@ -50,25 +43,25 @@
         <thead>
             <tr>
                 <th>ID</th>
-                <th>類別</th>
                 <th>產品名稱</th>
-                <th>價格</th>
-                <th>庫存</th>
+                <th>類別</th>
+                <th>商品描述</th>
                 <th>狀態</th>
-                <th>推薦產品</th>
-                <th>操作</th>
+                <th>建立時間</th>
+                <th>更新時間</th>
             </tr>
         </thead>
         <tbody>
             {% for product in products %}
             <tr>
                 <td>{{ product.id }}</td>
-                <td>{{ product.category_name }}</td>
                 <td>{{ product.name }}</td>
-                <td>${{ product.price }}</td>
-                <td>{{ product.stock }}</td>
-                <td class="status-{{ product.status }}">{{ product.status }}</td>
-                <td>{{ '★' if product.recommended else '-' }}</td>
+                <td>{{ product.category_name }}</td>
+                <td>{{ product.description }}</td>
+                <td>{{ '上架中' if product.is_active else '未上架' }}</td>
+                <td>{{ product.created_at }}</td>
+                <td>{{ product.updated_at }}</td>
+                
                 <td>
                     <a href="{{ url_for('staff.product.product_edit', id=product.id) }}" class="btn btn-edit">修改</a>
                 </td>

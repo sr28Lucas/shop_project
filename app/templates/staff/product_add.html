@@ -6,20 +6,12 @@
     <link rel="stylesheet" href="{{url_for('static', filename='css/staff/product_add.css')}}">
 </head> 
  
-<form id="product-form" method="POST" enctype="multipart/form-data">
+<form id="product-form" method="POST" enctype="multipart/form-data" data-redirect-url="{{ url_for('staff.product.product_list') }}">
     <label>新增商品</label>
     <div class="product">
         <div class="product-detail"> 
             <label>商品名稱</label>
             <input type="text" name="name" required>
-        </div>
-        <div class="product-detail">
-            <label>售價</label>
-            <input type="number" name="price">
-        </div>
-        <div class="product-detail">
-            <label>庫存</label>
-            <input type="number" name="stock">
         </div>
         <div class="product-detail">
             <label>商品描述</label>
@@ -38,20 +30,7 @@
 
 
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
-
-    <style>
-        #preview-container { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; }
-        .preview-item { 
-            position: relative; width: 120px; border: 1px solid #ddd; padding: 5px; cursor: move; 
-            background: #fff; text-align: center;
-        }
-        .preview-item img { max-width: 100%; height: auto; display: block; }
-        .remove-btn { 
-            position: absolute; top: -5px; right: -5px; background: red; color: white; 
-            border-radius: 50%; width: 20px; height: 20px; cursor: pointer; border: none; font-size: 12px;
-        }
-    </style>
-
+    
         <div id="image-management">
             <h3>產品圖片 (拖拽可排序)</h3>
             <input type="file" id="img-input" multiple accept="image/*">
@@ -59,82 +38,8 @@
         </div>
 
         <button type="submit">儲存產品</button>
+    
+    <script src=" {{url_for('static', filename='js/staff/product_add.js')}} " ></script>
 
-    <script>
-        let selectedFiles = []; // 用於存放 File 物件的陣列
-        const container = document.getElementById('preview-container');
-        const input = document.getElementById('img-input');
-
-        // 初始化拖拽功能
-        const sortable = new Sortable(container, {
-            animation: 150,
-            onEnd: function() {
-                // 當拖拽結束時，根據 DOM 順序重新排列 selectedFiles
-                const newOrder = Array.from(container.querySelectorAll('.preview-item')).map(item => parseInt(item.dataset.index));
-                const reorderedFiles = newOrder.map(index => selectedFiles[index]);
-                selectedFiles = reorderedFiles;
-                renderPreview(); // 重新渲染以更新 dataset.index
-            }
-        });
-
-        // 選擇檔案事件
-        input.addEventListener('change', function(e) {
-            const files = Array.from(e.target.files);
-            files.forEach(file => {
-                selectedFiles.push(file);
-            });
-            renderPreview();
-            input.value = ''; // 清空 input 以便重複選擇同檔名檔案
-        });
-
-        // 渲染預覽圖
-        function renderPreview() {
-            container.innerHTML = '';
-            selectedFiles.forEach((file, index) => {
-                const div = document.createElement('div');
-                div.className = 'preview-item';
-                div.dataset.index = index;
-                
-                const img = document.createElement('img');
-                img.src = URL.createObjectURL(file);
-                
-                const btn = document.createElement('button');
-                btn.innerText = 'X';
-                btn.className = 'remove-btn';
-                btn.onclick = (e) => {
-                    e.preventDefault();
-                    selectedFiles.splice(index, 1);
-                    renderPreview();
-                };
-
-                div.appendChild(img);
-                div.appendChild(btn);
-                container.appendChild(div);
-            });
-        }
-
-        // 攔截表單提交
-        document.getElementById('product-form').onsubmit = async function(e) {
-            e.preventDefault();
-            
-            const formData = new FormData(this);
-            // 移除原生 input 裡的檔案，改用我們排序後的陣列
-            formData.delete('images'); 
-            selectedFiles.forEach(file => {
-                formData.append('images', file);
-            });
-
-            // 使用 fetch 發送
-            const response = await fetch(this.action, {
-                method: 'POST',
-                body: formData
-            });
-
-            if (response.ok) {
-                window.location.href = "{{ url_for('staff.product.product_list') }}";
-            } else {
-                alert('上傳失敗');
-            }
-        };
-    </script>
+    
 </form>

@@ -11,7 +11,7 @@ DATABASE_PASSWORD =
 DATABASE_USE = shop_project
 DATABASE_CHARSET = 	utf8mb4
 
-UPLOAD_FOLDER = 'upload'
+UPLOAD_FOLDER = 'app/static/upload'
 """
 
 # 将内容写入 .env 文件
