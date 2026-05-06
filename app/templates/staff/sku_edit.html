@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <title>庫存修改</title>
+    <link rel="stylesheet" href="{{url_for('static', filename='css/staff/sku_edit.css')}}">
+
+</head> 
+ 
+<body>
+    <form class="sku_form" method="post">
+        <div>
+            <label> 新增庫存單位 </label>
+        </div>
+        <div>
+            <label> 貨號 </label>
+            <input type="text" name="code" value="{{ sku.sku_code }}" >
+        </div>
+        <div>
+            <label> 大小 </label>
+            <input type="text" name="size" value="{{ sku.size }}" >
+        </div>
+        <div>
+            <label> 顏色 </label>
+            <input type="text" name="color" value="{{ sku.color }}" >
+        </div>
+        <div>
+            <label> 價格 </label>
+            <input type="number" name="price" value="{{ sku.price }}" >
+        </div>
+        <div>
+            <label> 成本 </label>
+            <input type="number" name="cost" value="{{ sku.cost }}" >
+        </div>
+        <div>
+            <label> 庫存 </label>
+            <input type="number" name="stock" value="{{ sku.stock }}" >
+        </div>
+        <div>
+            <label> is_active </label>
+            <select name="is_active" >
+                <option value=0 {{ 'selected' if sku.is_active == 0 }}> 不可用 </option>
+                <option value=1 {{ 'selected' if sku.is_active == 1 }}> 可用 </option>
+            </select>
+        </div>
+        <button type="submit">儲存產品</button>
+    </form>
+</body>
+
+    
+</form>

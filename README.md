@@ -14,6 +14,11 @@ source .venv/bin/activate
 ```bash
 pip install -r requirements.txt
 ```
+學校的容器環境可能會少編譯要用的運行庫
+```bash
+apt update
+apt install python3-dev default-libmysqlclient-dev build-essential
+```
 
 ### 3.導入資料庫
 將.sql導入
@@ -45,3 +50,4 @@ python run.py
 ### 網站登入地址
 * **一般會員登入:** `[你的IPv4]:[Port(8080)]/auth/login`
 * **管理員登入:** `[你的IPv4]:[Port(8080)]/auth/staff_login`
+#### port撞了就自己改一下

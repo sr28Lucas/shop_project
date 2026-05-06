@@ -31,7 +31,7 @@ def product_list():
         query += " AND p.is_active = %s"
         params.append(is_active)
     
-
+    #連接並執行
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
     cursor.execute(query, params)
@@ -45,14 +45,17 @@ def product_list():
 @product_bp.route('/add', methods=['GET', 'POST'])
 def product_add():
     if request.method == 'POST':
+        #從表單獲取商品資料
         name = request.form['name']
         category_id = request.form.get('category_id')
         description = request.form.get('description')
         files = request.files.getlist('images')
 
+        #連接資料庫
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
 
+        #如果upload就創建資料夾
         if not os.path.exists(config.UPLOAD_FOLDER):
             os.makedirs(config.UPLOAD_FOLDER)
 
@@ -92,6 +95,7 @@ def product_add():
             conn.commit()
             return "OK", 200 # 回應 fetch
 
+        #錯誤回滾
         except Exception as e:
             conn.rollback()
             print(f"Error: {e}")
@@ -100,6 +104,7 @@ def product_add():
             cursor.close()
             conn.close()
 
+    #斷開資料庫
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
     cursor.execute("SELECT id, name FROM category")
@@ -201,3 +206,94 @@ def product_edit(id):
     
     conn.close()
     return render_template('staff/product_edit.html', product=product, images=images, categories=categories)
+
+
+@product_bp.route('/<int:product_id>/sku')
+def sku_list(product_id):
+    #取得篩選參數
+    category_id = request.args.get('category_id')
+    is_active = request.args.get('is_active')
+    
+    #建立查詢語句
+    sql_select = """
+        SELECT * from sku
+        WHERE is_deleted = 0
+        """
+    #捨定篩選參數
+    params = []
+    if category_id and category_id > 0:
+        sql_select += " AND category_id = %s"
+        params.append(category_id)
+    elif category_id == -1:
+        sql_select += " AND category_id = NULL"
+        params.append("NULL")
+    if is_active:
+        sql_select += " AND is_active = %s"
+        params.append(is_active)
+
+    #連接資料庫
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+    #獲取資料
+    cursor.execute(sql_select, params)
+    skus = cursor.fetchall()
+    #斷開資料庫
+    cursor.close()
+    conn.close()
+
+    return render_template("staff/sku_list.html", product_id = product_id, skus = skus)
+
+
+@product_bp.route('/<int:product_id>/sku/edit/<int:sku_id>', methods=['GET','POST'])
+def sku_edit(product_id, sku_id):
+    #連接資料庫
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+    #表單提交行為
+    if request.method == "POST":
+        #讀取提交內容
+        sku_code = request.form.get("code")
+        size = request.form.get("size")
+        color = request.form.get("color")
+        price = request.form.get("price")
+        cost = request.form.get("cost")
+        stock = request.form.get("stock")
+        is_active = request.form.get("is_active")
+        now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        
+        #建立更新語句
+        sql_update = """
+            UPDATE sku 
+            SET sku_code=%s, size=%s, color=%s, price=%s, cost=%s, stock=%s, is_active=%s, updated_at=%s
+            WHERE id=%s
+            """
+        try: 
+            #提交
+            cursor.execute(sql_update,(sku_code,size,color,price,cost,stock,is_active,now,sku_id))
+            conn.commit()
+            return redirect(url_for('product.sku_list', product_id=product_id))
+        except Exception as e:
+            conn.rollback()
+            return f"<script>alert('修改失敗: {str(e)}');</script>"
+        finally:
+            cursor.close()
+            conn.close()
+        
+
+    try:
+        #建立查詢語句
+        sql_select = """
+            SELECT * from sku
+            WHERE id = %s
+            """
+        #捨定篩選參數
+
+        #獲取資料
+        cursor.execute(sql_select,(sku_id, ))
+        sku = cursor.fetchone()
+    finally:
+        #斷開資料庫
+        cursor.close()
+        conn.close()
+
+    return render_template("staff/sku_edit.html", product_id = product_id, sku = sku)
