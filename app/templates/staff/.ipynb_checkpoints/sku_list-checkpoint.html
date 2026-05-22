@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<head>
+    <meta charset="UTF-8">
+    <title>庫存檢視</title>
+</head>
+
+<body>
+    <label>修改庫存 當前商品:{{ product }}</label>
+
+    <table>
+        <thead>
+            <tr>
+                <th>id</th>
+                <th>貨號</th>
+                <th>大小</th>
+                <th>顏色</th>
+                <th>庫存</th>
+                <th>狀態</th>
+                <th>建立時間</th>
+                <th>修改時間</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for sku in skus %}
+            <tr>
+                <th> {{ sku.id }} </th>
+                <th> {{ sku.sku_code }} </th>
+                <th> {{ sku.size }} </th>
+                <th> {{ sku.color }} </th>
+                <th> {{ sku.stock }} </th>
+                <th> {{ sku.is_active }} </th>
+                <th> {{ sku.created_at }} </th>
+                <th> {{ sku.updated_at }} </th>
+                <th>
+                    <a href="{{ url_for('staff.product.sku_edit', product_id = product_id, sku_id = sku.id) }}"> 修改 </a>
+                </th>
+            </tr>
+            {% else %}
+            <tr>
+                <th>暫無sku</th>
+            </tr>
+            {% endfor %}
+
+        </tbody>
+    </table>
+    
+</body>

@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <title>產品管理 - 後臺系統</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/staff/product_list.css') }}">
+    <style>
+
+    </style>
+</head>
+<body>
+    <h1>產品管理</h1>
+
+    <div style="margin-bottom: 20px;">
+        <a href="{{ url_for('staff.product.product_add') }}" class="btn btn-add">+ 新增產品</a>
+    </div>
+
+    <section class="filter-section">
+        <form method="GET" action="{{ url_for('staff.product.product_list') }}">
+            <label for="category_id">類別：</label>
+            <select name="category_id" id="category_id">
+                <option value="">全部類別</option>
+                {% for cat in categories %}
+                <option value="{{ cat.id }}" {{ 'selected' if request.args.get('category_id')|int == cat.id }}>
+                    {{ cat.name }}
+                </option>
+                {% endfor %}
+            </select>
+
+            <label for="is_active">狀態：</label>
+            <select name="is_active" id="is_active">
+                <option value="">全部狀態</option>
+                <option value=1 {{ 'selected' if request.args.get('status') == 'active' }}>上架中</option>
+                <option value=0 {{ 'selected' if request.args.get('status') == 'inactive' }}>未上架</option>
+            </select>
+
+            <button type="submit">套用篩選</button>
+            <a href="{{ url_for('staff.product.product_list') }}">清除篩選</a>
+        </form>
+    </section>
+
+    <table class="product-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>產品名稱</th>
+                <th>類別</th>
+                <th>商品描述</th>
+                <th>狀態</th>
+                <th>建立時間</th>
+                <th>更新時間</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for product in products %}
+            <tr>
+                <td>{{ product.id }}</td>
+                <td>{{ product.name }}</td>
+                <td>{{ product.category_name }}</td>
+                <td>{{ product.description }}</td>
+                <td>{{ '上架中' if product.is_active else '未上架' }}</td>
+                <td>{{ product.created_at }}</td>
+                <td>{{ product.updated_at }}</td>
+                
+                <td>
+                    <a href="{{ url_for('staff.product.product_edit', id=product.id) }}" class="btn btn-edit">修改</a>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="8" style="text-align: center;">查無產品資料</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>

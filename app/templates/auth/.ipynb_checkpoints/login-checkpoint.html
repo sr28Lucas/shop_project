@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <title>會員登入</title>
+</head>
+<body>
+    <h2>會員登入</h2>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <p style="color: red;">{{ message }}</p>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <form method="POST" action="{{ url_for('auth.login') }}">
+        <label>帳號 (Email):</label><br>
+        <input type="email" name="email" required><br><br>
+        
+        <label>密碼:</label><br>
+        <input type="password" name="password" required><br><br>
+        
+        <button type="submit">確認登入</button>
+    </form>
+    <br>
+    <a href="{{ url_for('auth.register') }}">還沒有帳號？點此申辦</a>
+</body>
+</html>
