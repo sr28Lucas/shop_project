@@ -9,9 +9,13 @@ staff_bp = Blueprint('staff', __name__, template_folder = '../templates/staff') 
 
 #註冊功能
 from .product import product_bp
-
+from .category import category_bp
+from .page import page_bp
 
 staff_bp.register_blueprint(product_bp, url_prefix='/product')
+staff_bp.register_blueprint(category_bp, url_prefix='/category')
+staff_bp.register_blueprint(page_bp, url_prefix='/page')
+
 
 
 @staff_bp.route('/dashboard')

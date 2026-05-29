@@ -1,34 +1,148 @@
-.filter-section { 
-    background: #f4f4f4; 
-    padding: 15px; 
-    margin-bottom: 20px; 
-    border-radius: 5px; 
+/* 整體頁面設定 */
+body {
+    font-family: "Microsoft JhengHei", Arial, sans-serif;
+    line-height: 1.6;
+    color: #333;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: #f8f9fa;
 }
+
+h1 {
+    color: #2c3e50;
+    margin-bottom: 20px;
+}
+
+/* 頂部操作區 */
+.action-bar {
+    margin-bottom: 20px;
+}
+
+/* 篩選區塊 */
+.filter-section { 
+    background: white; 
+    padding: 20px; 
+    margin-bottom: 20px; 
+    border-radius: 8px; 
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.filter-section form {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 15px;
+}
+
+.filter-section label {
+    font-weight: bold;
+    color: #555;
+}
+
+.filter-section select {
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background-color: #fff;
+}
+
+.filter-section button {
+    padding: 8px 20px;
+    background-color: #6c757d;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.filter-section button:hover {
+    background-color: #5a6268;
+}
+
+.filter-section a {
+    color: #007bff;
+    text-decoration: none;
+    font-size: 14px;
+}
+
+/* 表格設定 */
+.product-table-container {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    overflow: hidden; /* 確保圓角效果 */
+}
+
 .product-table { 
     width: 100%; 
     border-collapse: collapse; 
+    table-layout: fixed; /* 固定佈局，控制欄寬 */
 }
+
 .product-table th, .product-table td { 
-    border: 1px solid #ddd; 
-    padding: 8px; 
+    padding: 12px 15px; 
     text-align: left; 
+    border-bottom: 1px solid #eee;
 }
-.status-unlisted { 
-    color: gray; 
+
+.product-table th {
+    background-color: #f1f3f5;
+    color: #495057;
+    font-weight: bold;
 }
-.status-enabled { 
-    color: green; 
+
+/* 欄位寬度控制 */
+.col-id { width: 30px; }
+.col-name { width: 150px; }
+.col-category { width: 50px; }
+.col-description { width: 50px; } /* 描述欄自動分配剩餘空間 */
+.col-status { width: 40px; }
+.col-time { width: 100px; }
+.col-actions { width: 160px; }
+
+/* 描述文字溢出處理 */
+.td-description {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: #666;
+    font-size: 0.9em;
 }
+
+/* 狀態標籤 */
+.status-badge {
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: bold;
+}
+.status-active { background: #d4edda; color: #155724; }
+.status-inactive { background: #f8d7da; color: #721c24; }
+
+/* 按鈕樣式 */
 .btn { 
-    padding: 5px 10px; 
+    display: inline-block;
+    padding: 6px 12px; 
     text-decoration: none; 
-    border-radius: 3px; 
+    border-radius: 4px; 
+    border: none;
+    cursor: pointer;
+    font-size: 13px;
+    transition: opacity 0.2s;
+    margin-right: 5px;
 }
-.btn-add { 
-    background: #28a745; 
-    color: white; 
+
+.btn:hover {
+    opacity: 0.8;
 }
-.btn-edit { 
-    background: #007bff; 
-    color: white; 
+
+.btn-add { background: #28a745; color: white; font-weight: bold; }
+.btn-sku { background: #17a2b8; color: white; }
+.btn-edit { background: #ffc107; color: #212529; }
+.btn-delete { background: #dc3545; color: white; }
+
+form.inline-form {
+    display: inline;
 }

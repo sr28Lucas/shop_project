@@ -1,0 +1,10 @@
+.add-section { 
+    margin-bottom: 20px; 
+    background: #f4f4f4; 
+    padding: 15px; 
+    border-radius: 5px; 
+}
+
+.edit-form { 
+    display: none; 
+}

@@ -46,6 +46,7 @@ CREATE TABLE `cart_item` (
 CREATE TABLE `category` (
   `id` int PRIMARY KEY AUTO_INCREMENT,
   `name` varchar(30) UNIQUE NOT NULL,
+  `is_deleted` bool NOT NULL DEFAULT 0,
   `created_at` datetime,
   `updated_at` datetime
 );

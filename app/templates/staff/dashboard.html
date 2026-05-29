@@ -19,7 +19,8 @@
         <div class="card">
             <div class="card-header">頁面管理</div>
             <ul class="card-body">
-                <li><a href="#">分類管理</a></li>
+                <li><a href="{{ url_for('staff.category.category_list') }}">分類管理</a></li>
+                <li><a href="{{ url_for('staff.page.announcement_list') }}">公告管理</a></li>
             </ul>
         </div>
 
@@ -27,8 +28,6 @@
             <div class="card-header">商品管理</div>
             <ul class="card-body">
                 <li><a href="{{ url_for('staff.product.product_list') }}">修改商品</a></li>
-                <li><a href="#">庫存管理</a></li>    
-                <li><a href="#">上下架</a></li>
                 <li><a href="#">折扣碼</a></li>
                 
             </ul>

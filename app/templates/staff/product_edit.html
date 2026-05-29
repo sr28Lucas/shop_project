@@ -59,7 +59,7 @@
     // type: 'old' 代表資料庫已有的, 'new' 代表剛選取的檔案
     let allImages = [
         {% for img in images %}
-        { type: 'old', id: {{ img.id }}, url: "{{ url_for('static', filename='upload/' + img.url) }}" },
+        { type: 'old', id: {{ img.id }}, url: "{{ url_for('static', filename='upload/' + img.filename) }}" },
         {% endfor %}
     ];
     let deletedIds = [];

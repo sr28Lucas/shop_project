@@ -4,74 +4,135 @@
     <meta charset="UTF-8">
     <title>產品管理 - 後臺系統</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/staff/product_list.css') }}">
-    <style>
-
-    </style>
 </head>
 <body>
     <h1>產品管理</h1>
 
-    <div style="margin-bottom: 20px;">
+    <div class="action-bar">
+        <a href="{{ url_for('staff.dashboard') }}" class="btn" style="background: #6c757d; color: white;">← 返回儀表板</a>
         <a href="{{ url_for('staff.product.product_add') }}" class="btn btn-add">+ 新增產品</a>
     </div>
 
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <div style="background: #d4edda; color: #155724; padding: 10px; border-radius: 5px; margin-bottom: 20px; border: 1px solid #c3e6cb;">
+        {% for message in messages %}
+          {{ message }}
+        {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
     <section class="filter-section">
         <form method="GET" action="{{ url_for('staff.product.product_list') }}">
-            <label for="category_id">類別：</label>
-            <select name="category_id" id="category_id">
-                <option value="">全部類別</option>
-                {% for cat in categories %}
-                <option value="{{ cat.id }}" {{ 'selected' if request.args.get('category_id')|int == cat.id }}>
-                    {{ cat.name }}
-                </option>
-                {% endfor %}
-            </select>
+            <div>
+                <label for="category_id">類別：</label>
+                <select name="category_id" id="category_id">
+                    <option value="">全部類別</option>
+                    {% for cat in categories %}
+                    <option value="{{ cat.id }}" {{ 'selected' if request.args.get('category_id')|int == cat.id }}>
+                        {{ cat.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
 
-            <label for="is_active">狀態：</label>
-            <select name="is_active" id="is_active">
-                <option value="">全部狀態</option>
-                <option value=1 {{ 'selected' if request.args.get('status') == 'active' }}>上架中</option>
-                <option value=0 {{ 'selected' if request.args.get('status') == 'inactive' }}>未上架</option>
-            </select>
+            <div>
+                <label for="is_active">狀態：</label>
+                <select name="is_active" id="is_active">
+                    <option value="">全部狀態</option>
+                    <option value="1" {{ 'selected' if request.args.get('is_active') == '1' }}>上架中</option>
+                    <option value="0" {{ 'selected' if request.args.get('is_active') == '0' }}>未上架</option>
+                </select>
+            </div>
 
             <button type="submit">套用篩選</button>
             <a href="{{ url_for('staff.product.product_list') }}">清除篩選</a>
         </form>
     </section>
 
-    <table class="product-table">
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>產品名稱</th>
-                <th>類別</th>
-                <th>商品描述</th>
-                <th>狀態</th>
-                <th>建立時間</th>
-                <th>更新時間</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for product in products %}
-            <tr>
-                <td>{{ product.id }}</td>
-                <td>{{ product.name }}</td>
-                <td>{{ product.category_name }}</td>
-                <td>{{ product.description }}</td>
-                <td>{{ '上架中' if product.is_active else '未上架' }}</td>
-                <td>{{ product.created_at }}</td>
-                <td>{{ product.updated_at }}</td>
-                
-                <td>
-                    <a href="{{ url_for('staff.product.product_edit', id=product.id) }}" class="btn btn-edit">修改</a>
-                </td>
-            </tr>
-            {% else %}
-            <tr>
-                <td colspan="8" style="text-align: center;">查無產品資料</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    <form action="{{ url_for('staff.product.bulk_update_status') }}" method="POST" id="bulk-form">
+        <div style="margin-bottom: 10px;">
+            <button type="submit" name="action" value="on" class="btn btn-add" style="background: #28a745;">批量上架</button>
+            <button type="submit" name="action" value="off" class="btn btn-delete" style="background: #dc3545;">批量下架</button>
+        </div>
+
+        <div class="product-table-container">
+            <table class="product-table">
+                <thead>
+                    <tr>
+                        <th style="width: 30px;"><input type="checkbox" id="select-all"></th>
+                        <th class="col-id">ID</th>
+                        <th class="col-name">產品名稱</th>
+                        <th class="col-category">類別</th>
+                        <th class="col-description">商品描述</th>
+                        <th class="col-status">狀態</th>
+                        <th class="col-time">建立時間</th>
+                        <th class="col-time">修改時間</th>
+                        <th class="col-actions">操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for product in products %}
+                    <tr>
+                        <td><input type="checkbox" name="product_ids" value="{{ product.id }}" class="product-checkbox"></td>
+                        <td>{{ product.id }}</td>
+                        <td title="{{ product.name }}" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ product.name }}</td>
+                        <td>{{ product.category_name }}</td>
+                        <td class="td-description" title="{{ product.description }}">{{ product.description or '-' }}</td>
+                        <td>
+                            {% if product.is_active %}
+                            <span class="status-badge status-active">上架中</span>
+                            {% else %}
+                            <span class="status-badge status-inactive">未上架</span>
+                            {% endif %}
+                        </td>
+                        <td style="font-size: 0.85em; color: #888;">
+                            {% if product.created_at %}
+                                {{ product.created_at.strftime('%Y-%m-%d %H:%M') if product.created_at.strftime else product.created_at }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                        <td style="font-size: 0.85em; color: #888;">
+                            {% if product.updated_at %}
+                                {{ product.updated_at.strftime('%Y-%m-%d %H:%M') if product.updated_at.strftime else product.updated_at }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                        
+                        <td>
+                            <a href="{{ url_for('staff.product.sku_list', product_id=product.id) }}" class="btn btn-sku">SKU</a>
+                            <a href="{{ url_for('staff.product.product_edit', id=product.id) }}" class="btn btn-edit">修改</a>
+                            <button type="button" class="btn btn-delete" onclick="if(confirm('確定要刪除此商品嗎？')) { deleteProduct({{ product.id }}); }">刪除</button>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="9" style="text-align: center; padding: 30px;">查無產品資料</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </form>
+
+    <form id="single-delete-form" method="POST" style="display:none;"></form>
+
+    <script>
+        // 全選功能
+        document.getElementById('select-all').addEventListener('change', function() {
+            const checkboxes = document.querySelectorAll('.product-checkbox');
+            checkboxes.forEach(cb => cb.checked = this.checked);
+        });
+
+        // 個別刪除功能 (改為調用隱藏表單以符合 CSRF 或 POST 要求)
+        function deleteProduct(id) {
+            const form = document.getElementById('single-delete-form');
+            form.action = "{{ url_for('staff.product.product_list') }}".replace('list', 'delete/') + id;
+            form.submit();
+        }
+    </script>
 </body>
 </html>

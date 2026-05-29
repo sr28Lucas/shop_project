@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <title>公告管理 - 後臺系統</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/staff/product_list.css') }}">
+</head>
+<body>
+    <h1>公告管理</h1>
+    <div class="action-bar">
+        <a href="{{ url_for('staff.dashboard') }}" class="btn" style="background: #6c757d; color: white;">← 返回儀表板</a>
+        <a href="{{ url_for('staff.page.announcement_add') }}" class="btn btn-add">+ 新增公告</a>
+    </div>
+
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <ul style="color: red;">
+        {% for message in messages %}
+          <li>{{ message }}</li>
+        {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
+
+    <div class="product-table-container">
+        <table class="product-table">
+            <thead>
+                <tr>
+                    <th style="width: 50px;">ID</th>
+                    <th>標題</th>
+                    <th style="width: 100px;">類型</th>
+                    <th style="width: 80px;">權重</th>
+                    <th style="width: 80px;">狀態</th>
+                    <th style="width: 140px;">建立時間</th>
+                    <th style="width: 180px;">操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for a in announcements %}
+                <tr>
+                    <td>{{ a.id }}</td>
+                    <td>{{ a.title }}</td>
+                    <td>{{ a.type }}</td>
+                    <td>{{ a.priority }}</td>
+                    <td>
+                        {% if a.is_active %}
+                        <span class="status-badge status-active">啟用</span>
+                        {% else %}
+                        <span class="status-badge status-inactive">停用</span>
+                        {% endif %}
+                    </td>
+                    <td style="font-size: 0.85em; color: #888;">{{ a.created_at.strftime('%Y-%m-%d %H:%M') if a.created_at else '-' }}</td>
+                    <td>
+                        <a href="{{ url_for('staff.page.announcement_edit', id=a.id) }}" class="btn btn-edit">修改</a>
+                        <form action="{{ url_for('staff.page.announcement_delete', id=a.id) }}" method="POST" class="inline-form" onsubmit="return confirm('確定要刪除此公告嗎？');">
+                            <button type="submit" class="btn btn-delete">刪除</button>
+                        </form>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="7" style="text-align: center; padding: 30px;">暫無公告資料</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>

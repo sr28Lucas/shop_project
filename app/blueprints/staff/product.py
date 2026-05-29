@@ -1,4 +1,4 @@
-from flask import Blueprint, session, request, redirect, render_template, url_for 
+from flask import Blueprint, session, request, redirect, render_template, url_for, flash 
 from werkzeug.utils import secure_filename
 from app.db import get_db_connection
 from datetime import datetime
@@ -34,9 +34,12 @@ def product_list():
     #連接並執行
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
+
+
+
     cursor.execute(query, params)
     products = cursor.fetchall()
-    cursor.execute("SELECT * FROM category")
+    cursor.execute("SELECT * FROM category WHERE is_deleted = 0")
     categories = cursor.fetchall()
 
     return render_template('staff/product_list.html', products=products, categories=categories)
@@ -63,7 +66,7 @@ def product_add():
             # 1. 插入商品主檔
             cursor.execute("""
                 INSERT INTO product (category_id, name, description, is_active, created_at, updated_at)
-                VALUES (%s, %s, %s, 1, NOW(), NOW())
+                VALUES (%s, %s, %s, 0, NOW(), NOW())
             """, (category_id, name, description))
             
             product_id = cursor.lastrowid
@@ -75,9 +78,9 @@ def product_add():
                 if file:
                     # 先插入圖片紀錄以取得 image_id
                     cursor.execute("""
-                        INSERT INTO image (product_id, url, sort_order, created_at, updated_at)
+                        INSERT INTO image (product_id, filename, sort_order, created_at, updated_at)
                         VALUES (%s, %s, %s, %s, %s)
-                    """, (product_id, "", index, now, now)) # 暫時給空 url
+                    """, (product_id, "", index, now, now)) # 暫時給空 filename
                     
                     image_id = cursor.lastrowid
                     
@@ -89,8 +92,8 @@ def product_add():
                     upload_path = os.path.join(config.UPLOAD_FOLDER, filename)
                     file.save(upload_path)
                     
-                    # 更新資料庫中的 url
-                    cursor.execute("UPDATE image SET url = %s WHERE id = %s", (filename, image_id))
+                    # 更新資料庫中的 filename
+                    cursor.execute("UPDATE image SET filename = %s WHERE id = %s", (filename, image_id))
 
             conn.commit()
             return "OK", 200 # 回應 fetch
@@ -107,7 +110,7 @@ def product_add():
     #斷開資料庫
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
-    cursor.execute("SELECT id, name FROM category")
+    cursor.execute("SELECT id, name FROM category WHERE is_deleted = 0")
     categories = cursor.fetchall()
     return render_template('staff/product_add.html', categories = categories)
 
@@ -142,10 +145,10 @@ def product_edit(id):
                 id_list = [int(i) for i in deleted_ids.split(',') if i]
                 for d_id in id_list:
                     # 先找檔名以便刪除實體檔案
-                    cursor.execute("SELECT url FROM image WHERE id=%s", (d_id,))
+                    cursor.execute("SELECT filename FROM image WHERE id=%s", (d_id,))
                     img_data = cursor.fetchone()
                     if img_data:
-                        file_path = os.path.join(config.UPLOAD_FOLDER, img_data['url'])
+                        file_path = os.path.join(config.UPLOAD_FOLDER, img_data['filename'])
                         if os.path.exists(file_path):
                             os.remove(file_path)
                     # 刪除資料庫紀錄
@@ -169,7 +172,7 @@ def product_edit(id):
                     
                     # 插入空資料取 ID
                     cursor.execute("""
-                        INSERT INTO image (product_id, url, sort_order, created_at, updated_at)
+                        INSERT INTO image (product_id, filename, sort_order, created_at, updated_at)
                         VALUES (%s, %s, %s, %s, %s)
                     """, (id, "", index, now, now))
                     
@@ -179,7 +182,7 @@ def product_edit(id):
                     
                     # 儲存與更新 URL
                     file.save(os.path.join(config.UPLOAD_FOLDER, filename))
-                    cursor.execute("UPDATE image SET url = %s WHERE id = %s", (filename, new_img_id))
+                    cursor.execute("UPDATE image SET filename = %s WHERE id = %s", (filename, new_img_id))
                     
                     new_file_index += 1
 
@@ -201,99 +204,189 @@ def product_edit(id):
     cursor.execute("SELECT * FROM image WHERE product_id = %s ORDER BY sort_order", (id,))
     images = cursor.fetchall()
     
-    cursor.execute("SELECT id, name FROM category")
+    cursor.execute("SELECT id, name FROM category WHERE is_deleted = 0")
     categories = cursor.fetchall()
     
     conn.close()
     return render_template('staff/product_edit.html', product=product, images=images, categories=categories)
 
 
+@product_bp.route('/bulk_update_status', methods=['POST'])
+def bulk_update_status():
+    product_ids = request.form.getlist('product_ids')
+    action = request.form.get('action')
+    
+    if not product_ids:
+        flash("請先勾選商品")
+        return redirect(url_for('staff.product.product_list'))
+        
+    is_active = 1 if action == 'on' else 0
+    
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    try:
+        # 使用 IN 子句批次更新
+        format_strings = ','.join(['%s'] * len(product_ids))
+        cursor.execute(f"UPDATE product SET is_active = %s, updated_at = NOW() WHERE id IN ({format_strings})", [is_active] + product_ids)
+        conn.commit()
+        flash(f"已成功將 {cursor.rowcount} 個商品{'上架' if is_active else '下架'}")
+    except Exception as e:
+        conn.rollback()
+        flash(f"批次更新失敗: {e}")
+    finally:
+        cursor.close()
+        conn.close()
+        
+    return redirect(url_for('staff.product.product_list'))
+
+
+@product_bp.route('/delete/<int:id>', methods=['POST'])
+def product_delete(id):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    try:
+        # Soft delete product
+        cursor.execute("UPDATE product SET is_deleted = 1, updated_at = NOW() WHERE id = %s", (id,))
+        # Soft delete related SKUs
+        cursor.execute("UPDATE sku SET is_deleted = 1, updated_at = NOW() WHERE product_id = %s", (id,))
+        conn.commit()
+    except Exception as e:
+        conn.rollback()
+        print(f"Error deleting product: {e}")
+    finally:
+        cursor.close()
+        conn.close()
+    return redirect(url_for('staff.product.product_list'))
+
+
 @product_bp.route('/<int:product_id>/sku')
 def sku_list(product_id):
-    #取得篩選參數
-    category_id = request.args.get('category_id')
-    is_active = request.args.get('is_active')
-    
-    #建立查詢語句
-    sql_select = """
-        SELECT * from sku
-        WHERE is_deleted = 0
-        """
-    #捨定篩選參數
-    params = []
-    if category_id and category_id > 0:
-        sql_select += " AND category_id = %s"
-        params.append(category_id)
-    elif category_id == -1:
-        sql_select += " AND category_id = NULL"
-        params.append("NULL")
-    if is_active:
-        sql_select += " AND is_active = %s"
-        params.append(is_active)
-
-    #連接資料庫
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
-    #獲取資料
-    cursor.execute(sql_select, params)
+    
+    # 獲取產品名稱
+    cursor.execute("SELECT name FROM product WHERE id = %s", (product_id,))
+    product = cursor.fetchone()
+    
+    # 獲取 SKU 列表
+    cursor.execute("SELECT * FROM sku WHERE product_id = %s AND is_deleted = 0", (product_id,))
     skus = cursor.fetchall()
-    #斷開資料庫
+    
     cursor.close()
     conn.close()
+    return render_template("staff/sku_list.html", product_id=product_id, product_name=product['name'] if product else "未知商品", skus=skus)
 
-    return render_template("staff/sku_list.html", product_id = product_id, skus = skus)
+
+@product_bp.route('/<int:product_id>/sku/add', methods=['GET', 'POST'])
+def sku_add(product_id):
+    if request.method == 'POST':
+        sku_code = request.form.get('sku_code')
+        size = request.form.get('size')
+        color = request.form.get('color')
+        price = request.form.get('price')
+        cost = request.form.get('cost')
+        stock = request.form.get('stock')
+        files = request.files.getlist('images')
+
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        try:
+            cursor.execute("""
+                INSERT INTO sku (product_id, sku_code, size, color, price, cost, stock, created_at, updated_at)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, NOW(), NOW())
+            """, (product_id, sku_code, size, color, price, cost, stock))
+            sku_id = cursor.lastrowid
+
+            # 處理圖片
+            for index, file in enumerate(files):
+                if file:
+                    cursor.execute("""
+                        INSERT INTO image (product_id, sku_id, image_type, filename, sort_order, created_at, updated_at)
+                        VALUES (%s, %s, 'sku', '', %s, NOW(), NOW())
+                    """, (product_id, sku_id, index))
+                    image_id = cursor.lastrowid
+                    ext = os.path.splitext(file.filename)[1]
+                    filename = f"sku_{sku_id}_{image_id}{ext}"
+                    file.save(os.path.join(config.UPLOAD_FOLDER, filename))
+                    cursor.execute("UPDATE image SET filename = %s WHERE id = %s", (filename, image_id))
+            
+            conn.commit()
+            return redirect(url_for('staff.product.sku_list', product_id=product_id))
+        except Exception as e:
+            conn.rollback()
+            flash(f"新增失敗: {str(e)}")
+        finally:
+            cursor.close()
+            conn.close()
+
+    return render_template('staff/sku_add.html', product_id=product_id)
 
 
-@product_bp.route('/<int:product_id>/sku/edit/<int:sku_id>', methods=['GET','POST'])
+@product_bp.route('/<int:product_id>/sku/edit/<int:sku_id>', methods=['GET', 'POST'])
 def sku_edit(product_id, sku_id):
-    #連接資料庫
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
-    #表單提交行為
+    
     if request.method == "POST":
-        #讀取提交內容
-        sku_code = request.form.get("code")
+        sku_code = request.form.get("sku_code")
         size = request.form.get("size")
         color = request.form.get("color")
         price = request.form.get("price")
         cost = request.form.get("cost")
         stock = request.form.get("stock")
         is_active = request.form.get("is_active")
-        now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         
-        #建立更新語句
-        sql_update = """
-            UPDATE sku 
-            SET sku_code=%s, size=%s, color=%s, price=%s, cost=%s, stock=%s, is_active=%s, updated_at=%s
-            WHERE id=%s
-            """
+        # 圖片處理 (簡化版：僅新增，實際可參考 product_edit 完整版)
+        files = request.files.getlist('images')
+
         try: 
-            #提交
-            cursor.execute(sql_update,(sku_code,size,color,price,cost,stock,is_active,now,sku_id))
+            cursor.execute("""
+                UPDATE sku 
+                SET sku_code=%s, size=%s, color=%s, price=%s, cost=%s, stock=%s, is_active=%s, updated_at=NOW()
+                WHERE id=%s
+            """, (sku_code, size, color, price, cost, stock, is_active, sku_id))
+            
+            for index, file in enumerate(files):
+                if file:
+                    cursor.execute("""
+                        INSERT INTO image (product_id, sku_id, image_type, filename, sort_order, created_at, updated_at)
+                        VALUES (%s, %s, 'sku', '', %s, NOW(), NOW())
+                    """, (product_id, sku_id, index))
+                    image_id = cursor.lastrowid
+                    ext = os.path.splitext(file.filename)[1]
+                    filename = f"sku_{sku_id}_{image_id}{ext}"
+                    file.save(os.path.join(config.UPLOAD_FOLDER, filename))
+                    cursor.execute("UPDATE image SET filename = %s WHERE id = %s", (filename, image_id))
+
             conn.commit()
-            return redirect(url_for('product.sku_list', product_id=product_id))
+            return redirect(url_for('staff.product.sku_list', product_id=product_id))
         except Exception as e:
             conn.rollback()
-            return f"<script>alert('修改失敗: {str(e)}');</script>"
+            flash(f"修改失敗: {str(e)}")
         finally:
             cursor.close()
             conn.close()
         
+    cursor.execute("SELECT * FROM sku WHERE id = %s", (sku_id,))
+    sku = cursor.fetchone()
+    cursor.execute("SELECT * FROM image WHERE sku_id = %s ORDER BY sort_order", (sku_id,))
+    images = cursor.fetchall()
+    cursor.close()
+    conn.close()
+    return render_template("staff/sku_edit.html", product_id=product_id, sku=sku, images=images)
 
+
+@product_bp.route('/<int:product_id>/sku/delete/<int:sku_id>', methods=['POST'])
+def sku_delete(product_id, sku_id):
+    conn = get_db_connection()
+    cursor = conn.cursor()
     try:
-        #建立查詢語句
-        sql_select = """
-            SELECT * from sku
-            WHERE id = %s
-            """
-        #捨定篩選參數
-
-        #獲取資料
-        cursor.execute(sql_select,(sku_id, ))
-        sku = cursor.fetchone()
+        cursor.execute("UPDATE sku SET is_deleted = 1, updated_at = NOW() WHERE id = %s", (sku_id,))
+        conn.commit()
+    except Exception as e:
+        conn.rollback()
+        flash(f"刪除失敗: {str(e)}")
     finally:
-        #斷開資料庫
         cursor.close()
         conn.close()
-
-    return render_template("staff/sku_edit.html", product_id = product_id, sku = sku)
+    return redirect(url_for('staff.product.sku_list', product_id=product_id))

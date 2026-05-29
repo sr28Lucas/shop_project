@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <title>修改公告 - 後臺系統</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/staff/product_list.css') }}">
+    <style>
+        .form-container { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); max-width: 800px; margin: 20px 0; }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; margin-bottom: 8px; font-weight: bold; }
+        .form-group input[type="text"], .form-group textarea, .form-group select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
+        .form-group textarea { height: 200px; }
+        .form-group input[type="checkbox"] { margin-right: 10px; }
+    </style>
+</head>
+<body>
+    <h1>修改公告</h1>
+    <a href="{{ url_for('staff.page.announcement_list') }}" class="btn" style="background: #6c757d; color: white;">← 返回列表</a>
+
+    <div class="form-container">
+        <form action="{{ url_for('staff.page.announcement_edit', id=announcement.id) }}" method="POST">
+            <div class="form-group">
+                <label>公告標題</label>
+                <input type="text" name="title" value="{{ announcement.title }}" required>
+            </div>
+            <div class="form-group">
+                <label>內容</label>
+                <textarea name="content" required>{{ announcement.content }}</textarea>
+            </div>
+            <div class="form-group">
+                <label>類型</label>
+                <select name="type">
+                    <option value="general" {{ 'selected' if announcement.type == 'general' }}>一般公告</option>
+                    <option value="important" {{ 'selected' if announcement.type == 'important' }}>重要通知</option>
+                    <option value="event" {{ 'selected' if announcement.type == 'event' }}>活動訊息</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>優先權重 (越高越前面)</label>
+                <input type="number" name="priority" value="{{ announcement.priority }}">
+            </div>
+            <div class="form-group">
+                <label>
+                    <input type="checkbox" name="is_active" {{ 'checked' if announcement.is_active }}> 啟用中
+                </label>
+            </div>
+            <button type="submit" class="btn btn-edit">儲存修改</button>
+        </form>
+    </div>
+</body>
+</html>

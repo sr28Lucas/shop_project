@@ -1,0 +1,120 @@
+{% extends "home/base.html" %}
+
+{% block title %}{{ product.name }}{% endblock %}
+
+{% block head %}
+<style>
+    .product-detail-container { display: flex; gap: 40px; background: white; padding: 40px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+    .product-images { flex: 0 0 450px; }
+    .main-image { width: 100%; height: 450px; background: #f9f9f9; border-radius: 8px; overflow: hidden; margin-bottom: 15px; }
+    .main-image img { width: 100%; height: 100%; object-fit: cover; }
+    .thumbnail-list { display: flex; gap: 10px; overflow-x: auto; }
+    .thumbnail { width: 80px; height: 80px; border: 2px solid transparent; border-radius: 4px; cursor: pointer; overflow: hidden; }
+    .thumbnail.active { border-color: #d63384; }
+    .thumbnail img { width: 100%; height: 100%; object-fit: cover; }
+    
+    .product-selection { flex: 1; }
+    .product-category { color: #888; font-size: 14px; margin-bottom: 10px; }
+    .product-title { font-size: 28px; margin: 0 0 20px 0; color: #2c3e50; }
+    .product-price-range { font-size: 24px; color: #d63384; font-weight: bold; margin-bottom: 30px; }
+    
+    .sku-selector { margin-bottom: 30px; }
+    .sku-label { font-weight: bold; margin-bottom: 15px; display: block; }
+    .sku-options { display: flex; flex-wrap: wrap; gap: 10px; }
+    .sku-btn { border: 1px solid #ddd; padding: 8px 20px; border-radius: 4px; background: white; cursor: pointer; transition: all 0.2s; }
+    .sku-btn:hover { border-color: #d63384; color: #d63384; }
+    .sku-btn.active { background: #d63384; color: white; border-color: #d63384; }
+    
+    .buy-actions { display: flex; gap: 15px; margin-top: 40px; }
+    .btn-buy { flex: 1; padding: 15px; background: #d63384; color: white; border: none; border-radius: 4px; font-size: 18px; font-weight: bold; cursor: pointer; }
+    .btn-cart { flex: 1; padding: 15px; background: #fff; color: #d63384; border: 2px solid #d63384; border-radius: 4px; font-size: 18px; font-weight: bold; cursor: pointer; }
+    
+    .product-description { margin-top: 50px; border-top: 1px solid #eee; padding-top: 30px; }
+    .description-title { font-size: 20px; font-weight: bold; margin-bottom: 20px; }
+    .description-content { line-height: 1.8; color: #555; white-space: pre-wrap; }
+</style>
+{% endblock %}
+
+{% block content %}
+    <div style="margin-bottom: 20px;">
+        <a href="{{ url_for('home.index') }}" style="color: #888; text-decoration: none;">首頁</a> / 
+        <span style="color: #444;">{{ product.category_name }}</span> / 
+        <span style="color: #444;">{{ product.name }}</span>
+    </div>
+
+    <div class="product-detail-container">
+        <div class="product-images">
+            <div class="main-image">
+                {% if images %}
+                    <img id="mainImg" src="{{ url_for('static', filename='upload/' + images[0].filename) }}" alt="{{ product.name }}">
+                {% else %}
+                    <div style="height: 100%; display: flex; align-items: center; justify-content: center; color: #ccc;">暫無圖片</div>
+                {% endif %}
+            </div>
+            <div class="thumbnail-list">
+                {% for img in images %}
+                    <div class="thumbnail {{ 'active' if loop.first }}" onclick="changeMainImg('{{ url_for('static', filename='upload/' + img.filename) }}', this)">
+                        <img src="{{ url_for('static', filename='upload/' + img.filename) }}" alt="">
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <div class="product-selection">
+            <div class="product-category">{{ product.category_name }}</div>
+            <h1 class="product-title">{{ product.name }}</h1>
+            
+            <div class="product-price-range">
+                {% set min_p = skus|map(attribute='price')|min %}
+                {% set max_p = skus|map(attribute='price')|max %}
+                {% if min_p == max_p %}
+                    ${{ "{:,.0f}".format(min_p) if min_p else '0' }}
+                {% else %}
+                    ${{ "{:,.0f}".format(min_p) }} - ${{ "{:,.0f}".format(max_p) }}
+                {% endif %}
+            </div>
+            
+            <div class="sku-selector">
+                <label class="sku-label">選擇規格</label>
+                <div class="sku-options">
+                    {% for sku in skus %}
+                        <button type="button" class="sku-btn" onclick="selectSku({{ sku.id }}, {{ sku.price }}, '{{ sku.size }}', '{{ sku.color }}', this)">
+                            {{ sku.size }}{% if sku.size and sku.color %} / {% endif %}{{ sku.color }}
+                        </button>
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <div id="selected-price" style="font-size: 28px; color: #d63384; font-weight: bold; margin-bottom: 20px; display: none;"></div>
+            
+            <div class="buy-actions">
+                <button class="btn-cart">加入購物車</button>
+                <button class="btn-buy">立即購買</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="product-description">
+        <div class="description-title">商品詳情</div>
+        <div class="description-content">{{ product.description or '暫無描述資料。' }}</div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function changeMainImg(src, el) {
+        document.getElementById('mainImg').src = src;
+        document.querySelectorAll('.thumbnail').forEach(t => t.classList.remove('active'));
+        el.classList.add('active');
+    }
+    
+    function selectSku(id, price, size, color, el) {
+        document.querySelectorAll('.sku-btn').forEach(b => b.classList.remove('active'));
+        el.classList.add('active');
+        
+        const priceDiv = document.getElementById('selected-price');
+        priceDiv.style.display = 'block';
+        priceDiv.innerText = '$' + price.toLocaleString();
+    }
+</script>
+{% endblock %}

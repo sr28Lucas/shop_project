@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}首頁{% endblock %} - 電商網站</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/home/common.css') }}">
+    {% block head %}{% endblock %}
+</head>
+<body>
+    <header>
+        <div class="header-top">
+            <div class="logo">
+                <a href="{{ url_for('home.index') }}" class="logo-placeholder">LOGO</a>
+            </div>
+            <div class="search-bar">
+                <form action="{{ url_for('home.index') }}" method="GET">
+                    <input type="text" name="q" placeholder="搜尋商品名稱..." value="{{ request.args.get('q', '') }}" >
+                    <button type="submit">搜尋</button>
+                </form>
+            </div>
+            <div class="header-icons">
+                <a href="#" class="cart-icon">
+                    🛒 <span class="cart-count">0</span>
+                </a>
+            </div>
+        </div>
+        <nav class="header-nav">
+            <ul>
+                <li><a href="{{ url_for('home.announcements') }}">公告</a></li>
+                <li><a href="{{ url_for('home.index') }}">商品瀏覽</a></li>
+                <li><a href="{{ url_for('customer.center') }}">顧客中心</a></li>
+                {% if session.get('customer_id') %}
+                    <li><a href="{{ url_for('auth.logout') }}">登出 ({{ session.get('customer_name', '會員') }})</a></li>
+                {% else %}
+                    <li><a href="{{ url_for('auth.login') }}">登入/註冊</a></li>
+                {% endif %}
+            </ul>
+        </nav>
+    </header>
+
+    <main class="container">
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer>
+        <p>&copy; 2026 電商網站 示範系統</p>
+    </footer>
+
+    <script src="{{ url_for('static', filename='js/home/common.js') }}"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>
