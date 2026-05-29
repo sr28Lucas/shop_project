@@ -2,7 +2,7 @@
 env_content = """
 #flask
 DEBUG=True
-SECRET_KEY=secret_key   #flask加密模組金鑰
+SECRET_KEY=secret_key   # Flask Secret Key
 
 #db參數
 DATABASE_HOST = 127.0.0.1
