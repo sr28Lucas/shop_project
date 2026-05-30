@@ -36,8 +36,17 @@
                 </select>
             </div>
             <div class="form-group">
-                <label>優先權重 (越高越前面)</label>
-                <input type="number" name="priority" value="0">
+                <label>
+                    <input type="checkbox" name="pin"> 置頂此公告 (優先顯示在最上方)
+                </label>
+            </div>
+            <div class="form-group">
+                <label>刊登開始時間 (選填)</label>
+                <input type="datetime-local" name="start_at">
+            </div>
+            <div class="form-group">
+                <label>刊登結束時間 (選填)</label>
+                <input type="datetime-local" name="end_at">
             </div>
             <div class="form-group">
                 <label>

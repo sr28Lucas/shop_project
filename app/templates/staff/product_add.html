@@ -2,44 +2,66 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <title>新增商品</title>
+    <title>新增商品 - 後臺系統</title>
+    <link rel="stylesheet" href="{{url_for('static', filename='css/staff/common.css')}}">
     <link rel="stylesheet" href="{{url_for('static', filename='css/staff/product_add.css')}}">
 </head> 
- 
-<form id="product-form" method="POST" enctype="multipart/form-data" data-redirect-url="{{ url_for('staff.product.product_list') }}">
-    <label>新增商品</label>
-    <div class="product">
-        <div class="product-detail"> 
-            <label>商品名稱</label>
-            <input type="text" name="name" required>
-        </div>
-        <div class="product-detail">
-            <label>商品描述</label>
-            <input type="text" name="description">
-        </div>
-        <div>
-            <select name="category_id">
-                {% for category in categories %}
-                <option value="{{ category.id }}" {{ 'selected' if product and product.category_id == category.id }}>
-                    {{ category.name }}
-                </option>
-                {% endfor %}
-            </select>
-        </div>
+<body>
+
+<div class="container">
+    <div class="flex-between mb-20">
+        <h1>新增商品</h1>
+        <a href="{{ url_for('staff.product.product_list') }}" class="btn btn-secondary">返回列表</a>
     </div>
 
+    <form id="product-form" method="POST" enctype="multipart/form-data" data-redirect-url="{{ url_for('staff.product.product_list') }}">
+        {% if not categories %}
+        <script>
+            alert('尚未建立商品分類，請先新增分類。');
+            window.location.href = "{{ url_for('staff.category.category_list') }}";
+        </script>
+        {% endif %}
 
-    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
-    
-        <div id="image-management">
-            <h3>產品圖片 (拖拽可排序)</h3>
-            <input type="file" id="img-input" multiple accept="image/*">
-            <div id="preview-container"></div>
+        <div class="card">
+            <div class="card-header">基本資訊</div>
+            <div class="form-group">
+                <label>商品名稱 <span style="color: red;">*</span></label>
+                <input type="text" name="name" class="form-control" placeholder="請輸入商品名稱" required>
+            </div>
+            <div class="form-group">
+                <label>商品描述</label>
+                <textarea name="description" class="form-control" rows="4" placeholder="請輸入商品描述"></textarea>
+            </div>
+            <div class="form-group">
+                <label>商品分類</label>
+                <select name="category_id" class="form-control">
+                    <option value="">無分類</option>
+                    {% for category in categories %}
+                    <option value="{{ category.id }}">
+                        {{ category.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
         </div>
 
-        <button type="submit">儲存產品</button>
-    
-    <script src=" {{url_for('static', filename='js/staff/product_add.js')}} " ></script>
+        <div class="card">
+            <div class="card-header">圖片管理</div>
+            <div id="image-management">
+                <p style="color: #666; font-size: 0.9em; margin-bottom: 10px;">提示：首張圖片將作為商品主圖。拖拽圖片可調整排序。</p>
+                <input type="file" id="img-input" multiple accept="image/*" class="form-control">
+                <div id="preview-container"></div>
+            </div>
+        </div>
 
-    
-</form>
+        <div class="text-right">
+            <button type="submit" class="btn btn-primary" style="padding: 12px 40px; font-size: 16px;">儲存並新增商品</button>
+        </div>
+    </form>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+<script src="{{url_for('static', filename='js/staff/product_add.js')}}"></script>
+
+</body>
+</html>

@@ -3,11 +3,23 @@ from app.db import get_db_connection
 
 home_bp = Blueprint('home', __name__, template_folder='../../templates/home')
 
+from .checkout import checkout_bp
+
+home_bp.register_blueprint(checkout_bp, url_prefix='/checkout')
+
+
+
 @home_bp.route('/')
 def index():
     query = request.args.get('q', '')
+    cat_id = request.args.get('cat', type=int)
+    
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
+    
+    # 獲取所有分類 (排除已刪除的)
+    cursor.execute("SELECT id, name FROM category WHERE is_deleted = 0 ORDER BY id ASC")
+    categories = cursor.fetchall()
     
     # 獲取商品、最低/最高價格及首圖
     sql = """
@@ -27,24 +39,39 @@ def index():
         sql += " AND p.name LIKE %s"
         params.append(f"%{query}%")
     
+    if cat_id:
+        sql += " AND p.category_id = %s"
+        params.append(cat_id)
+    
     sql += " GROUP BY p.id"
     
     cursor.execute(sql, params)
     products = cursor.fetchall()
     
+    # 獲取當前分類名稱 (如果是全商品則為None)
+    current_category_name = None
+    if cat_id:
+        for c in categories:
+            if c['id'] == cat_id:
+                current_category_name = c['name']
+                break
+    
     cursor.close()
     conn.close()
-    return render_template('home/index.html', products=products)
+    return render_template('home/index.html', products=products, categories=categories, current_cat_id=cat_id, current_category_name=current_category_name)
 
 @home_bp.route('/announcements')
 def announcements():
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
     
+    # 獲取有效公告：active=1 且 在開始與結束時間內 (或未設定時間)
     cursor.execute("""
         SELECT * FROM announcement 
         WHERE is_active = 1 
-        ORDER BY priority DESC, created_at DESC
+          AND (start_at IS NULL OR start_at <= NOW())
+          AND (end_at IS NULL OR end_at >= NOW())
+        ORDER BY pin DESC, created_at DESC
     """)
     announcements = cursor.fetchall()
     
@@ -73,8 +100,9 @@ def product_view(id):
     cursor.execute("""
         SELECT p.*, c.name as category_name 
         FROM product p 
-        JOIN category c ON p.category_id = c.id 
-        WHERE p.id = %s AND p.is_active = 1 AND p.is_deleted = 0 AND c.is_deleted = 0
+        LEFT JOIN category c ON p.category_id = c.id 
+        WHERE p.id = %s AND p.is_active = 1 AND p.is_deleted = 0 
+          AND (c.is_deleted = 0 OR c.is_deleted IS NULL)
     """, (id,))
     product = cursor.fetchone()
     
@@ -86,15 +114,19 @@ def product_view(id):
     # 獲取商品圖片
     cursor.execute("SELECT * FROM image WHERE product_id = %s AND image_type = 'product' ORDER BY sort_order", (id,))
     images = cursor.fetchall()
-    
+
+    # 獲取 SKU 圖片
+    cursor.execute("SELECT * FROM image WHERE product_id = %s AND image_type = 'sku' ORDER BY sort_order", (id,))
+    sku_images = cursor.fetchall()
+
     # 獲取所有 SKU
     cursor.execute("""
-        SELECT * FROM sku 
+        SELECT * FROM sku
         WHERE product_id = %s AND is_active = 1 AND is_deleted = 0
         ORDER BY price ASC
     """, (id,))
     skus = cursor.fetchall()
-    
+
     cursor.close()
     conn.close()
-    return render_template('home/product_view.html', product=product, images=images, skus=skus)
+    return render_template('home/product_view.html', product=product, images=images, sku_images=sku_images, skus=skus)

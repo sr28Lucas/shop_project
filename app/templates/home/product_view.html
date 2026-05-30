@@ -45,8 +45,9 @@
     <div class="product-detail-container">
         <div class="product-images">
             <div class="main-image">
-                {% if images %}
-                    <img id="mainImg" src="{{ url_for('static', filename='upload/' + images[0].filename) }}" alt="{{ product.name }}">
+                {% if images or sku_images %}
+                    {% set first_img = images[0].filename if images else sku_images[0].filename %}
+                    <img id="mainImg" src="{{ url_for('static', filename='upload/' + first_img) }}" alt="{{ product.name }}">
                 {% else %}
                     <div style="height: 100%; display: flex; align-items: center; justify-content: center; color: #ccc;">暫無圖片</div>
                 {% endif %}
@@ -54,6 +55,11 @@
             <div class="thumbnail-list">
                 {% for img in images %}
                     <div class="thumbnail {{ 'active' if loop.first }}" onclick="changeMainImg('{{ url_for('static', filename='upload/' + img.filename) }}', this)">
+                        <img src="{{ url_for('static', filename='upload/' + img.filename) }}" alt="">
+                    </div>
+                {% endfor %}
+                {% for img in sku_images %}
+                    <div class="thumbnail sku-thumb-{{ img.sku_id }}" onclick="changeMainImg('{{ url_for('static', filename='upload/' + img.filename) }}', this)">
                         <img src="{{ url_for('static', filename='upload/' + img.filename) }}" alt="">
                     </div>
                 {% endfor %}
@@ -105,7 +111,7 @@
     function changeMainImg(src, el) {
         document.getElementById('mainImg').src = src;
         document.querySelectorAll('.thumbnail').forEach(t => t.classList.remove('active'));
-        el.classList.add('active');
+        if (el) el.classList.add('active');
     }
     
     function selectSku(id, price, size, color, el) {
@@ -115,6 +121,12 @@
         const priceDiv = document.getElementById('selected-price');
         priceDiv.style.display = 'block';
         priceDiv.innerText = '$' + price.toLocaleString();
+
+        // 切換到對應的 SKU 圖片
+        const skuThumb = document.querySelector('.sku-thumb-' + id);
+        if (skuThumb) {
+            skuThumb.click();
+        }
     }
 </script>
 {% endblock %}

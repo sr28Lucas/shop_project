@@ -64,6 +64,7 @@
                         <th style="width: 30px;"><input type="checkbox" id="select-all"></th>
                         <th class="col-id">ID</th>
                         <th class="col-name">產品名稱</th>
+                        <th class="col-stock">庫存總數</th>
                         <th class="col-category">類別</th>
                         <th class="col-description">商品描述</th>
                         <th class="col-status">狀態</th>
@@ -78,6 +79,7 @@
                         <td><input type="checkbox" name="product_ids" value="{{ product.id }}" class="product-checkbox"></td>
                         <td>{{ product.id }}</td>
                         <td title="{{ product.name }}" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ product.name }}</td>
+                        <td class="col-stock">{{ product.total_stock if product.total_stock is not none else 0 }}</td>
                         <td>{{ product.category_name }}</td>
                         <td class="td-description" title="{{ product.description }}">{{ product.description or '-' }}</td>
                         <td>
@@ -105,12 +107,12 @@
                         <td>
                             <a href="{{ url_for('staff.product.sku_list', product_id=product.id) }}" class="btn btn-sku">SKU</a>
                             <a href="{{ url_for('staff.product.product_edit', id=product.id) }}" class="btn btn-edit">修改</a>
-                            <button type="button" class="btn btn-delete" onclick="if(confirm('確定要刪除此商品嗎？')) { deleteProduct({{ product.id }}); }">刪除</button>
+                            <button type="button" class="btn btn-delete" onclick="if(confirm('確定要刪除此商品嗎？')) { deleteProduct({{ product.id }}, deleteUrlBase); }">刪除</button>
                         </td>
                     </tr>
                     {% else %}
                     <tr>
-                        <td colspan="9" style="text-align: center; padding: 30px;">查無產品資料</td>
+                        <td colspan="10" style="text-align: center; padding: 30px;">查無產品資料</td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -120,19 +122,13 @@
 
     <form id="single-delete-form" method="POST" style="display:none;"></form>
 
+    <script src="{{ url_for('static', filename='js/staff/product_list.js') }}"></script>
     <script>
-        // 全選功能
-        document.getElementById('select-all').addEventListener('change', function() {
-            const checkboxes = document.querySelectorAll('.product-checkbox');
-            checkboxes.forEach(cb => cb.checked = this.checked);
-        });
-
-        // 個別刪除功能 (改為調用隱藏表單以符合 CSRF 或 POST 要求)
-        function deleteProduct(id) {
-            const form = document.getElementById('single-delete-form');
-            form.action = "{{ url_for('staff.product.product_list') }}".replace('list', 'delete/') + id;
-            form.submit();
-        }
+        // 初始化刪除功能的基礎 URL
+        const deleteUrlBase = "{{ url_for('staff.product.product_list') }}".replace('list', 'delete/');
+        
+        // 覆蓋全域 deleteProduct 的呼叫方式（如果需要的話，或者直接在 HTML 裡傳入）
+        // 這裡我們修改 HTML 中的 onclick 呼叫
     </script>
 </body>
 </html>

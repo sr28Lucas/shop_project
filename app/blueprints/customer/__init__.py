@@ -7,6 +7,9 @@ from datetime import datetime
 
 customer_bp = Blueprint('customer', __name__, template_folder = '../templates/customer') #建立藍圖
 
+from .profile import profile_bp
+customer_bp.register_blueprint(profile_bp, url_prefix='/profile')
+
 
 #會員中心
 @customer_bp.route('/center')

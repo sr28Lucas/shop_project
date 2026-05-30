@@ -21,7 +21,16 @@ def category_add():
         return redirect(url_for('staff.category.category_list'))
     
     conn = get_db_connection()
-    cursor = conn.cursor()
+    cursor = conn.cursor(dictionary=True)
+    
+    # 檢查重複名稱
+    cursor.execute("SELECT id FROM category WHERE name = %s AND is_deleted = 0", (name,))
+    if cursor.fetchone():
+        cursor.close()
+        conn.close()
+        flash("此分類名稱已存在")
+        return redirect(url_for('staff.category.category_list'))
+
     try:
         cursor.execute("INSERT INTO category (name, created_at, updated_at) VALUES (%s, NOW(), NOW())", (name,))
         conn.commit()
@@ -41,7 +50,16 @@ def category_edit(id):
         return redirect(url_for('staff.category.category_list'))
     
     conn = get_db_connection()
-    cursor = conn.cursor()
+    cursor = conn.cursor(dictionary=True)
+
+    # 檢查重複名稱 (排除自己)
+    cursor.execute("SELECT id FROM category WHERE name = %s AND is_deleted = 0 AND id != %s", (name, id))
+    if cursor.fetchone():
+        cursor.close()
+        conn.close()
+        flash("此分類名稱已與其他分類重複")
+        return redirect(url_for('staff.category.category_list'))
+
     try:
         cursor.execute("UPDATE category SET name=%s, updated_at=NOW() WHERE id=%s", (name, id))
         conn.commit()

@@ -3,77 +3,81 @@
 <head>
     <meta charset="UTF-8">
     <title>分類管理 - 後臺系統</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/staff/product_list.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/staff/common.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/staff/category.css') }}">
 </head>
 <body>
-    <h1>分類管理</h1>
-    <a href="{{ url_for('staff.dashboard') }}">返回儀錶板</a>
+    <div class="container">
+        <div class="flex-between mb-20">
+            <h1>分類管理</h1>
+            <a href="{{ url_for('staff.dashboard') }}" class="btn btn-secondary">返回儀錶板</a>
+        </div>
 
-    {% with messages = get_flashed_messages() %}
-      {% if messages %}
-        <ul style="color: red;">
-        {% for message in messages %}
-          <li>{{ message }}</li>
-        {% endfor %}
-        </ul>
-      {% endif %}
-    {% endwith %}
+        {% with messages = get_flashed_messages() %}
+          {% if messages %}
+            <div class="card" style="background: #fff3f3; border-color: #f5c6cb; color: #721c24; padding: 15px;">
+                <ul style="margin: 0; padding-left: 20px;">
+                {% for message in messages %}
+                  <li>{{ message }}</li>
+                {% endfor %}
+                </ul>
+            </div>
+          {% endif %}
+        {% endwith %}
 
-    <div class="add-section">
-        <h3>新增分類</h3>
-        <form action="{{ url_for('staff.category.category_add') }}" method="POST">
-            <input type="text" name="name" placeholder="分類名稱" required>
-            <button type="submit" class="btn btn-add">新增</button>
-        </form>
+        <div class="add-section">
+            <h3>新增分類</h3>
+            <form action="{{ url_for('staff.category.category_add') }}" method="POST">
+                <input type="text" name="name" class="form-control" placeholder="請輸入新分類名稱" required>
+                <button type="submit" class="btn btn-primary">新增分類</button>
+            </form>
+        </div>
+
+        <div class="card" style="padding: 0; overflow: hidden;">
+            <table class="styled-table" style="margin: 0;">
+                <thead>
+                    <tr>
+                        <th style="width: 60px;">ID</th>
+                        <th>分類名稱</th>
+                        <th style="width: 150px;">建立時間</th>
+                        <th style="width: 150px;">更新時間</th>
+                        <th style="width: 150px; text-align: center;">操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for cat in categories %}
+                    <tr>
+                        <td>{{ cat.id }}</td>
+                        <td>
+                            <span id="name-{{ cat.id }}" class="category-name-span">{{ cat.name }}</span>
+                            <form id="form-{{ cat.id }}" action="{{ url_for('staff.category.category_edit', id=cat.id) }}" method="POST" class="edit-form">
+                                <input type="text" name="name" value="{{ cat.name }}" class="form-control" style="padding: 5px 10px;" required>
+                                <button type="submit" class="btn btn-success" style="padding: 5px 10px;">儲存</button>
+                                <button type="button" class="btn btn-secondary" style="padding: 5px 10px;" onclick="toggleEdit({{ cat.id }})">取消</button>
+                            </form>
+                        </td>
+                        <td style="font-size: 0.85em; color: #888;">
+                            {{ cat.created_at.strftime('%Y-%m-%d %H:%M') if cat.created_at else '-' }}
+                        </td>
+                        <td style="font-size: 0.85em; color: #888;">
+                            {{ cat.updated_at.strftime('%Y-%m-%d %H:%M') if cat.updated_at else '-' }}
+                        </td>
+                        <td style="text-align: center;">
+                            <button type="button" class="btn btn-primary" style="padding: 5px 12px;" onclick="toggleEdit({{ cat.id }})">修改</button>
+                            <form action="{{ url_for('staff.category.category_delete', id=cat.id) }}" method="POST" style="display:inline;" onsubmit="return confirm('確定要刪除此分類嗎？');">
+                                <button type="submit" class="btn btn-danger" style="padding: 5px 12px;">刪除</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="5" style="text-align: center; padding: 30px; color: #999;">尚未建立任何分類</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </div>
-
-    <table class="product-table">
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>分類名稱</th>
-                <th>建立時間</th>
-                <th>更新時間</th>
-                <th>操作</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for cat in categories %}
-            <tr>
-                <td>{{ cat.id }}</td>
-                <td>
-                    <span id="name-{{ cat.id }}">{{ cat.name }}</span>
-                    <form id="form-{{ cat.id }}" action="{{ url_for('staff.category.category_edit', id=cat.id) }}" method="POST" class="edit-form">
-                        <input type="text" name="name" value="{{ cat.name }}" required>
-                        <button type="submit" class="btn btn-edit">儲存</button>
-                        <button type="button" class="btn" onclick="toggleEdit({{ cat.id }})">取消</button>
-                    </form>
-                </td>
-                <td style="font-size: 0.85em; color: #888;">
-                    {% if cat.created_at %}
-                        {{ cat.created_at.strftime('%Y-%m-%d %H:%M') if cat.created_at.strftime else cat.created_at }}
-                    {% else %}
-                        -
-                    {% endif %}
-                </td>
-                <td style="font-size: 0.85em; color: #888;">
-                    {% if cat.updated_at %}
-                        {{ cat.updated_at.strftime('%Y-%m-%d %H:%M') if cat.updated_at.strftime else cat.updated_at }}
-                    {% else %}
-                        -
-                    {% endif %}
-                </td>
-                <td>
-                    <button type="button" class="btn btn-edit" onclick="toggleEdit({{ cat.id }})">修改</button>
-                    <form action="{{ url_for('staff.category.category_delete', id=cat.id) }}" method="POST" style="display:inline;" onsubmit="return confirm('確定要刪除此分類嗎？');">
-                        <button type="submit" class="btn btn-delete">刪除</button>
-                    </form>
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
 
     <script src="{{ url_for('static', filename='js/staff/category.js') }}"></script>
 </body>

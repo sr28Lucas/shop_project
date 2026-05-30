@@ -12,7 +12,13 @@ def register():
     if request.method == 'POST':
         email = request.form['email']
         password = request.form['password']
+        confirm_password = request.form.get('confirm_password')
         name = request.form['name']
+        
+        # 檢查密碼是否一致
+        if password != confirm_password:
+            return "<script>alert('兩次輸入的密碼不一致，請重新確認！'); window.history.back();</script>"
+        
         phone = request.form.get('phone')
         region = request.form.get('region')
         locality = request.form.get('locality')

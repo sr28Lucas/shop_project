@@ -16,9 +16,10 @@ def product_list():
     is_active = request.args.get('is_active')
     
     query = """
-    SELECT p.*, c.name as category_name 
+    SELECT p.*, c.name as category_name,
+           (SELECT SUM(stock) FROM sku WHERE product_id = p.id AND is_deleted = 0) as total_stock
     FROM product p 
-    JOIN category c ON p.category_id = c.id WHERE p.is_deleted = 0
+    LEFT JOIN category c ON p.category_id = c.id WHERE p.is_deleted = 0
     """
 
     #篩選參數
@@ -50,13 +51,20 @@ def product_add():
     if request.method == 'POST':
         #從表單獲取商品資料
         name = request.form['name']
-        category_id = request.form.get('category_id')
+        category_id = request.form.get('category_id') or None
         description = request.form.get('description')
         files = request.files.getlist('images')
 
         #連接資料庫
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
+
+        # 檢查重複名稱
+        cursor.execute("SELECT id FROM product WHERE name = %s AND is_deleted = 0", (name,))
+        if cursor.fetchone():
+            cursor.close()
+            conn.close()
+            return "商品名稱已存在", 400
 
         #如果upload就創建資料夾
         if not os.path.exists(config.UPLOAD_FOLDER):
@@ -124,13 +132,20 @@ def product_edit(id):
 
     if request.method == 'POST':
         name = request.form['name']
-        category_id = request.form.get('category_id')
+        category_id = request.form.get('category_id') or None
         description = request.form.get('description')
         
         # 取得排序與刪除資訊 (由 JS 傳來的 JSON 字串)
         image_order = request.form.get('image_order').split(',') # 例如: "old_10,old_12,new_0"
         deleted_ids = request.form.get('deleted_ids') # 例如: "11,13"
         new_files = request.files.getlist('images')
+
+        # 檢查重複名稱 (排除自己)
+        cursor.execute("SELECT id FROM product WHERE name = %s AND is_deleted = 0 AND id != %s", (name, id))
+        if cursor.fetchone():
+            cursor.close()
+            conn.close()
+            return "商品名稱已存在", 400
 
         try:
             # 1. 更新產品主檔

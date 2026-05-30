@@ -30,8 +30,8 @@
             <div class="center-card-header">👤 會員資料</div>
             <div class="center-card-body">
                 <ul class="center-list">
-                    <li><a href="#">編輯個人基本資料</a></li>
-                    <li><a href="#">修改帳號密碼</a></li>
+                    <li><a href="{{ url_for('customer.profile.edit') }}">編輯個人基本資料</a></li>
+                    <li><a href="{{ url_for('customer.profile.change_password') }}">修改帳號密碼</a></li>
                 </ul>
             </div>
         </div>

@@ -9,3 +9,21 @@ import os
 
 
 checkout_bp = Blueprint('checkout', __name__) #建立藍圖
+
+@checkout_bp.route('cart', methods=['GET', 'POST'])
+def view_cart():
+    pass
+
+@checkout_bp.route('information')
+def information():
+    pass
+
+@checkout_bp.route('payment')
+def payment():
+    pass
+
+@checkout_bp.route('complete')
+def complete():
+    pass
+
+

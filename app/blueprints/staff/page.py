@@ -8,7 +8,7 @@ page_bp = Blueprint('page', __name__) #建立藍圖
 def announcement_list():
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
-    cursor.execute("SELECT * FROM announcement ORDER BY priority DESC, created_at DESC")
+    cursor.execute("SELECT * FROM announcement ORDER BY pin DESC, created_at DESC")
     announcements = cursor.fetchall()
     cursor.close()
     conn.close()
@@ -20,15 +20,17 @@ def announcement_add():
         title = request.form.get('title')
         content = request.form.get('content')
         type = request.form.get('type')
-        priority = request.form.get('priority', 0)
+        pin = 1 if request.form.get('pin') else 0
         is_active = 1 if request.form.get('is_active') else 0
+        start_at = request.form.get('start_at') or None
+        end_at = request.form.get('end_at') or None
         
         conn = get_db_connection()
         cursor = conn.cursor()
         cursor.execute("""
-            INSERT INTO announcement (title, content, type, priority, is_active, created_at, updated_at)
-            VALUES (%s, %s, %s, %s, %s, NOW(), NOW())
-        """, (title, content, type, priority, is_active))
+            INSERT INTO announcement (title, content, type, pin, is_active, start_at, end_at, created_at, updated_at)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, NOW(), NOW())
+        """, (title, content, type, pin, is_active, start_at, end_at))
         conn.commit()
         cursor.close()
         conn.close()
@@ -46,14 +48,16 @@ def announcement_edit(id):
         title = request.form.get('title')
         content = request.form.get('content')
         type = request.form.get('type')
-        priority = request.form.get('priority', 0)
+        pin = 1 if request.form.get('pin') else 0
         is_active = 1 if request.form.get('is_active') else 0
+        start_at = request.form.get('start_at') or None
+        end_at = request.form.get('end_at') or None
         
         cursor.execute("""
             UPDATE announcement 
-            SET title=%s, content=%s, type=%s, priority=%s, is_active=%s, updated_at=NOW()
+            SET title=%s, content=%s, type=%s, pin=%s, is_active=%s, start_at=%s, end_at=%s, updated_at=NOW()
             WHERE id=%s
-        """, (title, content, type, priority, is_active, id))
+        """, (title, content, type, pin, is_active, start_at, end_at, id))
         conn.commit()
         cursor.close()
         conn.close()

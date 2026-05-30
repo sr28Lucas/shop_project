@@ -30,6 +30,7 @@ CREATE TABLE `wishlist_item` (
 CREATE TABLE `cart` (
   `id` int PRIMARY KEY AUTO_INCREMENT,
   `customer_id` int NOT NULL,
+  `status` varchar(30) NOT NULL,
   `created_at` datetime,
   `updated_at` datetime
 );
@@ -45,7 +46,7 @@ CREATE TABLE `cart_item` (
 
 CREATE TABLE `category` (
   `id` int PRIMARY KEY AUTO_INCREMENT,
-  `name` varchar(30) UNIQUE NOT NULL,
+  `name` varchar(30) NOT NULL,
   `is_deleted` bool NOT NULL DEFAULT 0,
   `created_at` datetime,
   `updated_at` datetime
@@ -53,7 +54,7 @@ CREATE TABLE `category` (
 
 CREATE TABLE `product` (
   `id` int PRIMARY KEY AUTO_INCREMENT,
-  `category_id` int NOT NULL,
+  `category_id` int,
   `name` varchar(100) NOT NULL,
   `description` varchar(2000),
   `is_active` bool NOT NULL DEFAULT 1,
@@ -65,7 +66,7 @@ CREATE TABLE `product` (
 CREATE TABLE `sku` (
   `id` int PRIMARY KEY AUTO_INCREMENT,
   `product_id` int NOT NULL,
-  `sku_code` varchar(100) UNIQUE NOT NULL,
+  `sku_code` varchar(100) NOT NULL,
   `size` varchar(30),
   `color` varchar(30),
   `price` decimal(12,2) NOT NULL,
@@ -91,7 +92,7 @@ CREATE TABLE `image` (
 
 CREATE TABLE `promo_code` (
   `id` int PRIMARY KEY AUTO_INCREMENT,
-  `code` varchar(30) UNIQUE NOT NULL,
+  `code` varchar(30) NOT NULL,
   `description` varchar(100),
   `discount_type` varchar(30) NOT NULL,
   `discount_value` decimal(12,2) NOT NULL,
@@ -99,6 +100,7 @@ CREATE TABLE `promo_code` (
   `usage_limit` int,
   `used_count` int NOT NULL DEFAULT 0,
   `is_active` bool NOT NULL DEFAULT 1,
+  `is_deleted` bool NOT NULL DEFAULT 0,
   `start_at` datetime,
   `end_at` datetime
 );
@@ -158,7 +160,7 @@ CREATE TABLE `announcement` (
   `content` varchar(2000) NOT NULL,
   `type` varchar(30) NOT NULL,
   `target` varchar(30) NOT NULL DEFAULT 'all',
-  `priority` int NOT NULL DEFAULT 0,
+  `pin` bool NOT NULL DEFAULT 0,
   `is_active` bool NOT NULL DEFAULT 1,
   `start_at` datetime,
   `end_at` datetime,
@@ -168,7 +170,7 @@ CREATE TABLE `announcement` (
 
 CREATE TABLE `role` (
   `id` int PRIMARY KEY AUTO_INCREMENT,
-  `name` varchar(30) UNIQUE NOT NULL,
+  `name` varchar(30) NOT NULL,
   `member` bool NOT NULL DEFAULT 0,
   `orders` bool NOT NULL DEFAULT 0,
   `product` bool NOT NULL DEFAULT 0,

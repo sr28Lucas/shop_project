@@ -3,39 +3,65 @@
 {% block title %}商品瀏覽{% endblock %}
 
 {% block content %}
-    <h2 style="margin-bottom: 25px;">
-        {% if request.args.get('q') %}
-            搜尋結果: "{{ request.args.get('q') }}"
-        {% else %}
-            所有商品
-        {% endif %}
-    </h2>
+    <div class="shop-container">
+        <!-- 側邊欄分類 -->
+        <aside class="sidebar">
+            <h3 class="sidebar-title">商品分類</h3>
+            <ul class="category-list">
+                <li>
+                    <a href="{{ url_for('home.index') }}" class="{% if not current_cat_id %}active{% endif %}">
+                        所有商品
+                    </a>
+                </li>
+                {% for cat in categories %}
+                <li>
+                    <a href="{{ url_for('home.index', cat=cat.id) }}" class="{% if current_cat_id == cat.id %}active{% endif %}">
+                        {{ cat.name }}
+                    </a>
+                </li>
+                {% endfor %}
+            </ul>
+        </aside>
 
-    <div class="product-grid">
-        {% for p in products %}
-            <a href="{{ url_for('home.product_view', id=p.id) }}" class="product-card">
-                <div class="product-image">
-                    {% if p.main_image %}
-                        <img src="{{ url_for('static', filename='upload/' + p.main_image) }}" alt="{{ p.name }}">
-                    {% else %}
-                        <span>暫無圖片</span>
-                    {% endif %}
-                </div>
-                <div class="product-info">
-                    <h3 class="product-name">{{ p.name }}</h3>
-                    <div class="product-price">
-                        {% if p.min_price == p.max_price %}
-                            ${{ "{:,.0f}".format(p.min_price) if p.min_price else '0' }}
-                        {% else %}
-                            ${{ "{:,.0f}".format(p.min_price) }} - ${{ "{:,.0f}".format(p.max_price) }}
-                        {% endif %}
+        <!-- 主要商品列表 -->
+        <div class="main-content">
+            <h2 style="margin-bottom: 25px;">
+                {% if request.args.get('q') %}
+                    搜尋結果: "{{ request.args.get('q') }}"
+                {% elif current_category_name %}
+                    分類: {{ current_category_name }}
+                {% else %}
+                    所有商品
+                {% endif %}
+            </h2>
+
+            <div class="product-grid">
+                {% for p in products %}
+                    <a href="{{ url_for('home.product_view', id=p.id) }}" class="product-card">
+                        <div class="product-image">
+                            {% if p.main_image %}
+                                <img src="{{ url_for('static', filename='upload/' + p.main_image) }}" alt="{{ p.name }}">
+                            {% else %}
+                                <span>暫無圖片</span>
+                            {% endif %}
+                        </div>
+                        <div class="product-info">
+                            <h3 class="product-name">{{ p.name }}</h3>
+                            <div class="product-price">
+                                {% if p.min_price == p.max_price %}
+                                    ${{ "{:,.0f}".format(p.min_price) if p.min_price else '0' }}
+                                {% else %}
+                                    ${{ "{:,.0f}".format(p.min_price) }} - ${{ "{:,.0f}".format(p.max_price) }}
+                                {% endif %}
+                            </div>
+                        </div>
+                    </a>
+                {% else %}
+                    <div style="grid-column: 1/-1; text-align: center; padding: 50px; color: #888;">
+                        目前沒有商品可供瀏覽。
                     </div>
-                </div>
-            </a>
-        {% else %}
-            <div style="grid-column: 1/-1; text-align: center; padding: 50px; color: #888;">
-                目前沒有商品可供瀏覽。
+                {% endfor %}
             </div>
-        {% endfor %}
+        </div>
     </div>
 {% endblock %}

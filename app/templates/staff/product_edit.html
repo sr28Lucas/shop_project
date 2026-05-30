@@ -2,162 +2,67 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <title>修改商品</title>
+    <title>編輯商品 - 後臺系統</title>
+    <link rel="stylesheet" href="{{url_for('static', filename='css/staff/common.css')}}">
     <link rel="stylesheet" href="{{url_for('static', filename='css/staff/product_add.css')}}">
-    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
-    <style>
-        #preview-container { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; }
-        .preview-item { 
-            position: relative; width: 120px; border: 1px solid #ddd; padding: 5px; 
-            cursor: move; background: #fff; text-align: center;
-        }
-        .preview-item img { max-width: 100%; height: 80px; object-fit: cover; display: block; }
-        .remove-btn { 
-            position: absolute; top: -5px; right: -5px; background: red; color: white; 
-            border-radius: 50%; width: 22px; height: 22px; cursor: pointer; border: none;
-        }
-        .tag-old { background: #e0e0e0; font-size: 10px; }
-        .tag-new { background: #d4edda; font-size: 10px; }
-    </style>
 </head> 
 <body>
 
-<form id="product-form">
-    <h2>修改商品 ID: {{ product.id }}</h2>
-    <div class="product">
-        <div class="product-detail"> 
-            <label>商品名稱</label>
-            <input type="text" name="name" value="{{ product.name }}" required>
-        </div>
-        <div class="product-detail">
-            <label>商品描述</label>
-            <input type="text" name="description" value="{{ product.description }}">
-        </div>
-        <div>
-            <label>類別</label>
-            <select name="category_id">
-                {% for category in categories %}
-                <option value="{{ category.id }}" {{ 'selected' if product.category_id == category.id }}>
-                    {{ category.name }}
-                </option>
-                {% endfor %}
-            </select>
-        </div>
+<div class="container">
+    <div class="flex-between mb-20">
+        <h1>編輯商品 <small style="color: #888; font-size: 0.6em;">ID: {{ product.id }}</small></h1>
+        <a href="{{ url_for('staff.product.product_list') }}" class="btn btn-secondary">返回列表</a>
     </div>
 
-    <div id="image-management" style="margin-top: 20px;">
-        <h3>產品圖片管理 (拖拽排序)</h3>
-        <input type="file" id="img-input" multiple accept="image/*">
-        <div id="preview-container"></div>
-    </div>
+    <form id="product-form" data-redirect-url="{{ url_for('staff.product.product_list') }}">
+        <div class="card">
+            <div class="card-header">基本資訊</div>
+            <div class="form-group">
+                <label>商品名稱 <span style="color: red;">*</span></label>
+                <input type="text" name="name" value="{{ product.name }}" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label>商品描述</label>
+                <textarea name="description" class="form-control" rows="4">{{ product.description }}</textarea>
+            </div>
+            <div class="form-group">
+                <label>商品分類</label>
+                <select name="category_id" class="form-control">
+                    <option value="" {{ 'selected' if not product.category_id }}>無分類</option>
+                    {% for category in categories %}
+                    <option value="{{ category.id }}" {{ 'selected' if product.category_id == category.id }}>
+                        {{ category.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
 
-    <button type="submit" style="margin-top: 20px; padding: 10px 20px;">更新產品資訊</button>
-</form>
+        <div class="card">
+            <div class="card-header">圖片管理</div>
+            <div id="image-management">
+                <p style="color: #666; font-size: 0.9em; margin-bottom: 10px;">提示：首張圖片將作為商品主圖。拖拽圖片可調整排序。</p>
+                <input type="file" id="img-input" multiple accept="image/*" class="form-control">
+                <div id="preview-container"></div>
+            </div>
+        </div>
 
+        <div class="text-right">
+            <button type="submit" class="btn btn-primary" style="padding: 12px 40px; font-size: 16px;">更新商品資訊</button>
+        </div>
+    </form>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+<script src="{{url_for('static', filename='js/staff/product_edit.js')}}"></script>
 <script>
-    // 初始化資料：將後端傳來的圖片轉為 JS 陣列
-    // type: 'old' 代表資料庫已有的, 'new' 代表剛選取的檔案
-    let allImages = [
+    // 初始化編輯器資料
+    const initialImages = [
         {% for img in images %}
         { type: 'old', id: {{ img.id }}, url: "{{ url_for('static', filename='upload/' + img.filename) }}" },
         {% endfor %}
     ];
-    let deletedIds = [];
-
-    const container = document.getElementById('preview-container');
-    const input = document.getElementById('img-input');
-
-    // 初始化拖拽
-    new Sortable(container, {
-        animation: 150,
-        onEnd: function() {
-            const newOrder = Array.from(container.querySelectorAll('.preview-item')).map(item => parseInt(item.dataset.idx));
-            allImages = newOrder.map(idx => allImages[idx]);
-            renderPreview();
-        }
-    });
-
-    // 選擇新檔案
-    input.addEventListener('change', function(e) {
-        const files = Array.from(e.target.files);
-        files.forEach(file => {
-            allImages.push({ type: 'new', file: file, previewUrl: URL.createObjectURL(file) });
-        });
-        renderPreview();
-        input.value = '';
-    });
-
-    function renderPreview() {
-        container.innerHTML = '';
-        allImages.forEach((imgObj, index) => {
-            const div = document.createElement('div');
-            div.className = 'preview-item';
-            div.dataset.idx = index;
-            
-            const img = document.createElement('img');
-            img.src = imgObj.type === 'old' ? imgObj.url : imgObj.previewUrl;
-            
-            const btn = document.createElement('button');
-            btn.type = 'button';
-            btn.innerHTML = '×';
-            btn.className = 'remove-btn';
-            btn.onclick = () => {
-                if (imgObj.type === 'old') {
-                    deletedIds.push(imgObj.id);
-                }
-                allImages.splice(index, 1);
-                renderPreview();
-            };
-
-            const tag = document.createElement('div');
-            tag.className = imgObj.type === 'old' ? 'tag-old' : 'tag-new';
-            tag.innerText = imgObj.type === 'old' ? '現有' : '新上傳';
-
-            div.appendChild(img);
-            div.appendChild(btn);
-            div.appendChild(tag);
-            container.appendChild(div);
-        });
-    }
-
-    // 初始渲染
-    renderPreview();
-
-    // 提交表單
-    document.getElementById('product-form').onsubmit = async function(e) {
-        e.preventDefault();
-        
-        const formData = new FormData(this);
-        
-        // 1. 建立排序字串與收集新檔案
-        let imageOrder = [];
-        let newFileCount = 0;
-
-        allImages.forEach(img => {
-            if (img.type === 'old') {
-                imageOrder.push(`old_${img.id}`);
-            } else {
-                imageOrder.push(`new_${newFileCount}`);
-                formData.append('images', img.file); // 只加入新檔案
-                newFileCount++;
-            }
-        });
-
-        formData.append('image_order', imageOrder.join(','));
-        formData.append('deleted_ids', deletedIds.join(','));
-
-        const response = await fetch(window.location.href, {
-            method: 'POST',
-            body: formData
-        });
-
-        if (response.ok) {
-            alert('修改成功！');
-            window.location.href = "{{ url_for('staff.product.product_list') }}";
-        } else {
-            alert('上傳失敗');
-        }
-    };
+    initProductEdit(initialImages);
 </script>
 </body>
 </html>

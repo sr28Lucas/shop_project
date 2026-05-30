@@ -35,6 +35,11 @@
         </div>
 
         <div class="form-group">
+            <label>確認密碼 (必填)</label>
+            <input type="password" name="confirm_password" required>
+        </div>
+
+        <div class="form-group">
             <label>姓名 (必填)</label>
             <input type="text" name="name" required>
         </div>
@@ -46,14 +51,18 @@
             </div>
             <div class="form-group" style="flex: 1;">
                 <label>縣市 (Region)</label>
-                <input type="text" name="region">
+                <select name="region">
+                    <option value="">請選擇縣市</option>
+                </select>
             </div>
         </div>
 
         <div style="display: flex; gap: 15px;">
             <div class="form-group" style="flex: 1;">
                 <label>鄉鎮市區 (Locality)</label>
-                <input type="text" name="locality">
+                <select name="locality">
+                    <option value="">請選擇鄉鎮市區</option>
+                </select>
             </div>
             <div class="form-group" style="flex: 1;">
                 <label>詳細地址</label>
@@ -68,4 +77,43 @@
         已經有帳號了？ <a href="{{ url_for('auth.login') }}">返回登入頁面</a>
     </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let districtData = {};
+const regionSelect = document.querySelector('select[name="region"]');
+const localitySelect = document.querySelector('select[name="locality"]');
+
+// 從外部 JSON 檔案讀取資料
+fetch("{{ url_for('static', filename='json/taiwan_districts.json') }}")
+    .then(response => response.json())
+    .then(data => {
+        districtData = data;
+        // 動態生成縣市選項
+        for (const region in districtData) {
+            const option = document.createElement('option');
+            option.value = region;
+            option.textContent = region;
+            regionSelect.appendChild(option);
+        }
+    })
+    .catch(error => console.error('Error loading district data:', error));
+
+regionSelect.addEventListener('change', function() {
+    const region = this.value;
+    const localities = districtData[region] || [];
+    
+    // 清空舊選項
+    localitySelect.innerHTML = '<option value="">請選擇鄉鎮市區</option>';
+    
+    // 加入新選項
+    localities.forEach(loc => {
+        const option = document.createElement('option');
+        option.value = loc;
+        option.textContent = loc;
+        localitySelect.appendChild(option);
+    });
+});
+</script>
 {% endblock %}
