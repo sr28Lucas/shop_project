@@ -1,0 +1,57 @@
+{% extends "home/base.html" %}
+
+{% block title %}我的購物車{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/home/cart.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="cart-container">
+    <h1>我的購物車</h1>
+    
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            {% for message in messages %}
+                <div style="background: #fff3cd; color: #856404; padding: 10px; border-radius: 5px; margin-bottom: 20px; border: 1px solid #ffeeba;">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    {% if cart_items %}
+        <div class="cart-items">
+            {% for item in cart_items %}
+            <div class="cart-item">
+                <div class="item-info">
+                    <div class="item-name">
+                        <a href="{{ url_for('home.product_view', id=item.product_id) }}" style="text-decoration: none; color: inherit;">{{ item.product_name }}</a>
+                    </div>
+                    <div class="item-details">規格: {{ item.size }} / {{ item.color }}</div>
+                    <div class="item-price">${{ "{:,.0f}".format(item.price) }}</div>
+                </div>
+                <div class="item-actions">
+                    <form action="{{ url_for('home.checkout.update_qty') }}" method="POST" style="display:flex; gap:5px;">
+                        <input type="hidden" name="sku_id" value="{{ item.sku_id }}">
+                        <input type="number" name="qty" value="{{ item.qty }}" min="1" class="qty-input">
+                        <button type="submit" class="btn-small btn-update">更新</button>
+                    </form>
+                    <form action="{{ url_for('home.checkout.remove_item') }}" method="POST">
+                        <input type="hidden" name="sku_id" value="{{ item.sku_id }}">
+                        <button type="submit" class="btn-small btn-remove">移除</button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <div class="cart-summary">
+            <div class="total-price">總計: ${{ "{:,.0f}".format(subtotal) }}</div>
+            <a href="{{ url_for('home.checkout.information') }}" class="btn-checkout">前往結帳</a>
+        </div>
+    {% else %}
+        <p class="empty-cart">購物車目前是空的。</p>
+    {% endif %}
+</div>
+{% endblock %}

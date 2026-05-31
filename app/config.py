@@ -9,6 +9,7 @@ load_dotenv(dotenv_path = dotenv_path)
 
 
 class config:
+    BASE_DIR = Path(__file__).resolve().parent.parent
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'secret_key' #加密金鑰 要這才可以用flask的加密功能
     SQLALCHEMY_TRACK_MODIFICATIONS = False #某個看不懂但應該用不到的功能 開了似乎會吃效能
  

@@ -29,7 +29,7 @@
             <div class="card-header">商品管理</div>
             <ul class="card-body">
                 <li><a href="{{ url_for('staff.product.product_list') }}">修改商品</a></li>
-                <li><a href="#">折扣碼</a></li>
+                <li><a href="{{ url_for('staff.promo.promo_list') }}">折扣碼管理</a></li>
                 
             </ul>
         </div>
@@ -39,6 +39,7 @@
             <ul class="card-body">
                 <li><a href="#">訂單紀錄</a></li>
                 <li><a href="#">出貨管理</a></li>
+                <li><a href="{{ url_for('staff.orders.logistics_settings') }}">運費管理</a></li>
             </ul>
         </div>
 

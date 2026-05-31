@@ -3,6 +3,22 @@ from app.db import get_db_connection
 
 home_bp = Blueprint('home', __name__, template_folder='../../templates/home')
 
+@home_bp.context_processor
+def inject_cart_count():
+    if 'customer_id' in session:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT COUNT(*) FROM cart_item ci
+            JOIN cart c ON ci.cart_id = c.id
+            WHERE c.customer_id = %s AND c.status = 'active'
+        """, (session['customer_id'],))
+        count = cursor.fetchone()[0]
+        cursor.close()
+        conn.close()
+        return dict(cart_count=count)
+    return dict(cart_count=0)
+
 from .checkout import checkout_bp
 
 home_bp.register_blueprint(checkout_bp, url_prefix='/checkout')

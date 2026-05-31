@@ -15,6 +15,7 @@ CREATE TABLE `customer` (
 CREATE TABLE `wishlist` (
   `id` int PRIMARY KEY AUTO_INCREMENT,
   `customer_id` int NOT NULL,
+  `status` varchar(30) NOT NULL,
   `created_at` datetime,
   `updated_at` datetime
 );
@@ -102,7 +103,9 @@ CREATE TABLE `promo_code` (
   `is_active` bool NOT NULL DEFAULT 1,
   `is_deleted` bool NOT NULL DEFAULT 0,
   `start_at` datetime,
-  `end_at` datetime
+  `end_at` datetime,
+  `created_at` datetime,
+  `updated_at` datetime
 );
 
 CREATE TABLE `orders` (
@@ -110,8 +113,8 @@ CREATE TABLE `orders` (
   `customer_id` int NOT NULL,
   `status` varchar(30) NOT NULL DEFAULT 'pending',
   `subtotal` decimal(12,2) NOT NULL,
-  `discount_total` decimal(12,2) NOT NULL DEFAULT 0,
   `shipping_fee` decimal(12,2) NOT NULL DEFAULT 0,
+  `discount_total` decimal(12,2) NOT NULL DEFAULT 0,
   `total` decimal(12,2) NOT NULL,
   `promo_code_id` int,
   `promo_code_snapshot` varchar(30),
@@ -133,8 +136,6 @@ CREATE TABLE `order_item` (
   `color` varchar(30),
   `qty` int NOT NULL DEFAULT 1,
   `price` decimal(12,2) NOT NULL,
-  `discount_amount` decimal(12,2) NOT NULL DEFAULT 0,
-  `line_total` decimal(12,2) NOT NULL,
   PRIMARY KEY (`order_id`, `sku_id`)
 );
 
@@ -213,6 +214,14 @@ CREATE TABLE `message` (
   `sent_at` datetime
 );
 
+CREATE TABLE `region` (
+  `id` int PRIMARY KEY AUTO_INCREMENT,
+  `name` varchar(30) UNIQUE NOT NULL,
+  `fee` decimal(12,2) NOT NULL DEFAULT 0,
+  `created_at` datetime,
+  `updated_at` datetime
+);
+
 ALTER TABLE `wishlist` ADD FOREIGN KEY (`customer_id`) REFERENCES `customer` (`id`);
 
 ALTER TABLE `wishlist_item` ADD FOREIGN KEY (`wishlist_id`) REFERENCES `wishlist` (`id`);
@@ -254,3 +263,5 @@ ALTER TABLE `message` ADD FOREIGN KEY (`inquiry_id`) REFERENCES `inquiry` (`id`)
 ALTER TABLE `message` ADD FOREIGN KEY (`staff_id`) REFERENCES `staff` (`id`);
 
 ALTER TABLE `message` ADD FOREIGN KEY (`customer_id`) REFERENCES `customer` (`id`);
+
+ALTER TABLE `customer` ADD FOREIGN KEY (`region`) REFERENCES `region` (`name`);

@@ -102,7 +102,8 @@ fetch("{{ url_for('static', filename='json/taiwan_districts.json') }}")
 
 regionSelect.addEventListener('change', function() {
     const region = this.value;
-    const localities = districtData[region] || [];
+    const regionInfo = districtData[region];
+    const localities = regionInfo ? regionInfo.districts : [];
     
     // 清空舊選項
     localitySelect.innerHTML = '<option value="">請選擇鄉鎮市區</option>';

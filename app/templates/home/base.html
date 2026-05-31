@@ -20,8 +20,8 @@
                 </form>
             </div>
             <div class="header-icons">
-                <a href="#" class="cart-icon">
-                    🛒 <span class="cart-count">0</span>
+                <a href="{{ url_for('home.checkout.view_cart') }}" class="cart-icon">
+                    🛒 <span class="cart-count">{{ cart_count }}</span>
                 </a>
             </div>
         </div>

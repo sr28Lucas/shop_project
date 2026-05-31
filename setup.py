@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from app.db import get_db_connection
 from flask_bcrypt import Bcrypt
 from datetime import datetime
@@ -46,6 +47,16 @@ try:
                 VALUES (%s, %s, %s, %s, %s, %s)
                 """
     cursor.execute(sql_admin, (email, hashed_pw, name, role_id, now, now))
+    
+    # 自動匯入地區與運費
+    import json
+    import os
+    json_path = os.path.join(config.BASE_DIR, 'app', 'static', 'json', 'taiwan_districts.json')
+    with open(json_path, 'r', encoding='utf-8') as f:
+        data = json.load(f)
+        for city, info in data.items():
+            cursor.execute("INSERT INTO region (name, fee, created_at, updated_at) VALUES (%s, %s, %s, %s)", 
+                           (city, info['fee'], now, now))
     
     conn.commit()
     print("系統初始化成功")

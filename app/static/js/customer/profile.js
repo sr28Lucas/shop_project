@@ -37,7 +37,8 @@ function initDistrictSelectors(jsonPath, initialRegion = '', initialLocality = '
     });
 
     function updateLocalities(region, selectedLocality = '') {
-        const localities = districtData[region] || [];
+        const regionInfo = districtData[region];
+        const localities = regionInfo ? regionInfo.districts : [];
         localitySelect.innerHTML = '<option value="">請選擇鄉鎮市區</option>';
         localities.forEach(loc => {
             const option = document.createElement('option');

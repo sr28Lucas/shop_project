@@ -11,10 +11,14 @@ staff_bp = Blueprint('staff', __name__, template_folder = '../templates/staff') 
 from .product import product_bp
 from .category import category_bp
 from .page import page_bp
+from .orders import orders_bp
+from .promo import promo_bp
 
 staff_bp.register_blueprint(product_bp, url_prefix='/product')
 staff_bp.register_blueprint(category_bp, url_prefix='/category')
 staff_bp.register_blueprint(page_bp, url_prefix='/page')
+staff_bp.register_blueprint(orders_bp, url_prefix='/orders')
+staff_bp.register_blueprint(promo_bp, url_prefix='/promo')
 
 
 
