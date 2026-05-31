@@ -45,7 +45,7 @@
             <label>當前圖片:</label>
             <div style="display: flex; gap: 10px;">
                 {% for img in images %}
-                <img src="{{ url_for('image.route_image', filename=img.filename) }}" width="100">
+                <img src="{{ url_for('static', filename='upload/' + img.filename) }}" width="100">
                 {% endfor %}
             </div>
         </div>
