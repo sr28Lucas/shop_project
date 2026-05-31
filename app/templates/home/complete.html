@@ -1,0 +1,25 @@
+{% extends "home/base.html" %}
+
+{% block title %}下單成功{% endblock %}
+
+{% block head %}
+<style>
+    .checkout-container { max-width: 600px; margin: 40px auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); text-align: center; }
+    .order-number { font-size: 24px; font-weight: bold; color: #28a745; margin: 20px 0; }
+    .btn-link { display: inline-block; padding: 10px 20px; background: #6c757d; color: white; border-radius: 4px; text-decoration: none; margin: 10px; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="checkout-container">
+    <h2>感謝您的訂購！</h2>
+    <p>您的訂單編號為：</p>
+    <div class="order-number">#{{ order_id }}</div>
+    <p>我們會盡快為您處理。</p>
+    
+    <div>
+        <a href="#" class="btn-link">查看訂單狀態</a>
+        <a href="{{ url_for('home.index') }}" class="btn-link">繼續購物</a>
+    </div>
+</div>
+{% endblock %}

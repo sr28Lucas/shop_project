@@ -1,0 +1,51 @@
+{% extends "home/base.html" %}
+
+{% block title %}訂單確認{% endblock %}
+
+{% block head %}
+<style>
+    .checkout-container { max-width: 600px; margin: 40px auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+    .section { margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 15px; }
+    .summary-item { display: flex; justify-content: space-between; margin-bottom: 5px; }
+    .btn-submit { width: 100%; padding: 12px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; margin-top: 20px; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="checkout-container">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h2>訂單總檢查</h2>
+        <a href="{{ url_for('home.checkout.payment') }}" style="padding: 8px 15px; background: #6c757d; color: white; border-radius: 4px; text-decoration: none;">返回</a>
+    </div>
+    
+    <div class="section">
+        <h3>寄送資訊</h3>
+        <p>{{ info.name }} ({{ info.phone }})</p>
+        <p>{{ info.region }}{{ info.locality }}{{ info.address }}</p>
+    </div>
+
+    <div class="section">
+        <h3>商品明細</h3>
+        {% for item in cart_items %}
+        <div class="summary-item">
+            <span>{{ item.product_name }} ({{ item.size }}/{{ item.color }}) x {{ item.qty }}</span>
+            <span>${{ "{:,.0f}".format(item.qty * item.price) }}</span>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="section">
+        <div class="summary-item"><span>小計:</span> <span>${{ "{:,.0f}".format(subtotal) }}</span></div>
+        {% if info.promo_code %}
+            <div class="summary-item"><span>優惠碼:</span> <span>{{ info.promo_code }}</span></div>
+        {% endif %}
+        <div class="summary-item"><span>折扣:</span> <span>-${{ "{:,.0f}".format(discount) }}</span></div>
+        <div class="summary-item"><span>運費:</span> <span>${{ "{:,.0f}".format(shipping_fee) }}</span></div>
+        <div class="summary-item" style="font-weight: bold; font-size: 18px;"><span>總計:</span> <span>${{ "{:,.0f}".format(total) }}</span></div>
+    </div>
+
+    <form method="POST">
+        <button type="submit" class="btn-submit">確認下單</button>
+    </form>
+</div>
+{% endblock %}

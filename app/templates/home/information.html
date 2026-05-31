@@ -1,0 +1,63 @@
+{% extends "home/base.html" %}
+
+{% block title %}訂購資訊{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/home/checkout.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="checkout-container">
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <div style="background: #f8d7da; color: #721c24; padding: 10px; border-radius: 4px; margin-bottom: 20px; border: 1px solid #f5c6cb;">
+          {{ messages[0] }}
+        </div>
+      {% endif %}
+    {% endwith %}
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h2>填寫訂購資訊</h2>
+        <a href="{{ url_for('home.checkout.view_cart') }}" style="padding: 8px 15px; background: #6c757d; color: white; border-radius: 4px; text-decoration: none;">返回購物車</a>
+    </div>
+    <form method="POST">
+        <div class="form-group">
+            <label>姓名</label>
+            <input type="text" name="name" value="{{ customer.name or '' }}" maxlength="30" required>
+        </div>
+        <div class="form-group">
+            <label>電話</label>
+            <input type="text" name="phone" value="{{ customer.phone or '' }}" pattern="[0-9\-]{8,20}" maxlength="20" required title="請輸入 8-20 碼數字或符號 -">
+        </div>
+
+        <div class="form-group">
+            <label>縣市</label>
+            <select name="region" required>
+                <option value="">請選擇縣市</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>鄉鎮市區</label>
+            <select name="locality" required>
+                <option value="">請選擇鄉鎮市區</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>詳細地址</label>
+            <input type="text" name="address" value="{{ customer.address or '' }}" maxlength="100" required>
+        </div>
+        <div class="form-group">
+            <label>優惠碼</label>
+            <input type="text" name="promo_code" maxlength="30">
+        </div>
+        <button type="submit" class="btn-submit">下一步：付款</button>
+    </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/home/checkout.js') }}"></script>
+<script>
+    initRegionSelect("{{ customer.region or '' }}", "{{ customer.locality or '' }}");
+</script>
+{% endblock %}

@@ -1,6 +1,7 @@
-from flask import Flask
+from flask import Flask, session
 from .extensions import bcrypt
 from .config import config
+from app.db import get_db_connection
 
 
 def create_app():
@@ -30,11 +31,22 @@ def create_app():
     app.register_blueprint(customer_bp, url_prefix='/customer') #會員中心 
     app.register_blueprint(home_bp, url_prefix='/') #主頁
 
-    # 5. 這裡可以放置全域的 context processor (例如在所有頁面顯示購物車數量)
-    # @app.context_processor
-    # def inject_cart_count():
-    #     # 假設你有一個獲取購物車數量的函式
-    #     return dict(cart_count=7) 
+    # 5. 全域 context processor，在所有頁面顯示購物車數量
+    @app.context_processor
+    def inject_cart_count():
+        if 'customer_id' in session:
+            conn = get_db_connection()
+            cursor = conn.cursor()
+            cursor.execute("""
+                SELECT COUNT(*) FROM cart_item ci
+                JOIN cart c ON ci.cart_id = c.id
+                WHERE c.customer_id = %s AND c.status = 'active'
+            """, (session['customer_id'],))
+            count = cursor.fetchone()[0]
+            cursor.close()
+            conn.close()
+            return dict(cart_count=count)
+        return dict(cart_count=0)
 
     return app
 

@@ -19,10 +19,10 @@ def register():
         if password != confirm_password:
             return "<script>alert('兩次輸入的密碼不一致，請重新確認！'); window.history.back();</script>"
         
-        phone = request.form.get('phone')
-        region = request.form.get('region')
-        locality = request.form.get('locality')
-        address = request.form.get('address')
+        phone = request.form.get('phone') or None
+        region = request.form.get('region') or None
+        locality = request.form.get('locality') or None
+        address = request.form.get('address') or None
         
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)

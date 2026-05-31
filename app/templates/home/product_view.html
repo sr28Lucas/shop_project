@@ -145,6 +145,13 @@
     }
 
     function addToCart() {
+        // 檢查登入狀態 (透過模板變數傳遞 session 資訊)
+        {% if not session.get('customer_id') %}
+            alert('請先登入會員，才能加入購物車喔！');
+            window.location.href = "{{ url_for('auth.login') }}";
+            return;
+        {% endif %}
+
         const form = document.getElementById('add-to-cart-form');
         const skuId = document.getElementById('selected-sku-id').value;
         const qty = document.getElementById('qty').value;

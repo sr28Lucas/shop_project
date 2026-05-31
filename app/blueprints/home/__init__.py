@@ -3,21 +3,25 @@ from app.db import get_db_connection
 
 home_bp = Blueprint('home', __name__, template_folder='../../templates/home')
 
-@home_bp.context_processor
-def inject_cart_count():
-    if 'customer_id' in session:
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        cursor.execute("""
-            SELECT COUNT(*) FROM cart_item ci
-            JOIN cart c ON ci.cart_id = c.id
-            WHERE c.customer_id = %s AND c.status = 'active'
-        """, (session['customer_id'],))
-        count = cursor.fetchone()[0]
-        cursor.close()
-        conn.close()
-        return dict(cart_count=count)
-    return dict(cart_count=0)
+@home_bp.route('/api/regions')
+def get_regions():
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute("SELECT id, name FROM region")
+    regions = cursor.fetchall()
+    cursor.close()
+    conn.close()
+    return {'regions': regions}
+
+@home_bp.route('/api/localities/<int:region_id>')
+def get_localities(region_id):
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute("SELECT name FROM locality WHERE region_id = %s", (region_id,))
+    localities = cursor.fetchall()
+    cursor.close()
+    conn.close()
+    return {'localities': [l['name'] for l in localities]}
 
 from .checkout import checkout_bp
 

@@ -143,6 +143,7 @@ CREATE TABLE `payment` (
   `id` int PRIMARY KEY AUTO_INCREMENT,
   `order_id` int NOT NULL,
   `method` varchar(30) NOT NULL,
+  `card_number` varchar(30),
   `status` varchar(30) NOT NULL,
   `paid_at` datetime
 );
@@ -222,6 +223,12 @@ CREATE TABLE `region` (
   `updated_at` datetime
 );
 
+CREATE TABLE `locality` (
+  `region_id` int,
+  `name` varchar(30),
+  PRIMARY KEY (`region_id`, `name`)
+);
+
 ALTER TABLE `wishlist` ADD FOREIGN KEY (`customer_id`) REFERENCES `customer` (`id`);
 
 ALTER TABLE `wishlist_item` ADD FOREIGN KEY (`wishlist_id`) REFERENCES `wishlist` (`id`);
@@ -265,3 +272,5 @@ ALTER TABLE `message` ADD FOREIGN KEY (`staff_id`) REFERENCES `staff` (`id`);
 ALTER TABLE `message` ADD FOREIGN KEY (`customer_id`) REFERENCES `customer` (`id`);
 
 ALTER TABLE `customer` ADD FOREIGN KEY (`region`) REFERENCES `region` (`name`);
+
+ALTER TABLE `locality` ADD FOREIGN KEY (`region_id`) REFERENCES `region` (`id`);

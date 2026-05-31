@@ -4,6 +4,7 @@
 
 {% block head %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/auth.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/home/checkout.css') }}">
 <style>
     .auth-container { max-width: 550px; } /* 註冊表單欄位較多，稍微加寬 */
 </style>
@@ -26,28 +27,28 @@
     <form class="auth-form" method="POST" action="{{ url_for('auth.register') }}">
         <div class="form-group">
             <label>Email (必填，將作為登入帳號)</label>
-            <input type="email" name="email" required>
+            <input type="email" name="email" maxlength="100" required>
         </div>
         
         <div class="form-group">
             <label>密碼 (必填)</label>
-            <input type="password" name="password" required>
+            <input type="password" name="password" minlength="6" maxlength="20" required>
         </div>
 
         <div class="form-group">
             <label>確認密碼 (必填)</label>
-            <input type="password" name="confirm_password" required>
+            <input type="password" name="confirm_password" minlength="6" maxlength="20" required>
         </div>
 
         <div class="form-group">
             <label>姓名 (必填)</label>
-            <input type="text" name="name" required>
+            <input type="text" name="name" maxlength="30" required>
         </div>
 
         <div style="display: flex; gap: 15px;">
             <div class="form-group" style="flex: 1;">
                 <label>電話</label>
-                <input type="text" name="phone">
+                <input type="text" name="phone" pattern="[0-9\-]{8,20}" maxlength="20" title="請輸入 8-20 碼數字或符號 -">
             </div>
             <div class="form-group" style="flex: 1;">
                 <label>縣市 (Region)</label>
@@ -66,7 +67,7 @@
             </div>
             <div class="form-group" style="flex: 1;">
                 <label>詳細地址</label>
-                <input type="text" name="address">
+                <input type="text" name="address" maxlength="100">
             </div>
         </div>
         
@@ -80,41 +81,8 @@
 {% endblock %}
 
 {% block scripts %}
+<script src="{{ url_for('static', filename='js/home/checkout.js') }}"></script>
 <script>
-let districtData = {};
-const regionSelect = document.querySelector('select[name="region"]');
-const localitySelect = document.querySelector('select[name="locality"]');
-
-// 從外部 JSON 檔案讀取資料
-fetch("{{ url_for('static', filename='json/taiwan_districts.json') }}")
-    .then(response => response.json())
-    .then(data => {
-        districtData = data;
-        // 動態生成縣市選項
-        for (const region in districtData) {
-            const option = document.createElement('option');
-            option.value = region;
-            option.textContent = region;
-            regionSelect.appendChild(option);
-        }
-    })
-    .catch(error => console.error('Error loading district data:', error));
-
-regionSelect.addEventListener('change', function() {
-    const region = this.value;
-    const regionInfo = districtData[region];
-    const localities = regionInfo ? regionInfo.districts : [];
-    
-    // 清空舊選項
-    localitySelect.innerHTML = '<option value="">請選擇鄉鎮市區</option>';
-    
-    // 加入新選項
-    localities.forEach(loc => {
-        const option = document.createElement('option');
-        option.value = loc;
-        option.textContent = loc;
-        localitySelect.appendChild(option);
-    });
-});
+    initRegionSelect();
 </script>
 {% endblock %}

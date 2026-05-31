@@ -57,6 +57,10 @@ try:
         for city, info in data.items():
             cursor.execute("INSERT INTO region (name, fee, created_at, updated_at) VALUES (%s, %s, %s, %s)", 
                            (city, info['fee'], now, now))
+            region_id = cursor.lastrowid
+            for district in info['districts']:
+                cursor.execute("INSERT INTO locality (region_id, name) VALUES (%s, %s)", 
+                               (region_id, district))
     
     conn.commit()
     print("系統初始化成功")

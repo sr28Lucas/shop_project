@@ -14,17 +14,29 @@ def edit():
     cursor = conn.cursor(dictionary=True)
     
     if request.method == 'POST':
-        name = request.form.get('name')
-        phone = request.form.get('phone')
+        name = request.form.get('name', '').strip()
+        phone = request.form.get('phone', '').strip()
+        address = request.form.get('address', '').strip()
         region = request.form.get('region')
         locality = request.form.get('locality')
-        address = request.form.get('address')
         
+        # 後端驗證
+        if len(name) < 1 or len(name) > 30:
+            flash("姓名長度需在 1-30 字元之間。", "error")
+            return redirect(url_for('customer.profile.edit'))
+        if phone and (len(phone) < 8 or len(phone) > 20):
+            flash("電話長度需在 8-20 碼之間。", "error")
+            return redirect(url_for('customer.profile.edit'))
+        if address and (len(address) < 5 or len(address) > 100):
+            flash("地址長度需在 5-100 字元之間。", "error")
+            return redirect(url_for('customer.profile.edit'))
+
         try:
             sql = """UPDATE customer 
                      SET name = %s, phone = %s, region = %s, locality = %s, address = %s, updated_at = NOW() 
                      WHERE id = %s"""
-            cursor.execute(sql, (name, phone, region, locality, address, session['customer_id']))
+            # 處理空字串轉換為 NULL
+            cursor.execute(sql, (name, phone or None, region or None, locality or None, address or None, session['customer_id']))
             conn.commit()
             flash("資料更新成功！", "success")
             return redirect(url_for('customer.profile.edit'))

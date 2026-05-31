@@ -32,11 +32,11 @@
             </div>
             <div class="form-group">
                 <label>姓名 <span style="color: red;">*</span></label>
-                <input type="text" name="name" value="{{ user.name }}" class="form-control" required>
+                <input type="text" name="name" value="{{ user.name }}" class="form-control" maxlength="30" required>
             </div>
             <div class="form-group">
                 <label>電話</label>
-                <input type="text" name="phone" value="{{ user.phone or '' }}" class="form-control">
+                <input type="text" name="phone" value="{{ user.phone or '' }}" class="form-control" pattern="[0-9\-]{8,20}" maxlength="20" title="請輸入 8-20 碼數字或符號 -">
             </div>
         </div>
 
@@ -46,19 +46,19 @@
                 <div class="form-group" style="flex: 1;">
                     <label>縣市</label>
                     <select name="region" class="form-control">
-                        <option value="">讀取中...</option>
+                        <option value="">請選擇縣市</option>
                     </select>
                 </div>
                 <div class="form-group" style="flex: 1;">
                     <label>鄉鎮市區</label>
                     <select name="locality" class="form-control">
-                        <option value="">請先選擇縣市</option>
+                        <option value="">請選擇鄉鎮市區</option>
                     </select>
                 </div>
             </div>
             <div class="form-group">
                 <label>詳細地址</label>
-                <input type="text" name="address" value="{{ user.address or '' }}" class="form-control" placeholder="道路名、巷弄、門牌號碼...">
+                <input type="text" name="address" value="{{ user.address or '' }}" class="form-control" maxlength="100" placeholder="道路名、巷弄、門牌號碼...">
             </div>
         </div>
 
