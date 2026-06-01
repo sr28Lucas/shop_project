@@ -23,7 +23,7 @@ def promo_list():
     
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
-    cursor.execute("SELECT * FROM promo_code WHERE is_deleted = 0")
+    cursor.execute("SELECT * FROM promo_code")
     promos = cursor.fetchall()
     cursor.close()
     conn.close()
@@ -41,22 +41,29 @@ def promo_add():
         code = request.form['code']
         description = request.form['description']
         discount_type = request.form['discount_type']
-        discount_value = float(request.form['discount_value'])
-        usage_limit = int(request.form.get('usage_limit', 0))
-        min_order_amount = float(request.form.get('min_order_amount', 0))
+        
+        # Input Validation
+        try:
+            discount_value = float(request.form['discount_value'])
+            usage_limit = int(request.form.get('usage_limit', 0))
+            min_order_amount = float(request.form.get('min_order_amount', 0))
+        except ValueError:
+            flash("折扣值、使用限制、最低訂單金額必須為有效數字")
+            return render_template('staff/promo_add.html', form_data=form_data)
         
         # Validation
         error = validate_discount(discount_type, discount_value)
         if error:
             flash(error)
             return render_template('staff/promo_add.html', form_data=form_data)
-        if min_order_amount < 0:
-            flash("最低訂單金額門檻不能為負數")
+        if min_order_amount < 0 or usage_limit < 0:
+            flash("最低訂單金額或使用限制不能為負數")
             return render_template('staff/promo_add.html', form_data=form_data)
         
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
-        cursor.execute("SELECT id FROM promo_code WHERE code = %s AND is_deleted = 0", (code,))
+        # 移除 is_deleted
+        cursor.execute("SELECT id FROM promo_code WHERE code = %s", (code,))
         if cursor.fetchone():
             flash("此代碼已存在")
             cursor.close()
@@ -89,17 +96,23 @@ def promo_edit(id):
         code = request.form['code']
         description = request.form['description']
         discount_type = request.form['discount_type']
-        discount_value = float(request.form['discount_value'])
-        usage_limit = int(request.form.get('usage_limit', 0))
-        min_order_amount = float(request.form.get('min_order_amount', 0))
+        
+        # Input Validation
+        try:
+            discount_value = float(request.form['discount_value'])
+            usage_limit = int(request.form.get('usage_limit', 0))
+            min_order_amount = float(request.form.get('min_order_amount', 0))
+        except ValueError:
+            flash("折扣值、使用限制、最低訂單金額必須為有效數字")
+            return redirect(url_for('staff.promo.promo_edit', id=id))
         
         # Validation
         error = validate_discount(discount_type, discount_value)
         if error:
             flash(error)
             return redirect(url_for('staff.promo.promo_edit', id=id))
-        if min_order_amount < 0:
-            flash("最低訂單金額門檻不能為負數")
+        if min_order_amount < 0 or usage_limit < 0:
+            flash("最低訂單金額或使用限制不能為負數")
             return redirect(url_for('staff.promo.promo_edit', id=id))
             
         start_at = request.form['start_at'] if request.form['start_at'] else None
@@ -127,7 +140,8 @@ def promo_delete(id):
         
     conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute("UPDATE promo_code SET is_deleted = 1 WHERE id = %s", (id,))
+    # 移除軟刪除，改用物理刪除
+    cursor.execute("DELETE FROM promo_code WHERE id = %s", (id,))
     conn.commit()
     cursor.close()
     conn.close()

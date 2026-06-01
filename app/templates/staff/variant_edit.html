@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <title>編輯變體與庫存 - 後臺系統</title>
+    <link rel="stylesheet" href="{{url_for('static', filename='css/staff/common.css')}}">
+    <link rel="stylesheet" href="{{url_for('static', filename='css/staff/sku_edit.css')}}">
+</head> 
+<body>
+<div class="container">
+    <h1>編輯變體: {{ variant.color }}</h1>
+
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <div style="background: #f8d7da; color: #721c24; padding: 10px; border-radius: 5px; margin-bottom: 20px; border: 1px solid #f5c6cb;">
+        {% for message in messages %}
+          {{ message }}
+        {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    <form method="POST" enctype="multipart/form-data">
+        <div style="display: flex; gap: 30px; align-items: flex-start; margin-bottom: 30px; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+            <div style="flex: 1;">
+                <div class="form-group">
+                    <label>顏色名稱</label>
+                    <input type="text" name="color" value="{{ variant.color }}" class="form-control" required>
+                </div>
+                <div class="form-group" style="margin-top: 15px;">
+                    <label style="cursor: pointer;">
+                        <input type="checkbox" name="variant_is_active" value="1" {{ 'checked' if variant.is_active }}>
+                        啟用此顏色變體
+                    </label>
+                </div>
+            </div>
+            
+            <div style="flex: 0 0 250px;">
+                <label>變體展示圖 (點選此顏色時顯示)</label>
+                <div class="image-preview-container" style="width: 250px; height: 250px; border: 2px dashed #ddd; border-radius: 8px; background: #fcfcfc; display: flex; align-items: center; justify-content: center; overflow: hidden; margin-top: 10px; margin-bottom: 10px;">
+                    {% if image %}
+                        <img id="preview" src="{{ url_for('static', filename='upload/' + image.filename) }}" style="max-width: 100%; max-height: 100%; object-fit: contain;">
+                    {% else %}
+                        <div id="no-image" style="color: #999; text-align: center;">
+                            <div style="font-size: 40px; margin-bottom: 10px;">+</div>
+                            <div>暫無圖片</div>
+                        </div>
+                        <img id="preview" style="max-width: 100%; max-height: 100%; object-fit: contain; display: none;">
+                    {% endif %}
+                </div>
+                <input type="file" name="variant_image" accept="image/*" class="form-control" onchange="previewImage(this)">
+                
+                {% if image %}
+                    <div style="margin-top: 10px; padding: 10px; background: #fff5f5; border-radius: 4px; border: 1px solid #ffe3e3;">
+                        <label style="color: #c92a2a; cursor: pointer; display: flex; align-items: center; gap: 5px;">
+                            <input type="checkbox" name="delete_image" value="1"> 刪除現有圖片
+                        </label>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <h3 style="margin-top: 40px; margin-bottom: 20px;">SKU 庫存列表</h3>
+        <table class="table" id="sku-table">
+            <thead>
+                <tr>
+                    <th style="width: 50px;">啟用</th>
+                    <th>貨號 (SKU Code)</th>
+                    <th>大小</th>
+                    <th>價格</th>
+                    <th>成本</th>
+                    <th>庫存</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for sku in skus %}
+                <tr class="sku-row">
+                    <input type="hidden" name="sku_id[]" value="{{ sku.id }}">
+                    <td><input type="checkbox" name="is_active[]" value="{{ loop.index0 }}" {{ 'checked' if sku.is_active }}></td>
+                    <td><input type="text" name="sku_code[]" value="{{ sku.sku_code or '' }}" class="form-control" required></td>
+                    <td>
+                        <select name="size[]" class="form-control" required>
+                            {% for s in ['XS', 'S', 'M', 'L', 'XL'] %}
+                                <option value="{{ s }}" {{ 'selected' if sku.size == s }}>{{ s }}</option>
+                            {% endfor %}
+                        </select>
+                    </td>
+                    <td><input type="number" name="price[]" value="{{ sku.price }}" class="form-control" step="0.01" required></td>
+                    <td><input type="number" name="cost[]" value="{{ sku.cost }}" class="form-control" step="0.01" required></td>
+                    <td><input type="number" name="stock[]" value="{{ sku.stock }}" class="form-control" required></td>
+                    <td><button type="button" class="btn btn-delete" onclick="removeRow(this)">刪除</button></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <button type="button" class="btn btn-add" onclick="addRow()">+ 新增大小</button>
+        <div class="text-right">
+            <button type="submit" class="btn btn-primary">儲存變體資訊</button>
+            <a href="{{ url_for('staff.product.variant_list', product_id=product_id) }}" class="btn btn-secondary">取消</a>
+        </div>
+    </form>
+</div>
+
+<script>
+    document.querySelector('form').addEventListener('submit', function() {
+        // 在送出前重新計算 checkbox 的 value，確保與後端收到的 list 索引一致
+        document.querySelectorAll('.sku-row').forEach((row, index) => {
+            const checkbox = row.querySelector('input[name="is_active[]"]');
+            if (checkbox) {
+                checkbox.value = index;
+            }
+        });
+    });
+
+    function addRow() {
+        const table = document.getElementById('sku-table').getElementsByTagName('tbody')[0];
+        const row = table.insertRow();
+        row.className = "sku-row";
+        row.innerHTML = `
+            <input type="hidden" name="sku_id[]" value="">
+            <td><input type="checkbox" name="is_active[]" value="" checked></td>
+            <td><input type="text" name="sku_code[]" class="form-control" required></td>
+            <td>
+                <select name="size[]" class="form-control" required>
+                    <option value="XS">XS</option>
+                    <option value="S">S</option>
+                    <option value="M">M</option>
+                    <option value="L">L</option>
+                    <option value="XL">XL</option>
+                </select>
+            </td>
+            <td><input type="number" name="price[]" class="form-control" step="0.01" required></td>
+            <td><input type="number" name="cost[]" class="form-control" step="0.01" required></td>
+            <td><input type="number" name="stock[]" class="form-control" required></td>
+            <td><button type="button" class="btn btn-delete" onclick="removeRow(this)">刪除</button></td>
+        `;
+    }
+    function removeRow(btn) {
+        btn.parentNode.parentNode.remove();
+    }
+
+    function previewImage(input) {
+        const preview = document.getElementById('preview');
+        const noImage = document.getElementById('no-image');
+        
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                preview.src = e.target.result;
+                preview.style.display = 'block';
+                if (noImage) noImage.style.display = 'none';
+            }
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+</script>
+</body>
+</html>

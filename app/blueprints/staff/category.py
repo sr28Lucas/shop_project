@@ -7,7 +7,7 @@ category_bp = Blueprint('category', __name__)
 def category_list():
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
-    cursor.execute("SELECT * FROM category WHERE is_deleted = 0 ORDER BY id DESC")
+    cursor.execute("SELECT * FROM category ORDER BY id DESC")
     categories = cursor.fetchall()
     cursor.close()
     conn.close()
@@ -15,16 +15,19 @@ def category_list():
 
 @category_bp.route('/add', methods=['POST'])
 def category_add():
-    name = request.form.get('name')
+    name = request.form.get('name', '').strip()
     if not name:
         flash("分類名稱不能為空")
+        return redirect(url_for('staff.category.category_list'))
+    if len(name) > 30:
+        flash("分類名稱長度不能超過 30 個字元")
         return redirect(url_for('staff.category.category_list'))
     
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
     
-    # 檢查重複名稱
-    cursor.execute("SELECT id FROM category WHERE name = %s AND is_deleted = 0", (name,))
+    # 檢查重複名稱，移除 is_deleted
+    cursor.execute("SELECT id FROM category WHERE name = %s", (name,))
     if cursor.fetchone():
         cursor.close()
         conn.close()
@@ -44,16 +47,19 @@ def category_add():
 
 @category_bp.route('/edit/<int:id>', methods=['POST'])
 def category_edit(id):
-    name = request.form.get('name')
+    name = request.form.get('name', '').strip()
     if not name:
         flash("分類名稱不能為空")
+        return redirect(url_for('staff.category.category_list'))
+    if len(name) > 30:
+        flash("分類名稱長度不能超過 30 個字元")
         return redirect(url_for('staff.category.category_list'))
     
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
 
-    # 檢查重複名稱 (排除自己)
-    cursor.execute("SELECT id FROM category WHERE name = %s AND is_deleted = 0 AND id != %s", (name, id))
+    # 檢查重複名稱 (排除自己)，移除 is_deleted
+    cursor.execute("SELECT id FROM category WHERE name = %s AND id != %s", (name, id))
     if cursor.fetchone():
         cursor.close()
         conn.close()
@@ -77,12 +83,12 @@ def category_delete(id):
     cursor = conn.cursor()
     try:
         # 檢查是否有產品屬於此分類
-        cursor.execute("SELECT COUNT(*) FROM product WHERE category_id = %s AND is_deleted = 0", (id,))
+        cursor.execute("SELECT COUNT(*) FROM product WHERE category_id = %s", (id,))
         count = cursor.fetchone()[0]
         if count > 0:
             flash("此分類下尚有商品，無法刪除")
         else:
-            cursor.execute("UPDATE category SET is_deleted = 1, updated_at = NOW() WHERE id = %s", (id,))
+            cursor.execute("DELETE FROM category WHERE id = %s", (id,))
             conn.commit()
             flash("分類已刪除")
     except Exception as e:

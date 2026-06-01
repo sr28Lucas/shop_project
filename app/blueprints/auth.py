@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, redirect, url_for, session
+from flask import Blueprint, render_template, request, redirect, url_for, session, flash
 from app.db import get_db_connection
 from app.extensions import bcrypt
 from datetime import datetime
@@ -10,44 +10,76 @@ auth_bp = Blueprint('auth', __name__, template_folder = '../templates/auth')
 @auth_bp.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
-        email = request.form['email']
-        password = request.form['password']
+        email = request.form.get('email', '').strip()
+        password = request.form.get('password')
         confirm_password = request.form.get('confirm_password')
-        name = request.form['name']
+        name = request.form.get('name', '').strip()
         
-        # 檢查密碼是否一致
+        # 1. 基本驗證
+        if not email or not password or not name:
+            flash("請填寫所有必填欄位。", "error")
+            return redirect(url_for('auth.register'))
+            
         if password != confirm_password:
-            return "<script>alert('兩次輸入的密碼不一致，請重新確認！'); window.history.back();</script>"
+            flash("兩次輸入的密碼不一致，請重新確認！", "error")
+            return redirect(url_for('auth.register'))
         
+        if len(password) < 6:
+            flash("密碼長度至少需 6 位。", "error")
+            return redirect(url_for('auth.register'))
+
         phone = request.form.get('phone') or None
-        region = request.form.get('region') or None
-        locality = request.form.get('locality') or None
+        region_name = request.form.get('region') or None
+        locality_name = request.form.get('locality') or None
         address = request.form.get('address') or None
         
-        conn = get_db_connection()
-        cursor = conn.cursor(dictionary=True)
-        
-        # 檢查 Email 是否存在
-        cursor.execute("SELECT id FROM customer WHERE email = %s", (email,))
-        if cursor.fetchone():
-            return "<script>alert('此 Email 已經註冊過囉！'); window.history.back();</script>"
-        
-        # 密碼加密
-        hashed_pw = bcrypt.generate_password_hash(password).decode('utf-8')
-        
-        now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        
+        conn = None
         try:
-            sql = """INSERT INTO customer (email, password, name, phone, region, locality, address, created_at, updated_at) 
+            conn = get_db_connection()
+            cursor = conn.cursor(dictionary=True)
+            
+            # 獲取 Region ID
+            region_id = None
+            if region_name:
+                cursor.execute("SELECT id FROM region WHERE name = %s", (region_name,))
+                res = cursor.fetchone()
+                if res:
+                    region_id = res['id']
+                    
+            # 獲取 Locality ID
+            locality_id = None
+            if locality_name and region_id:
+                cursor.execute("SELECT id FROM locality WHERE name = %s AND region_id = %s", (locality_name, region_id))
+                res = cursor.fetchone()
+                if res:
+                    locality_id = res['id']
+            
+            # 檢查 Email 是否存在
+            cursor.execute("SELECT id FROM customer WHERE email = %s", (email,))
+            if cursor.fetchone():
+                flash("此 Email 已經註冊過囉！", "error")
+                return redirect(url_for('auth.register'))
+            
+            # 密碼加密
+            hashed_pw = bcrypt.generate_password_hash(password).decode('utf-8')
+            now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            
+            sql = """INSERT INTO customer (email, password, name, phone, region_id, locality_id, address, created_at, updated_at) 
                      VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)"""
-            cursor.execute(sql, (email, hashed_pw, name, phone, region, locality, address, now, now))
+            cursor.execute(sql, (email, hashed_pw, name, phone, region_id, locality_id, address, now, now))
             conn.commit()
-            return "<script>alert('申辦成功！請重新登入。'); window.location.href = '/auth/login';</script>"
+            
+            flash("申辦成功！請重新登入。", "success")
+            return redirect(url_for('auth.login'))
+            
         except Exception as e:
-            return f"<script>alert('系統錯誤: {str(e)}');</script>"
+            if conn: conn.rollback()
+            flash(f"系統錯誤: {str(e)}", "error")
+            return redirect(url_for('auth.register'))
         finally:
-            cursor.close()
-            conn.close()
+            if conn:
+                cursor.close()
+                conn.close()
             
     return render_template('register.html')
 
@@ -57,8 +89,8 @@ def login():
         return redirect(url_for('customer.center'))
 
     if request.method == 'POST':
-        email = request.form['email']
-        password = request.form['password']
+        email = request.form.get('email', '').strip()
+        password = request.form.get('password')
         
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
@@ -67,14 +99,16 @@ def login():
         cursor.close()
         conn.close()
 
-        if user :
+        if user:
             if bcrypt.check_password_hash(user['password'], password):
                 session['customer_id'] = user['id']
                 return redirect(url_for('customer.center'))
             else:
-                return "<script>alert('密碼錯囉，再試一次？'); window.history.back();</script>"
+                flash("密碼錯囉，再試一次？", "error")
+                return redirect(url_for('auth.login'))
         else:
-            return "<script>alert('電子郵件不存在'); window.history.back();</script>"
+            flash("電子郵件不存在", "error")
+            return redirect(url_for('auth.login'))
             
     return render_template('login.html')
 
@@ -93,8 +127,8 @@ def staff_login():
         return redirect(url_for('staff.dashboard'))
 
     if request.method == 'POST':
-        email = request.form['email']
-        password = request.form['password']
+        email = request.form.get('email', '').strip()
+        password = request.form.get('password')
         
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
@@ -107,7 +141,8 @@ def staff_login():
             session['staff_id'] = user['id']
             return redirect(url_for('staff.dashboard'))
         else:
-            return "<script>alert('密碼錯囉，再試一次？'); window.history.back();</script>"
+            flash("密碼錯囉，再試一次？", "error")
+            return redirect(url_for('auth.staff_login'))
             
     return render_template('staff_login.html')
 

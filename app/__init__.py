@@ -38,11 +38,12 @@ def create_app():
             conn = get_db_connection()
             cursor = conn.cursor()
             cursor.execute("""
-                SELECT COUNT(*) FROM cart_item ci
+                SELECT SUM(qty) FROM cart_item ci
                 JOIN cart c ON ci.cart_id = c.id
-                WHERE c.customer_id = %s AND c.status = 'active'
+                WHERE c.customer_id = %s
             """, (session['customer_id'],))
-            count = cursor.fetchone()[0]
+            result = cursor.fetchone()
+            count = result[0] if result and result[0] else 0
             cursor.close()
             conn.close()
             return dict(cart_count=count)

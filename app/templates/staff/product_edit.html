@@ -26,9 +26,8 @@
                 <textarea name="description" class="form-control" rows="4">{{ product.description }}</textarea>
             </div>
             <div class="form-group">
-                <label>商品分類</label>
-                <select name="category_id" class="form-control">
-                    <option value="" {{ 'selected' if not product.category_id }}>無分類</option>
+                <label>商品分類 <span style="color: red;">*</span></label>
+                <select name="category_id" class="form-control" required>
                     {% for category in categories %}
                     <option value="{{ category.id }}" {{ 'selected' if product.category_id == category.id }}>
                         {{ category.name }}

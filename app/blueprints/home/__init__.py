@@ -37,8 +37,8 @@ def index():
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
     
-    # 獲取所有分類 (排除已刪除的)
-    cursor.execute("SELECT id, name FROM category WHERE is_deleted = 0 ORDER BY id ASC")
+    # 獲取所有分類
+    cursor.execute("SELECT id, name FROM category ORDER BY id ASC")
     categories = cursor.fetchall()
     
     # 獲取商品、最低/最高價格及首圖
@@ -49,10 +49,10 @@ def index():
             MAX(s.price) as max_price,
             (SELECT filename FROM image WHERE product_id = p.id AND image_type = 'product' ORDER BY sort_order ASC LIMIT 1) as main_image
         FROM product p
-        LEFT JOIN sku s ON p.id = s.product_id
-        WHERE p.is_active = 1 AND p.is_deleted = 0 
+        LEFT JOIN variant v ON p.id = v.product_id
+        LEFT JOIN sku s ON v.id = s.variant_id
+        WHERE p.is_active = 1
           AND (s.is_active = 1 OR s.is_active IS NULL) 
-          AND (s.is_deleted = 0 OR s.is_deleted IS NULL)
     """
     params = []
     if query:
@@ -116,13 +116,13 @@ def product_view(id):
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
     
-    # 獲取商品基本資料與分類名稱
+    # 獲取商品基本資料與分類名稱，並嘗試獲取第一張主圖作為預設
     cursor.execute("""
-        SELECT p.*, c.name as category_name 
+        SELECT p.*, c.name as category_name,
+        (SELECT filename FROM image WHERE product_id = p.id AND image_type = 'product' ORDER BY sort_order ASC LIMIT 1) as main_image
         FROM product p 
         LEFT JOIN category c ON p.category_id = c.id 
-        WHERE p.id = %s AND p.is_active = 1 AND p.is_deleted = 0 
-          AND (c.is_deleted = 0 OR c.is_deleted IS NULL)
+        WHERE p.id = %s AND p.is_active = 1
     """, (id,))
     product = cursor.fetchone()
     
@@ -131,22 +131,32 @@ def product_view(id):
         conn.close()
         return "商品不存在", 404
         
-    # 獲取商品圖片
-    cursor.execute("SELECT * FROM image WHERE product_id = %s AND image_type = 'product' ORDER BY sort_order", (id,))
-    images = cursor.fetchall()
-
-    # 獲取 SKU 圖片
-    cursor.execute("SELECT * FROM image WHERE product_id = %s AND image_type = 'sku' ORDER BY sort_order", (id,))
-    sku_images = cursor.fetchall()
+    # 獲取商品所有相關圖片
+    cursor.execute("SELECT * FROM image WHERE product_id = %s ORDER BY sort_order", (id,))
+    all_images = cursor.fetchall()
+    
+    product_images = [img for img in all_images if img['image_type'] == 'product']
+    # 建立 variant_id 到 filename 的對應 (假設每個 variant 只有一張圖，或取第一張)
+    variant_images = {img['variant_id']: img['filename'] for img in all_images if img['variant_id']}
 
     # 獲取所有 SKU
     cursor.execute("""
-        SELECT * FROM sku
-        WHERE product_id = %s AND is_active = 1 AND is_deleted = 0
-        ORDER BY price ASC
+        SELECT s.*, v.color FROM sku s
+        JOIN variant v ON s.variant_id = v.id
+        WHERE v.product_id = %s AND s.is_active = 1
+        ORDER BY s.price ASC
     """, (id,))
     skus = cursor.fetchall()
 
+    # 獲取所有變體 (Colors)
+    cursor.execute("SELECT * FROM variant WHERE product_id = %s AND is_active = 1", (id,))
+    variants = cursor.fetchall()
+    for v in variants:
+        # 將 SKU 關聯到對應的變體
+        v['skus'] = [s for s in skus if s['variant_id'] == v['id']]
+        # 關聯圖片
+        v['image'] = variant_images.get(v['id'])
+
     cursor.close()
     conn.close()
-    return render_template('home/product_view.html', product=product, images=images, sku_images=sku_images, skus=skus)
+    return render_template('home/product_view.html', product=product, product_images=product_images, variants=variants)

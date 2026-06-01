@@ -7,11 +7,11 @@ checkout_bp = Blueprint('checkout', __name__)
 def get_active_cart(customer_id):
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
-    cursor.execute("SELECT id FROM cart WHERE customer_id = %s AND status = 'active'", (customer_id,))
+    cursor.execute("SELECT id FROM cart WHERE customer_id = %s", (customer_id,))
     cart = cursor.fetchone()
     if not cart:
         now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        cursor.execute("INSERT INTO cart (customer_id, status, created_at, updated_at) VALUES (%s, 'active', %s, %s)",
+        cursor.execute("INSERT INTO cart (customer_id, created_at, updated_at) VALUES (%s, %s, %s)",
                        (customer_id, now, now))
         conn.commit()
         cart_id = cursor.lastrowid
@@ -31,29 +31,41 @@ def view_cart():
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
     
-    # 檢查並清理已刪除的商品
+    # 1. 檢查並清除已下架的商品或規格
     cursor.execute("""
-        SELECT ci.sku_id, p.name as product_name
+        SELECT ci.sku_id, p.name, v.color, s.size
         FROM cart_item ci
         JOIN sku s ON ci.sku_id = s.id
-        JOIN product p ON s.product_id = p.id
-        WHERE ci.cart_id = %s AND (s.is_deleted = 1 OR p.is_deleted = 1)
+        JOIN variant v ON s.variant_id = v.id
+        JOIN product p ON v.product_id = p.id
+        WHERE ci.cart_id = %s
+          AND (p.is_active = 0 OR v.is_active = 0 OR s.is_active = 0)
     """, (cart_id,))
-    deleted_items = cursor.fetchall()
+    inactive_items = cursor.fetchall()
     
-    if deleted_items:
-        for item in deleted_items:
-            flash(f"商品 '{item['product_name']}' 已下架或刪除，已自動從您的購物車中移除。")
-            cursor.execute("DELETE FROM cart_item WHERE cart_id = %s AND sku_id = %s", (cart_id, item['sku_id']))
+    if inactive_items:
+        # 刪除這些項目
+        inactive_sku_ids = [item['sku_id'] for item in inactive_items]
+        format_strings = ','.join(['%s'] * len(inactive_sku_ids))
+        cursor.execute(f"DELETE FROM cart_item WHERE cart_id = %s AND sku_id IN ({format_strings})", [cart_id] + inactive_sku_ids)
         conn.commit()
+        
+        # 提示使用者
+        item_names = [f"{item['name']} ({item['color']}/{item['size']})" for item in inactive_items]
+        flash(f"以下商品或規格已下架並從購物車移除：{', '.join(item_names)}")
 
-    # 獲取有效的購物車項目
+    # 2. 獲取剩餘有效的購物車項目
     cursor.execute("""
-        SELECT ci.qty, s.price, s.size, s.color, p.name as product_name, ci.sku_id, p.id as product_id
+        SELECT ci.qty, s.price, s.size, s.stock, v.color, p.name as product_name, ci.sku_id, p.id as product_id,
+        COALESCE(
+            (SELECT filename FROM image WHERE variant_id = v.id LIMIT 1),
+            (SELECT filename FROM image WHERE product_id = p.id AND image_type = 'product' ORDER BY sort_order ASC LIMIT 1)
+        ) as image
         FROM cart_item ci
         JOIN sku s ON ci.sku_id = s.id
-        JOIN product p ON s.product_id = p.id
-        WHERE ci.cart_id = %s AND s.is_deleted = 0 AND p.is_deleted = 0
+        JOIN variant v ON s.variant_id = v.id
+        JOIN product p ON v.product_id = p.id
+        WHERE ci.cart_id = %s
     """, (cart_id,))
     cart_items = cursor.fetchall()
     
@@ -70,10 +82,13 @@ def add_to_cart():
         return redirect(url_for('auth.login'))
     
     sku_id = request.form.get('sku_id')
-    qty = int(request.form.get('qty', 1))
-    
-    if not sku_id:
-        return "<script>alert('請選擇規格！'); window.history.back();</script>"
+    try:
+        qty = int(request.form.get('qty', 1))
+    except ValueError:
+        return "<script>alert('無效的數量！'); window.history.back();</script>"
+        
+    if not sku_id or qty <= 0:
+        return "<script>alert('請選擇有效的規格與數量！'); window.history.back();</script>"
         
     cart_id = get_active_cart(session['customer_id'])
     
@@ -105,7 +120,16 @@ def update_qty():
         return redirect(url_for('auth.login'))
     
     sku_id = request.form['sku_id']
-    qty = request.form['qty']
+    try:
+        qty = int(request.form['qty'])
+    except ValueError:
+        flash("無效的數量")
+        return redirect(url_for('home.checkout.view_cart'))
+
+    if qty <= 0:
+        flash("數量必須大於 0")
+        return redirect(url_for('home.checkout.view_cart'))
+
     cart_id = get_active_cart(session['customer_id'])
     
     conn = get_db_connection()
@@ -143,8 +167,14 @@ def information():
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
     
-    # 獲取會員資料
-    cursor.execute("SELECT * FROM customer WHERE id = %s", (session['customer_id'],))
+    # 獲取會員資料，包含地區與鄉鎮名稱
+    cursor.execute("""
+        SELECT c.*, r.name as region, l.name as locality 
+        FROM customer c
+        LEFT JOIN region r ON c.region_id = r.id
+        LEFT JOIN locality l ON c.locality_id = l.id
+        WHERE c.id = %s
+    """, (session['customer_id'],))
     customer = cursor.fetchone()
     
     if request.method == 'POST':
@@ -164,9 +194,9 @@ def information():
             flash("地址長度需在 5-100 字元之間。")
             return redirect(url_for('home.checkout.information'))
         
-        # 驗證優惠碼
+        # 驗證優惠碼，移除 is_deleted
         if promo_code:
-            cursor.execute("SELECT id FROM promo_code WHERE code = %s AND is_active = 1 AND is_deleted = 0", (promo_code,))
+            cursor.execute("SELECT id FROM promo_code WHERE code = %s AND is_active = 1", (promo_code,))
             if not cursor.fetchone():
                 flash("無效的優惠碼，請重新輸入。")
                 cursor.close()
@@ -200,12 +230,17 @@ def payment():
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
     
-    # 獲取購物車項目
+    # 獲取購物車項目，增加圖片獲取
     cursor.execute("""
-        SELECT ci.qty, s.price, s.size, s.color, p.name as product_name, ci.sku_id
+        SELECT ci.qty, s.price, s.size, v.color, p.name as product_name, ci.sku_id,
+        COALESCE(
+            (SELECT filename FROM image WHERE variant_id = v.id LIMIT 1),
+            (SELECT filename FROM image WHERE product_id = p.id AND image_type = 'product' ORDER BY sort_order ASC LIMIT 1)
+        ) as image
         FROM cart_item ci
         JOIN sku s ON ci.sku_id = s.id
-        JOIN product p ON s.product_id = p.id
+        JOIN variant v ON s.variant_id = v.id
+        JOIN product p ON v.product_id = p.id
         WHERE ci.cart_id = %s
     """, (cart_id,))
     cart_items = cursor.fetchall()
@@ -217,12 +252,12 @@ def payment():
     region_data = cursor.fetchone()
     shipping_fee = region_data['fee'] if region_data else 0
     
-    # 計算折扣
+    # 計算折扣，移除 is_deleted
     promo_code = session['checkout_info'].get('promo_code')
     discount = 0
     
     if promo_code:
-        cursor.execute("SELECT * FROM promo_code WHERE code = %s AND is_active = 1 AND is_deleted = 0", (promo_code,))
+        cursor.execute("SELECT * FROM promo_code WHERE code = %s AND is_active = 1", (promo_code,))
         promo = cursor.fetchone()
         if promo and subtotal >= promo['min_order_amount']:
             if promo['discount_type'] == 'subtotal_discount':
@@ -257,43 +292,46 @@ def place_order():
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
     
-    # 1. 重新驗證並獲取有效的購物車項目
-    # 獲取購物車項目與計算總額
+    # 獲取有效的購物車項目，增加圖片獲取
     cursor.execute("""
-        SELECT ci.qty, s.id as sku_id, s.price, s.size, s.color, p.name as product_name, p.is_active, p.is_deleted, s.is_active as sku_is_active, s.is_deleted as sku_is_deleted
+        SELECT ci.qty, s.id as sku_id, s.sku_code, s.price, s.size, s.stock, v.color, v.id as variant_id, p.name as product_name, p.id as product_id,
+        COALESCE(
+            (SELECT filename FROM image WHERE variant_id = v.id LIMIT 1),
+            (SELECT filename FROM image WHERE product_id = p.id AND image_type = 'product' ORDER BY sort_order ASC LIMIT 1)
+        ) as image
         FROM cart_item ci
         JOIN sku s ON ci.sku_id = s.id
-        JOIN product p ON s.product_id = p.id
+        JOIN variant v ON s.variant_id = v.id
+        JOIN product p ON v.product_id = p.id
         WHERE ci.cart_id = %s
     """, (cart_id,))
     cart_items = cursor.fetchall()
 
-    # 檢查購物車是否為空
     if not cart_items:
         cursor.close()
         conn.close()
         flash("您的購物車目前是空的，無法進行結帳。")
         return redirect(url_for('home.checkout.view_cart'))
-
-    # 檢查商品或 SKU 是否下架/刪除
+    
+    # 檢查庫存
     for item in cart_items:
-        if not item['is_active'] or item['is_deleted'] or not item['sku_is_active'] or item['sku_is_deleted']:
+        if item['qty'] > item['stock']:
             cursor.close()
             conn.close()
-            return "<script>alert('購物車中有商品已下架或刪除，請重新確認購物車！'); window.location.href='/view_cart';</script>"
+            flash(f"商品 {item['product_name']} ({item['color']}/{item['size']}) 庫存不足，剩餘 {item['stock']}。")
+            return redirect(url_for('home.checkout.view_cart'))
+
     subtotal = sum(item['qty'] * item['price'] for item in cart_items)
     
-    # 從資料庫獲取運費
     cursor.execute("SELECT fee FROM region WHERE name = %s", (session['checkout_info']['region'],))
     region_data = cursor.fetchone()
     shipping_fee = region_data['fee'] if region_data else 0
     
-    # 2. 驗證優惠碼狀態
     promo_code = session['checkout_info'].get('promo_code')
     discount = 0
     promo_id = None
     if promo_code:
-        cursor.execute("SELECT * FROM promo_code WHERE code = %s AND is_active = 1 AND is_deleted = 0", (promo_code,))
+        cursor.execute("SELECT * FROM promo_code WHERE code = %s AND is_active = 1", (promo_code,))
         promo = cursor.fetchone()
         if not promo or subtotal < promo['min_order_amount']:
             cursor.close()
@@ -309,7 +347,6 @@ def place_order():
     total = subtotal - discount + shipping_fee
     
     if request.method == 'POST':
-        # 執行下單 (使用 Transaction)
         try:
             now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             
@@ -323,25 +360,26 @@ def place_order():
                                       session['checkout_info']['address'], now, now))
             order_id = cursor.lastrowid
             
-            # 插入訂單明細
+            # 插入訂單明細，並扣除庫存
             for item in cart_items:
-                cursor.execute("INSERT INTO order_item (order_id, sku_id, product_name, size, color, qty, price) VALUES (%s, %s, %s, %s, %s, %s, %s)",
-                               (order_id, item['sku_id'], item['product_name'], item['size'], item['color'], item['qty'], item['price']))
+                # 再次檢查庫存並鎖定行 (可選，但在這裡先簡單處理)
+                cursor.execute("UPDATE sku SET stock = stock - %s WHERE id = %s", (item['qty'], item['sku_id']))
+                
+                cursor.execute("""INSERT INTO order_item (order_id, product_id, variant_id, sku_id, product_name, variant_name, sku_code, size, color, qty, price) 
+                                  VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)""",
+                               (order_id, item['product_id'], item['variant_id'], item['sku_id'], item['product_name'], item['color'], item['sku_code'], item['size'], item['color'], item['qty'], item['price']))
             
             # 插入付款記錄
             cursor.execute("INSERT INTO payment (order_id, method, card_number, status, paid_at) VALUES (%s, 'credit_card', %s, 'paid', %s)",
                            (order_id, session['payment_info']['card_number'], now))
             
-            # 插入初始物流記錄 (pending: 未發貨)
             cursor.execute("INSERT INTO shipment (order_id, status) VALUES (%s, 'pending')", (order_id,))
             
-            # 清空購物車項目並移除購物車記錄
             cursor.execute("DELETE FROM cart_item WHERE cart_id = %s", (cart_id,))
             cursor.execute("DELETE FROM cart WHERE id = %s", (cart_id,))
             
             conn.commit()
             
-            # 清理 session
             session.pop('checkout_info')
             session.pop('payment_info')
             
@@ -366,5 +404,6 @@ def place_order():
 @checkout_bp.route('/complete/<int:order_id>')
 def complete(order_id):
     return render_template('home/complete.html', order_id=order_id)
+
 
 

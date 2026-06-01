@@ -24,11 +24,17 @@
         <div class="cart-items">
             {% for item in cart_items %}
             <div class="cart-item">
+                <div class="item-img" style="width: 80px; height: 80px; flex-shrink: 0; margin-right: 15px;">
+                    <img src="{{ url_for('static', filename='upload/' + item.image) if item.image else url_for('static', filename='img/no-image.png') }}" alt="{{ item.product_name }}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 4px;">
+                </div>
                 <div class="item-info">
                     <div class="item-name">
                         <a href="{{ url_for('home.product_view', id=item.product_id) }}" style="text-decoration: none; color: inherit;">{{ item.product_name }}</a>
                     </div>
                     <div class="item-details">規格: {{ item.size }} / {{ item.color }}</div>
+                    {% if item.qty > item.stock %}
+                        <div class="item-stock-warning" style="color: #d9534f; font-size: 13px; font-weight: bold;">庫存不足 (剩餘 {{ item.stock }})</div>
+                    {% endif %}
                     <div class="item-price">${{ "{:,.0f}".format(item.price) }}</div>
                 </div>
                 <div class="item-actions">

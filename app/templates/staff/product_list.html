@@ -105,7 +105,7 @@
                         </td>
                         
                         <td>
-                            <a href="{{ url_for('staff.product.sku_list', product_id=product.id) }}" class="btn btn-sku">SKU</a>
+                            <a href="{{ url_for('staff.product.variant_list', product_id=product.id) }}" class="btn btn-sku">規格管理</a>
                             <a href="{{ url_for('staff.product.product_edit', id=product.id) }}" class="btn btn-edit">修改</a>
                             <button type="button" class="btn btn-delete" onclick="if(confirm('確定要刪除此商品嗎？')) { deleteProduct({{ product.id }}, deleteUrlBase); }">刪除</button>
                         </td>

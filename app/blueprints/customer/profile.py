@@ -32,11 +32,27 @@ def edit():
             return redirect(url_for('customer.profile.edit'))
 
         try:
+            # 獲取 Region ID
+            region_id = None
+            if region:
+                cursor.execute("SELECT id FROM region WHERE name = %s", (region,))
+                res = cursor.fetchone()
+                if res:
+                    region_id = res['id']
+                    
+            # 獲取 Locality ID
+            locality_id = None
+            if locality and region_id:
+                cursor.execute("SELECT id FROM locality WHERE name = %s AND region_id = %s", (locality, region_id))
+                res = cursor.fetchone()
+                if res:
+                    locality_id = res['id']
+
             sql = """UPDATE customer 
-                     SET name = %s, phone = %s, region = %s, locality = %s, address = %s, updated_at = NOW() 
+                     SET name = %s, phone = %s, region_id = %s, locality_id = %s, address = %s, updated_at = NOW() 
                      WHERE id = %s"""
             # 處理空字串轉換為 NULL
-            cursor.execute(sql, (name, phone or None, region or None, locality or None, address or None, session['customer_id']))
+            cursor.execute(sql, (name, phone or None, region_id, locality_id, address or None, session['customer_id']))
             conn.commit()
             flash("資料更新成功！", "success")
             return redirect(url_for('customer.profile.edit'))
@@ -47,7 +63,14 @@ def edit():
             cursor.close()
             conn.close()
             
-    cursor.execute("SELECT * FROM customer WHERE id = %s", (session['customer_id'],))
+    sql = """
+        SELECT c.*, r.name as region, l.name as locality
+        FROM customer c
+        LEFT JOIN region r ON c.region_id = r.id
+        LEFT JOIN locality l ON c.locality_id = l.id
+        WHERE c.id = %s
+    """
+    cursor.execute(sql, (session['customer_id'],))
     user = cursor.fetchone()
     cursor.close()
     conn.close()

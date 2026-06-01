@@ -4,8 +4,8 @@ CREATE TABLE `customer` (
   `email` varchar(100) UNIQUE NOT NULL,
   `name` varchar(30) NOT NULL,
   `phone` varchar(30),
-  `region` varchar(30),
-  `locality` varchar(30),
+  `region_id` int,
+  `locality_id` int,
   `address` varchar(100),
   `is_active` bool NOT NULL DEFAULT 1,
   `created_at` datetime,
@@ -14,8 +14,7 @@ CREATE TABLE `customer` (
 
 CREATE TABLE `wishlist` (
   `id` int PRIMARY KEY AUTO_INCREMENT,
-  `customer_id` int NOT NULL,
-  `status` varchar(30) NOT NULL,
+  `customer_id` int UNIQUE NOT NULL,
   `created_at` datetime,
   `updated_at` datetime
 );
@@ -30,8 +29,7 @@ CREATE TABLE `wishlist_item` (
 
 CREATE TABLE `cart` (
   `id` int PRIMARY KEY AUTO_INCREMENT,
-  `customer_id` int NOT NULL,
-  `status` varchar(30) NOT NULL,
+  `customer_id` int UNIQUE NOT NULL,
   `created_at` datetime,
   `updated_at` datetime
 );
@@ -47,8 +45,7 @@ CREATE TABLE `cart_item` (
 
 CREATE TABLE `category` (
   `id` int PRIMARY KEY AUTO_INCREMENT,
-  `name` varchar(30) NOT NULL,
-  `is_deleted` bool NOT NULL DEFAULT 0,
+  `name` varchar(30) UNIQUE NOT NULL,
   `created_at` datetime,
   `updated_at` datetime
 );
@@ -59,30 +56,36 @@ CREATE TABLE `product` (
   `name` varchar(100) NOT NULL,
   `description` varchar(2000),
   `is_active` bool NOT NULL DEFAULT 1,
-  `is_deleted` bool NOT NULL DEFAULT 0,
+  `created_at` datetime,
+  `updated_at` datetime
+);
+
+CREATE TABLE `variant` (
+  `id` int PRIMARY KEY AUTO_INCREMENT,
+  `product_id` int NOT NULL,
+  `color` varchar(30) NOT NULL,
+  `is_active` bool NOT NULL DEFAULT 1,
   `created_at` datetime,
   `updated_at` datetime
 );
 
 CREATE TABLE `sku` (
   `id` int PRIMARY KEY AUTO_INCREMENT,
-  `product_id` int NOT NULL,
-  `sku_code` varchar(100) NOT NULL,
+  `variant_id` int NOT NULL,
+  `sku_code` varchar(100) UNIQUE NOT NULL,
   `size` varchar(30),
-  `color` varchar(30),
   `price` decimal(12,2) NOT NULL,
   `cost` decimal(12,2) NOT NULL,
   `stock` int NOT NULL DEFAULT 0,
   `is_active` bool NOT NULL DEFAULT 1,
-  `is_deleted` bool NOT NULL DEFAULT 0,
   `created_at` datetime,
   `updated_at` datetime
 );
 
 CREATE TABLE `image` (
   `id` int PRIMARY KEY AUTO_INCREMENT,
-  `product_id` int NOT NULL,
-  `sku_id` int,
+  `product_id` int,
+  `variant_id` int,
   `image_type` varchar(30) NOT NULL DEFAULT 'product',
   `filename` varchar(500) NOT NULL,
   `is_primary` bool NOT NULL DEFAULT 0,
@@ -93,7 +96,7 @@ CREATE TABLE `image` (
 
 CREATE TABLE `promo_code` (
   `id` int PRIMARY KEY AUTO_INCREMENT,
-  `code` varchar(30) NOT NULL,
+  `code` varchar(30) UNIQUE NOT NULL,
   `description` varchar(100),
   `discount_type` varchar(30) NOT NULL,
   `discount_value` decimal(12,2) NOT NULL,
@@ -101,7 +104,6 @@ CREATE TABLE `promo_code` (
   `usage_limit` int,
   `used_count` int NOT NULL DEFAULT 0,
   `is_active` bool NOT NULL DEFAULT 1,
-  `is_deleted` bool NOT NULL DEFAULT 0,
   `start_at` datetime,
   `end_at` datetime,
   `created_at` datetime,
@@ -128,20 +130,23 @@ CREATE TABLE `orders` (
 );
 
 CREATE TABLE `order_item` (
+  `id` int PRIMARY KEY AUTO_INCREMENT,
   `order_id` int NOT NULL,
-  `sku_id` int NOT NULL,
-  `sku_code` varchar(100),
+  `product_id` int,
+  `variant_id` int,
+  `sku_id` int,
   `product_name` varchar(100) NOT NULL,
+  `variant_name` varchar(100) NOT NULL,
+  `sku_code` varchar(100) NOT NULL,
   `size` varchar(30),
   `color` varchar(30),
   `qty` int NOT NULL DEFAULT 1,
-  `price` decimal(12,2) NOT NULL,
-  PRIMARY KEY (`order_id`, `sku_id`)
+  `price` decimal(12,2) NOT NULL
 );
 
 CREATE TABLE `payment` (
   `id` int PRIMARY KEY AUTO_INCREMENT,
-  `order_id` int NOT NULL,
+  `order_id` int UNIQUE NOT NULL,
   `method` varchar(30) NOT NULL,
   `card_number` varchar(30),
   `status` varchar(30) NOT NULL,
@@ -150,7 +155,7 @@ CREATE TABLE `payment` (
 
 CREATE TABLE `shipment` (
   `id` int PRIMARY KEY AUTO_INCREMENT,
-  `order_id` int NOT NULL,
+  `order_id` int UNIQUE NOT NULL,
   `status` varchar(30) NOT NULL DEFAULT 'pending',
   `shipped_at` datetime,
   `delivered_at` datetime
@@ -172,7 +177,7 @@ CREATE TABLE `announcement` (
 
 CREATE TABLE `role` (
   `id` int PRIMARY KEY AUTO_INCREMENT,
-  `name` varchar(30) NOT NULL,
+  `name` varchar(30) UNIQUE NOT NULL,
   `member` bool NOT NULL DEFAULT 0,
   `orders` bool NOT NULL DEFAULT 0,
   `product` bool NOT NULL DEFAULT 0,
@@ -199,6 +204,7 @@ CREATE TABLE `staff` (
 CREATE TABLE `inquiry` (
   `id` int PRIMARY KEY AUTO_INCREMENT,
   `customer_id` int NOT NULL,
+  `purpose` varchar(100) NOT NULL,
   `status` varchar(30) NOT NULL DEFAULT 'open',
   `created_at` datetime,
   `updated_at` datetime
@@ -207,7 +213,6 @@ CREATE TABLE `inquiry` (
 CREATE TABLE `message` (
   `id` int PRIMARY KEY AUTO_INCREMENT,
   `inquiry_id` int NOT NULL,
-  `sender_type` varchar(30) NOT NULL,
   `staff_id` int,
   `customer_id` int,
   `content` varchar(2000) NOT NULL,
@@ -224,9 +229,9 @@ CREATE TABLE `region` (
 );
 
 CREATE TABLE `locality` (
-  `region_id` int,
-  `name` varchar(30),
-  PRIMARY KEY (`region_id`, `name`)
+  `id` int PRIMARY KEY AUTO_INCREMENT,
+  `region_id` int NOT NULL,
+  `name` varchar(30)
 );
 
 ALTER TABLE `wishlist` ADD FOREIGN KEY (`customer_id`) REFERENCES `customer` (`id`);
@@ -243,19 +248,19 @@ ALTER TABLE `cart_item` ADD FOREIGN KEY (`sku_id`) REFERENCES `sku` (`id`);
 
 ALTER TABLE `product` ADD FOREIGN KEY (`category_id`) REFERENCES `category` (`id`);
 
-ALTER TABLE `sku` ADD FOREIGN KEY (`product_id`) REFERENCES `product` (`id`);
+ALTER TABLE `variant` ADD FOREIGN KEY (`product_id`) REFERENCES `product` (`id`);
+
+ALTER TABLE `sku` ADD FOREIGN KEY (`variant_id`) REFERENCES `variant` (`id`);
 
 ALTER TABLE `image` ADD FOREIGN KEY (`product_id`) REFERENCES `product` (`id`);
 
-ALTER TABLE `image` ADD FOREIGN KEY (`sku_id`) REFERENCES `sku` (`id`);
+ALTER TABLE `image` ADD FOREIGN KEY (`variant_id`) REFERENCES `variant` (`id`);
 
 ALTER TABLE `orders` ADD FOREIGN KEY (`customer_id`) REFERENCES `customer` (`id`);
 
 ALTER TABLE `orders` ADD FOREIGN KEY (`promo_code_id`) REFERENCES `promo_code` (`id`);
 
 ALTER TABLE `order_item` ADD FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`);
-
-ALTER TABLE `order_item` ADD FOREIGN KEY (`sku_id`) REFERENCES `sku` (`id`);
 
 ALTER TABLE `payment` ADD FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`);
 
@@ -271,6 +276,8 @@ ALTER TABLE `message` ADD FOREIGN KEY (`staff_id`) REFERENCES `staff` (`id`);
 
 ALTER TABLE `message` ADD FOREIGN KEY (`customer_id`) REFERENCES `customer` (`id`);
 
-ALTER TABLE `customer` ADD FOREIGN KEY (`region`) REFERENCES `region` (`name`);
+ALTER TABLE `customer` ADD FOREIGN KEY (`region_id`) REFERENCES `region` (`id`);
+
+ALTER TABLE `customer` ADD FOREIGN KEY (`locality_id`) REFERENCES `locality` (`id`);
 
 ALTER TABLE `locality` ADD FOREIGN KEY (`region_id`) REFERENCES `region` (`id`);

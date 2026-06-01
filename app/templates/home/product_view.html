@@ -18,171 +18,171 @@
     .product-title { font-size: 28px; margin: 0 0 20px 0; color: #2c3e50; }
     .product-price-range { font-size: 24px; color: #d63384; font-weight: bold; margin-bottom: 30px; }
     
-    .sku-selector { margin-bottom: 30px; }
-    .sku-label { font-weight: bold; margin-bottom: 15px; display: block; }
+    .sku-selector { margin-bottom: 20px; }
+    .sku-label { font-weight: bold; margin-bottom: 10px; display: block; }
     .sku-options { display: flex; flex-wrap: wrap; gap: 10px; }
     .sku-btn { border: 1px solid #ddd; padding: 8px 20px; border-radius: 4px; background: white; cursor: pointer; transition: all 0.2s; }
     .sku-btn:hover { border-color: #d63384; color: #d63384; }
     .sku-btn.active { background: #d63384; color: white; border-color: #d63384; }
     
-    .buy-actions { display: flex; gap: 15px; margin-top: 40px; }
-    .btn-buy { flex: 1; padding: 15px; background: #d63384; color: white; border: none; border-radius: 4px; font-size: 18px; font-weight: bold; cursor: pointer; }
-    .btn-cart { flex: 1; padding: 15px; background: #fff; color: #d63384; border: 2px solid #d63384; border-radius: 4px; font-size: 18px; font-weight: bold; cursor: pointer; }
+    .quantity-selector { display: flex; align-items: center; gap: 10px; margin-bottom: 30px; }
+    .qty-btn { width: 35px; height: 35px; border: 1px solid #ddd; background: white; cursor: pointer; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+    .qty-btn:hover { border-color: #d63384; color: #d63384; }
+    #buy-qty { width: 60px; height: 35px; text-align: center; border: 1px solid #ddd; border-radius: 4px; font-size: 16px; }
     
-    .product-description { margin-top: 50px; border-top: 1px solid #eee; padding-top: 30px; }
-    .description-title { font-size: 20px; font-weight: bold; margin-bottom: 20px; }
-    .description-content { line-height: 1.8; color: #555; white-space: pre-wrap; }
+    .buy-actions { display: flex; gap: 15px; margin-top: 40px; }
+    .btn-cart { flex: 1; padding: 15px; background: #fff; color: #d63384; border: 2px solid #d63384; border-radius: 4px; font-size: 18px; font-weight: bold; cursor: pointer; transition: all 0.2s; }
+    .btn-cart:hover { background: #d63384; color: white; }
 </style>
 {% endblock %}
 
 {% block content %}
-    <div style="margin-bottom: 20px;">
-        <a href="{{ url_for('home.index') }}" style="color: #888; text-decoration: none;">首頁</a> / 
-        <span style="color: #444;">{{ product.category_name }}</span> / 
-        <span style="color: #444;">{{ product.name }}</span>
-    </div>
-
     <div class="product-detail-container">
         <div class="product-images">
             <div class="main-image">
-                {% if images or sku_images %}
-                    {% set first_img = images[0].filename if images else sku_images[0].filename %}
-                    <img id="mainImg" src="{{ url_for('static', filename='upload/' + first_img) }}" alt="{{ product.name }}">
-                {% else %}
-                    <div style="height: 100%; display: flex; align-items: center; justify-content: center; color: #ccc;">暫無圖片</div>
-                {% endif %}
+                <img id="mainImg" src="{{ url_for('static', filename='upload/' + product.main_image) if product.main_image else '' }}" alt="{{ product.name }}">
             </div>
             <div class="thumbnail-list">
-                {% for img in images %}
-                    <div class="thumbnail {{ 'active' if loop.first }}" onclick="changeMainImg('{{ url_for('static', filename='upload/' + img.filename) }}', this)">
-                        <img src="{{ url_for('static', filename='upload/' + img.filename) }}" alt="">
-                    </div>
-                {% endfor %}
-                {% for img in sku_images %}
-                    <div class="thumbnail sku-thumb-{{ img.sku_id }}" onclick="changeMainImg('{{ url_for('static', filename='upload/' + img.filename) }}', this)">
-                        <img src="{{ url_for('static', filename='upload/' + img.filename) }}" alt="">
+                {% for img in product_images %}
+                    <div class="thumbnail {{ 'active' if img.filename == product.main_image }}" onclick="changeMainImage('{{ url_for('static', filename='upload/' + img.filename) }}', this)">
+                        <img src="{{ url_for('static', filename='upload/' + img.filename) }}" alt="{{ product.name }}">
                     </div>
                 {% endfor %}
             </div>
         </div>
         
         <div class="product-selection">
-            <div class="product-category">{{ product.category_name }}</div>
             <h1 class="product-title">{{ product.name }}</h1>
+            <div class="product-category">{{ product.category_name }}</div>
             
-            <div class="product-price-range">
-                {% set min_p = skus|map(attribute='price')|min %}
-                {% set max_p = skus|map(attribute='price')|max %}
-                {% if min_p == max_p %}
-                    ${{ "{:,.0f}".format(min_p) if min_p else '0' }}
-                {% else %}
-                    ${{ "{:,.0f}".format(min_p) }} - ${{ "{:,.0f}".format(max_p) }}
-                {% endif %}
-            </div>
-            
-            <form id="add-to-cart-form">
+            <form id="add-to-cart-form" action="{{ url_for('home.checkout.add_to_cart') }}" method="POST">
                 <input type="hidden" name="sku_id" id="selected-sku-id">
                 
+                <!-- 1. 選擇顏色 (Variants) -->
                 <div class="sku-selector">
-                    <label class="sku-label">選擇規格</label>
-                    <div class="sku-options">
-                        {% for sku in skus %}
-                            <button type="button" class="sku-btn" onclick="selectSku({{ sku.id }}, {{ sku.price }}, '{{ sku.size }}', '{{ sku.color }}', this)">
-                                {{ sku.size }}{% if sku.size and sku.color %} / {% endif %}{{ sku.color }}
+                    <label class="sku-label">顏色</label>
+                    <div class="sku-options" id="variant-options">
+                        {% for variant in variants %}
+                            <button type="button" class="sku-btn" onclick="selectVariant({{ variant.id }}, this)">
+                                {{ variant.color }}
                             </button>
                         {% endfor %}
                     </div>
                 </div>
-                
-                <div id="selected-price" style="font-size: 28px; color: #d63384; font-weight: bold; margin-bottom: 20px; display: none;"></div>
-                
-                <div class="qty-selector" style="margin-bottom: 20px;">
-                    <label class="sku-label">數量</label>
-                    <input type="number" id="qty" name="qty" value="1" min="1" style="padding: 8px; width: 60px;">
+
+                <!-- 2. 選擇大小 (SKUs) -->
+                <div class="sku-selector" id="size-selector" style="display: none;">
+                    <label class="sku-label">尺寸</label>
+                    <div class="sku-options" id="size-options">
+                        <!-- 動態生成 -->
+                    </div>
                 </div>
+
+                <!-- 3. 數量選擇 -->
+                <div class="sku-selector">
+                    <label class="sku-label">數量</label>
+                    <div class="quantity-selector">
+                        <button type="button" class="qty-btn" onclick="updateQty(-1)">-</button>
+                        <input type="number" name="qty" id="buy-qty" value="1" min="1" max="99">
+                        <button type="button" class="qty-btn" onclick="updateQty(1)">+</button>
+                    </div>
+                </div>
+                
+                <div id="selected-price" style="font-size: 24px; color: #d63384; font-weight: bold; margin-bottom: 20px; display: none;"></div>
                 
                 <div class="buy-actions">
-                    <button type="button" class="btn-cart" onclick="addToCart()">加入購物車</button>
+                    <button type="submit" class="btn-cart">加入購物車</button>
                 </div>
             </form>
+            
+            <div style="margin-top: 40px; border-top: 1px solid #eee; padding-top: 20px;">
+                <h3>商品描述</h3>
+                <p style="white-space: pre-wrap; line-height: 1.6; color: #666;">{{ product.description }}</p>
+            </div>
         </div>
-    </div>
-
-    <!-- 簡單的彈窗 -->
-    <div id="cart-popup" style="display:none; position: fixed; top: 80px; right: 20px; background: #d4edda; color: #155724; padding: 15px; border-radius: 5px; border: 1px solid #c3e6cb; z-index: 1000;">
-        已成功加入購物車！
-    </div>
-
-    <div class="product-description">
-        <div class="description-title">商品詳情</div>
-        <div class="description-content">{{ product.description or '暫無描述資料。' }}</div>
     </div>
 {% endblock %}
 
 {% block scripts %}
 <script>
-    function changeMainImg(src, el) {
-        document.getElementById('mainImg').src = src;
+    // 資料結構：Variant -> SKUs & Image
+    const variantsData = {
+        {% for variant in variants %}
+        {{ variant.id }}: {
+            image: '{{ variant.image if variant.image else "" }}',
+            skus: [
+                {% for sku in variant.skus %}
+                { id: {{ sku.id }}, size: '{{ sku.size }}', price: {{ sku.price }} },
+                {% endfor %}
+            ]
+        },
+        {% endfor %}
+    };
+
+    function changeMainImage(url, el) {
+        document.getElementById('mainImg').src = url;
+        // 移除所有縮圖的 active 狀態
         document.querySelectorAll('.thumbnail').forEach(t => t.classList.remove('active'));
+        // 如果是點擊縮圖，則加上 active
         if (el) el.classList.add('active');
     }
-    
-    function selectSku(id, price, size, color, el) {
-        document.querySelectorAll('.sku-btn').forEach(b => b.classList.remove('active'));
+
+    function selectVariant(variantId, el) {
+        document.querySelectorAll('#variant-options .sku-btn').forEach(b => b.classList.remove('active'));
         el.classList.add('active');
         
-        document.getElementById('selected-sku-id').value = id;
+        const variant = variantsData[variantId];
         
+        // 切換圖片
+        if (variant.image) {
+            const imageUrl = "{{ url_for('static', filename='upload/') }}" + variant.image;
+            changeMainImage(imageUrl, null);
+        }
+        
+        const sizeSelector = document.getElementById('size-selector');
+        const sizeOptions = document.getElementById('size-options');
+        sizeOptions.innerHTML = '';
+        sizeSelector.style.display = 'block';
+        
+        variant.skus.forEach(sku => {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'sku-btn';
+            btn.innerText = sku.size;
+            btn.onclick = function() { selectSku(sku.id, sku.price, this); };
+            sizeOptions.appendChild(btn);
+        });
+        
+        // 重設選擇的 SKU
+        document.getElementById('selected-sku-id').value = '';
+        document.getElementById('selected-price').style.display = 'none';
+    }
+
+    function selectSku(skuId, price, el) {
+        document.querySelectorAll('#size-options .sku-btn').forEach(b => b.classList.remove('active'));
+        el.classList.add('active');
+        
+        document.getElementById('selected-sku-id').value = skuId;
         const priceDiv = document.getElementById('selected-price');
         priceDiv.style.display = 'block';
         priceDiv.innerText = '$' + price.toLocaleString();
-
-        // 切換到對應的 SKU 圖片
-        const skuThumb = document.querySelector('.sku-thumb-' + id);
-        if (skuThumb) {
-            skuThumb.click();
-        }
     }
 
-    function addToCart() {
-        // 檢查登入狀態 (透過模板變數傳遞 session 資訊)
-        {% if not session.get('customer_id') %}
-            alert('請先登入會員，才能加入購物車喔！');
-            window.location.href = "{{ url_for('auth.login') }}";
-            return;
-        {% endif %}
-
-        const form = document.getElementById('add-to-cart-form');
+    function updateQty(delta) {
+        const input = document.getElementById('buy-qty');
+        let val = parseInt(input.value) + delta;
+        if (val < 1) val = 1;
+        if (val > 99) val = 99;
+        input.value = val;
+    }
+    
+    document.getElementById('add-to-cart-form').onsubmit = function(e) {
         const skuId = document.getElementById('selected-sku-id').value;
-        const qty = document.getElementById('qty').value;
-
         if (!skuId) {
-            alert('請選擇規格！');
-            return;
+            alert('請先選擇規格');
+            e.preventDefault();
+            return false;
         }
-
-        const formData = new FormData();
-        formData.append('sku_id', skuId);
-        formData.append('qty', qty);
-
-        fetch("{{ url_for('home.checkout.add_to_cart') }}", {
-            method: 'POST',
-            body: formData
-        })
-        .then(response => {
-            if (response.ok) {
-                // 顯示彈窗
-                const popup = document.getElementById('cart-popup');
-                popup.style.display = 'block';
-                setTimeout(() => { popup.style.display = 'none'; }, 3000);
-            } else {
-                alert('加入購物車失敗，請稍後再試。');
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('系統錯誤。');
-        });
-    }
+    };
 </script>
 {% endblock %}

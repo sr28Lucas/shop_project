@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <title>規格管理 - {{ product_name }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/staff/product_list.css') }}">
+</head>
+<body>
+    <h1>規格管理: {{ product_name }}</h1>
+    
+    <div class="action-bar">
+        <a href="{{ url_for('staff.product.product_list') }}" class="btn" style="background: #6c757d; color: white;">← 返回商品列表</a>
+        <a href="{{ url_for('staff.product.variant_add', product_id=product_id) }}" class="btn btn-add">+ 新增顏色變體</a>
+    </div>
+
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <div style="background: #d4edda; color: #155724; padding: 10px; border-radius: 5px; margin-bottom: 20px; border: 1px solid #c3e6cb;">
+        {% for message in messages %}
+          {{ message }}
+        {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    {% for variant in variants %}
+    <div class="product-table-container" style="margin-bottom: 30px; border: 1px solid #ddd; padding: 15px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <h2 style="margin: 0;">顏色: {{ variant.color }}</h2>
+                {% if variant.is_active %}
+                <span class="status-badge status-active" style="background: #e6ffed; color: #28a745; padding: 3px 10px; border-radius: 12px; font-size: 0.9em; border: 1px solid #28a745;">上架中</span>
+                {% else %}
+                <span class="status-badge status-inactive" style="background: #fff1f0; color: #dc3545; padding: 3px 10px; border-radius: 12px; font-size: 0.9em; border: 1px solid #dc3545;">未上架</span>
+                {% endif %}
+            </div>
+            <a href="{{ url_for('staff.product.variant_edit', product_id=product_id, variant_id=variant.id) }}" class="btn btn-edit">修改此顏色規格</a>
+        </div>
+        <table class="product-table">
+            <thead>
+                <tr>
+                    <th>啟用狀態</th>
+                    <th>貨號</th>
+                    <th>大小</th>
+                    <th>價格</th>
+                    <th>庫存</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for sku in variant.skus %}
+                <tr>
+                    <td>{{ "啟用" if sku.is_active else "停用" }}</td>
+                    <td>{{ sku.sku_code or '-' }}</td>
+                    <td>{{ sku.size or '-' }}</td>
+                    <td>${{ "{:,.2f}".format(sku.price or 0) }}</td>
+                    <td>{{ sku.stock or 0 }}</td>
+                    <td>
+                        <form action="{{ url_for('staff.product.sku_delete', sku_id=sku.id) }}" method="POST" onsubmit="return confirm('確定刪除此尺寸？');">
+                            <button type="submit" class="btn btn-delete">刪除</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endfor %}
+</body>
+</html>

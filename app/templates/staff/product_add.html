@@ -33,9 +33,9 @@
                 <textarea name="description" class="form-control" rows="4" placeholder="請輸入商品描述"></textarea>
             </div>
             <div class="form-group">
-                <label>商品分類</label>
-                <select name="category_id" class="form-control">
-                    <option value="">無分類</option>
+                <label>商品分類 <span style="color: red;">*</span></label>
+                <select name="category_id" class="form-control" required>
+                    <option value="" disabled selected>請選擇分類</option>
                     {% for category in categories %}
                     <option value="{{ category.id }}">
                         {{ category.name }}

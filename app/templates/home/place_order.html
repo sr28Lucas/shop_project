@@ -27,8 +27,11 @@
     <div class="section">
         <h3>商品明細</h3>
         {% for item in cart_items %}
-        <div class="summary-item">
-            <span>{{ item.product_name }} ({{ item.size }}/{{ item.color }}) x {{ item.qty }}</span>
+        <div class="summary-item" style="align-items: center; margin-bottom: 15px;">
+            <div style="display: flex; align-items: center;">
+                <img src="{{ url_for('static', filename='upload/' + item.image) if item.image else url_for('static', filename='img/no-image.png') }}" alt="{{ item.product_name }}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px; margin-right: 15px;">
+                <span>{{ item.product_name }} ({{ item.size }}/{{ item.color }}) x {{ item.qty }}</span>
+            </div>
             <span>${{ "{:,.0f}".format(item.qty * item.price) }}</span>
         </div>
         {% endfor %}
