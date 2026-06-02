@@ -29,6 +29,9 @@ home_bp.register_blueprint(checkout_bp, url_prefix='/checkout')
 from .support import support_bp
 home_bp.register_blueprint(support_bp, url_prefix='/support')
 
+from .wishlist import wishlist_bp
+home_bp.register_blueprint(wishlist_bp, url_prefix='/wishlist')
+
 
 @home_bp.route('/')
 def index():
@@ -158,6 +161,18 @@ def product_view(id):
         # 關聯圖片
         v['image'] = variant_images.get(v['id'])
 
+    # 檢查是否已在願望清單
+    is_in_wishlist = False
+    customer_id = session.get('customer_id')
+    if customer_id:
+        cursor.execute("""
+            SELECT 1 FROM wishlist_item wi
+            JOIN wishlist w ON wi.wishlist_id = w.id
+            WHERE w.customer_id = %s AND wi.product_id = %s
+        """, (customer_id, id))
+        if cursor.fetchone():
+            is_in_wishlist = True
+
     cursor.close()
     conn.close()
-    return render_template('home/product_view.html', product=product, product_images=product_images, variants=variants)
+    return render_template('home/product_view.html', product=product, product_images=product_images, variants=variants, is_in_wishlist=is_in_wishlist)

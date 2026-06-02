@@ -29,6 +29,7 @@
             <ul>
                 <li><a href="{{ url_for('home.announcements') }}">公告</a></li>
                 <li><a href="{{ url_for('home.index') }}">商品瀏覽</a></li>
+                <li><a href="{{ url_for('home.wishlist.index') }}">願望清單</a></li>
                 <li><a href="{{ url_for('customer.center') }}">顧客中心</a></li>
                 {% if session.get('customer_id') %}
                     <li><a href="{{ url_for('auth.logout') }}">登出 ({{ session.get('customer_name', '會員') }})</a></li>

@@ -107,6 +107,32 @@ header {
     min-height: 600px;
 }
 
+/* 願望清單按鈕 */
+.wishlist-btn {
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 20px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+.wishlist-btn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+}
+
+.wishlist-btn.active {
+    border-color: #ffb6c1;
+    background-color: #fff0f5;
+}
+
 /* 商店佈局 (側邊欄 + 主內容) */
 .shop-container {
     display: flex;
