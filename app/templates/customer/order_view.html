@@ -11,6 +11,9 @@
         <h1>訂單詳情 #{{ order.id }}</h1>
         <div class="action-bar" style="margin-bottom: 20px;">
             <a href="{{ url_for('customer.customer_order.order_list') }}" class="btn btn-outline">← 返回列表</a>
+            {% if order.status in ('shipped', 'completed') %}
+                <a href="{{ url_for('customer.customer_return.apply', order_id=order.id) }}" class="btn btn-primary" style="background: #e67e22; color: white; padding: 8px 15px; border-radius: 4px; text-decoration: none; margin-left: 10px;">申請退貨</a>
+            {% endif %}
         </div>
 
         <div class="order-card">
@@ -20,7 +23,14 @@
                     <p><strong>收件人：</strong>{{ order.name }}</p>
                     <p><strong>電話：</strong>{{ order.phone }}</p>
                     <p><strong>地址：</strong>{{ order.region }} {{ order.locality }} {{ order.address }}</p>
-                    <p><strong>狀態：</strong>{{ order.status }}</p>
+                    <p><strong>狀態：</strong>
+                        {% if order.status == 'pending' %}待處理
+                        {% elif order.status == 'shipped' %}已出貨
+                        {% elif order.status == 'completed' %}已完成
+                        {% elif order.status == 'cancelled' %}已取消
+                        {% elif order.status == 'refunded' %}已退款
+                        {% else %}{{ order.status }}{% endif %}
+                    </p>
                     <p><strong>時間：</strong>{{ order.created_at.strftime('%Y-%m-%d %H:%M') if order.created_at else '-' }}</p>
                 </div>
                 <div>

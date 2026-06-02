@@ -24,9 +24,10 @@ def get_localities(region_id):
     return {'localities': [l['name'] for l in localities]}
 
 from .checkout import checkout_bp
-
 home_bp.register_blueprint(checkout_bp, url_prefix='/checkout')
 
+from .support import support_bp
+home_bp.register_blueprint(support_bp, url_prefix='/support')
 
 
 @home_bp.route('/')

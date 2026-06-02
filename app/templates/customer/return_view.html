@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <title>退貨詳情 #{{ return_req.id }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/customer/common.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/customer/order.css') }}">
+</head>
+<body>
+    <div style="max-width: 800px; margin: 0 auto; padding: 20px;">
+        <h1>退貨申請詳情 #{{ return_req.id }}</h1>
+        <div class="action-bar" style="margin-bottom: 20px;">
+            <a href="{{ url_for('customer.customer_return.list_requests') }}" class="btn btn-outline">← 返回列表</a>
+        </div>
+
+        <div class="order-card">
+            <h3>基本資訊</h3>
+            <p><strong>關聯訂單：</strong>#{{ return_req.order_id }}</p>
+            <p><strong>申請狀態：</strong>
+                {% if return_req.status == 'requested' %}
+                    <span style="color: #f39c12;">待審核</span>
+                {% elif return_req.status == 'approved' %}
+                    <span style="color: #3498db;">已受理</span>
+                {% elif return_req.status == 'rejected' %}
+                    <span style="color: #e74c3c;">已拒絕</span>
+                {% elif return_req.status == 'refunded' %}
+                    <span style="color: #27ae60;">已退款</span>
+                {% else %}
+                    {{ return_req.status }}
+                {% endif %}
+            </p>
+            <p><strong>申請時間：</strong>{{ return_req.requested_at.strftime('%Y-%m-%d %H:%M') if return_req.requested_at else '-' }}</p>
+            <p><strong>退貨原因：</strong><br>{{ return_req.reason }}</p>
+            
+            {% if return_req.status == 'refunded' %}
+                <p><strong>退款時間：</strong>{{ return_req.refunded_at.strftime('%Y-%m-%d %H:%M') if return_req.refunded_at else '-' }}</p>
+            {% endif %}
+        </div>
+
+        <h3>退貨商品明細</h3>
+        <div class="order-card">
+            <table style="width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr style="border-bottom: 2px solid #eee;">
+                        <th style="padding: 10px; text-align: left;">商品</th>
+                        <th style="padding: 10px; text-align: center;">數量</th>
+                        <th style="padding: 10px; text-align: right;">單價</th>
+                        <th style="padding: 10px; text-align: left;">備註</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in items %}
+                    <tr style="border-bottom: 1px solid #eee;">
+                        <td style="padding: 10px;">
+                            {{ item.product_name }}<br>
+                            <small>{{ item.variant_name }} / {{ item.size }} / {{ item.color }}</small>
+                        </td>
+                        <td style="padding: 10px; text-align: center;">{{ item.qty }}</td>
+                        <td style="padding: 10px; text-align: right;">${{ "{:,.0f}".format(item.unit_price) }}</td>
+                        <td style="padding: 10px;">{{ item.reason or '-' }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+</html>

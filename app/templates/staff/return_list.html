@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <title>退貨管理 - 管理後台</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #f4f7f6; padding: 20px; color: #333; }
+        .container { max-width: 1200px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { border-bottom: 2px solid #eee; padding-bottom: 10px; }
+        .filter-bar { margin-bottom: 20px; display: flex; gap: 10px; align-items: center; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { padding: 12px; border-bottom: 1px solid #eee; text-align: left; }
+        th { background: #f8f9fa; }
+        .status-tag { padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; }
+        .requested { background: #fff3cd; color: #856404; }
+        .approved { background: #cce5ff; color: #004085; }
+        .rejected { background: #f8d7da; color: #721c24; }
+        .refunded { background: #d4edda; color: #155724; }
+        .btn { padding: 6px 12px; text-decoration: none; border-radius: 4px; font-size: 14px; }
+        .btn-blue { background: #007bff; color: white; }
+        .btn-gray { background: #6c757d; color: white; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>退貨申請管理</h1>
+        <div style="margin-bottom: 20px;">
+            <a href="{{ url_for('staff.dashboard') }}" class="btn btn-gray">← 返回儀表板</a>
+        </div>
+
+        <div class="filter-bar">
+            <form method="get" style="display: flex; gap: 10px;">
+                <select name="status">
+                    <option value="">所有狀態</option>
+                    <option value="requested" {% if status_filter == 'requested' %}selected{% endif %}>待審核</option>
+                    <option value="approved" {% if status_filter == 'approved' %}selected{% endif %}>已核准</option>
+                    <option value="rejected" {% if status_filter == 'rejected' %}selected{% endif %}>已拒絕</option>
+                    <option value="refunded" {% if status_filter == 'refunded' %}selected{% endif %}>已退款</option>
+                </select>
+                <input type="text" name="keyword" value="{{ keyword }}" placeholder="搜尋 ID、訂單、客戶...">
+                <button type="submit">篩選</button>
+                <a href="{{ url_for('staff.staff_return.list_requests') }}">清除</a>
+            </form>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>申請 ID</th>
+                    <th>訂單 ID</th>
+                    <th>客戶姓名</th>
+                    <th>申請時間</th>
+                    <th>狀態</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for ret in returns %}
+                <tr>
+                    <td>#{{ ret.id }}</td>
+                    <td>#{{ ret.order_id }}</td>
+                    <td>{{ ret.customer_name }}<br><small>{{ ret.customer_email }}</small></td>
+                    <td>{{ ret.created_at.strftime('%Y-%m-%d %H:%M') if ret.created_at else '-' }}</td>
+                    <td>
+                        <span class="status-tag {{ ret.status }}">
+                            {% if ret.status == 'requested' %}⏳ 待審核
+                            {% elif ret.status == 'approved' %}✅ 已核准
+                            {% elif ret.status == 'rejected' %}❌ 已拒絕
+                            {% elif ret.status == 'refunded' %}💰 已退款
+                            {% else %}{{ ret.status }}{% endif %}
+                        </span>
+                    </td>
+                    <td>
+                        <a href="{{ url_for('staff.staff_return.detail', id=ret.id) }}" class="btn btn-blue">🔍 查看詳情</a>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="6" style="text-align: center; padding: 40px;">目前沒有退貨申請</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>

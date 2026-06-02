@@ -4,15 +4,17 @@
 - `order_item`: 移除 `price`，新增 `unit_price` (成交價) 與 `unit_cost` (成本)。
 - 新增 `return_request` (退貨主表) 與 `return_item` (退貨細項表)。
 
-## 2. 修改計畫
-### 第一階段：修正現有模組 (相容性調整)
-- [x] `app\blueprints\home\checkout.py`: 更新 `place_order` 的 SQL `INSERT`，確保正確寫入 `unit_price` 與 `unit_cost`。
-- [x] `app\blueprints\customer\order.py`: 更新查詢與顯示，將 `item.price` 改為 `item.unit_price`。
-- [x] `app\blueprints\staff\order.py`: 更新查詢與顯示，將 `item.price` 改為 `item.unit_price`。
-- [x] `templates\customer\order_view.html` 與相關模板: 更新渲染變數。
-- *注意*: 確保所有 `status` 欄位在前後端邏輯保持一致（如 'pending', 'cancelled', 'requested', 'approved', 'rejected', 'refunded'）。
+## 2. 修改計畫 (已更新)
 
-### 第二階段：實作退貨功能
-- [x] 建立 `app\blueprints\customer\return_order.py` (會員申請)。
-- [x] 建立 `app\blueprints\staff\return_order.py` (後台處理)。
-- [x] 開發對應的 HTML 模板。
+### 第一階段：修正現有模組 (已完成)
+- [x] `app\blueprints\home\checkout.py`: 更新 `place_order` 的 SQL `INSERT`。
+- [x] `app\blueprints\customer\order.py`: 更新 `unit_price` 查詢。
+- [x] `app\blueprints\staff\order.py`: 更新 `unit_price` 查詢。
+- [x] `templates\customer\order_view.html`: 更新渲染變數。
+
+### 第二階段：實作結構化退貨系統 (已完成)
+- [x] 建立 `app\blueprints\customer\return_order.py` (會員端申請與追蹤)。
+- [x] 建立 `app\blueprints\staff\return_order.py` (管理端審核與入庫)。
+- [x] 開發 HTML 模板 (`return_apply.html`, `return_list.html`, `return_detail.html`, `return_view.html`)。
+- [x] 實作庫存回補與狀態連動邏輯。
+- [x] 移除舊有的非結構化退貨邏輯 (已進行重導向處理)。

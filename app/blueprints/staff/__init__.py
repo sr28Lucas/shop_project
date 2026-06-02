@@ -13,12 +13,21 @@ from .category import category_bp
 from .page import page_bp
 from .order import order_bp
 from .promo import promo_bp
+from .statistic import statistic_bp
+from .inquiry import inquiry_bp
+from .member import member_bp
+from .return_order import staff_return_bp
+
 
 staff_bp.register_blueprint(product_bp, url_prefix='/product')
 staff_bp.register_blueprint(category_bp, url_prefix='/category')
 staff_bp.register_blueprint(page_bp, url_prefix='/page')
 staff_bp.register_blueprint(order_bp, url_prefix='/order')
 staff_bp.register_blueprint(promo_bp, url_prefix='/promo')
+staff_bp.register_blueprint(statistic_bp, url_prefix='/statistic')
+staff_bp.register_blueprint(inquiry_bp, url_prefix='/inquiry')
+staff_bp.register_blueprint(member_bp, url_prefix='/member')
+staff_bp.register_blueprint(staff_return_bp, url_prefix='/return')
 
 
 

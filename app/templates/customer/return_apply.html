@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <title>申請退貨 - 訂單 #{{ order.id }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/customer/common.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/customer/order.css') }}">
+    <style>
+        .item-row { display: flex; align-items: center; border-bottom: 1px solid #eee; padding: 10px 0; }
+        .item-info { flex: 2; }
+        .item-action { flex: 3; display: flex; gap: 10px; align-items: center; }
+        .qty-input { width: 60px; }
+        .reason-input { flex: 1; }
+        .overall-section { margin-top: 20px; border-top: 2px solid #333; padding-top: 20px; }
+        textarea { width: 100%; height: 80px; margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <div style="max-width: 900px; margin: 0 auto; padding: 20px;">
+        <h1>申請退貨 - 訂單 #{{ order.id }}</h1>
+        <p>請選擇您要退貨的商品、數量以及退貨原因。</p>
+
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                {% for message in messages %}
+                    <div style="color: red; margin-bottom: 10px;">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <form method="post">
+            <div class="order-card">
+                <h3>商品清單</h3>
+                {% for item in items %}
+                <div class="item-row">
+                    <div style="margin-right: 15px;">
+                        <input type="checkbox" name="item_ids" value="{{ item.id }}" id="item_{{ item.id }}">
+                    </div>
+                    <div class="item-info">
+                        <label for="item_{{ item.id }}">
+                            <strong>{{ item.product_name }}</strong><br>
+                            <small>{{ item.variant_name }} / {{ item.size }} / {{ item.color }}</small>
+                        </label>
+                    </div>
+                    <div class="item-action">
+                        <span>數量:</span>
+                        <input type="number" name="qtys" class="qty-input" value="{{ item.qty }}" min="1" max="{{ item.qty }}">
+                        <span>原因:</span>
+                        <input type="text" name="reasons" class="reason-input" placeholder="單項退貨原因 (選填)">
+                    </div>
+                </div>
+                {% endfor %}
+
+                <div class="overall-section">
+                    <label><strong>整體退貨說明 (必填)：</strong></label>
+                    <textarea name="overall_reason" required placeholder="請詳細說明退貨原因..."></textarea>
+                </div>
+
+                <div style="margin-top: 20px; text-align: right;">
+                    <a href="{{ url_for('customer.customer_order.order_view', id=order.id) }}" class="btn btn-outline">取消</a>
+                    <button type="submit" class="btn btn-primary" style="background: #333; color: white; padding: 10px 20px; border: none; cursor: pointer;">送出申請</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</body>
+</html>

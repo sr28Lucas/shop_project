@@ -9,8 +9,10 @@ customer_bp = Blueprint('customer', __name__, template_folder = '../templates/cu
 
 from .profile import profile_bp
 from .order import customer_order_bp
+from .return_order import customer_return_bp
 customer_bp.register_blueprint(profile_bp, url_prefix='/profile')
 customer_bp.register_blueprint(customer_order_bp, url_prefix='/order')
+customer_bp.register_blueprint(customer_return_bp, url_prefix='/return')
 
 
 #會員中心

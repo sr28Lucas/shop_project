@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <title>客服案件詳情</title>
+    <style>
+        body {
+            font-family: Arial, "Microsoft JhengHei", sans-serif;
+            background: #f5f6f8;
+            padding: 30px 60px;
+            color: #24384a;
+        }
+
+        h1 {
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 8px 14px;
+            border: none;
+            border-radius: 4px;
+            color: white;
+            text-decoration: none;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .btn-gray { background: #5f6b75; }
+        .btn-blue { background: #007bff; }
+        .btn-green { background: #28a745; }
+        .btn-red { background: #dc3545; }
+
+        .panel {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .message-list {
+            margin-top: 20px;
+        }
+
+        .msg {
+            max-width: 70%;
+            padding: 12px 16px;
+            margin: 10px 0;
+            border-radius: 8px;
+            line-height: 1.6;
+        }
+
+        .msg-customer {
+            background: #fff;
+            border: 1px solid #ddd;
+            margin-right: auto;
+        }
+
+        .msg-staff {
+            background: #dff0ff;
+            margin-left: auto;
+        }
+
+        .msg-meta {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        textarea {
+            width: 100%;
+            height: 120px;
+            padding: 10px;
+            box-sizing: border-box;
+            resize: vertical;
+        }
+
+        .flash {
+            background: #fff3cd;
+            border: 1px solid #ffeeba;
+            padding: 10px 15px;
+            margin: 15px 0;
+            border-radius: 4px;
+            color: #856404;
+        }
+
+        .status-open {
+            color: #dc3545;
+            font-weight: bold;
+        }
+
+        .status-replied {
+            color: #007bff;
+            font-weight: bold;
+        }
+
+        .status-closed {
+            color: #28a745;
+            font-weight: bold;
+        }
+
+        .actions form {
+            display: inline-block;
+            margin-right: 6px;
+        }
+    </style>
+</head>
+<body>
+
+<h1>客服案件 #{{ inquiry.id }}</h1>
+
+<a href="{{ url_for('staff.inquiry.active_list') }}" class="btn btn-gray">← 回活躍會話</a>
+<a href="{{ url_for('staff.inquiry.history_list') }}" class="btn btn-blue">客服歷史</a>
+
+{% with messages_flash = get_flashed_messages() %}
+    {% if messages_flash %}
+        {% for message in messages_flash %}
+            <div class="flash">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+{% endwith %}
+
+<div class="panel">
+    <h2>案件資訊</h2>
+    <p><strong>顧客：</strong>{{ inquiry.customer_name }}</p>
+    <p><strong>Email：</strong>{{ inquiry.customer_email }}</p>
+    <p><strong>電話：</strong>{{ inquiry.customer_phone or '-' }}</p>
+    <p><strong>問題類型：</strong>{{ inquiry.purpose }}</p>
+    <p>
+        <strong>狀態：</strong>
+        {% if inquiry.status == 'open' %}
+            <span class="status-open">待回覆</span>
+        {% elif inquiry.status == 'replied' %}
+            <span class="status-replied">已回覆</span>
+        {% elif inquiry.status == 'closed' %}
+            <span class="status-closed">已結案</span>
+        {% else %}
+            {{ inquiry.status }}
+        {% endif %}
+    </p>
+    <p><strong>建立時間：</strong>{{ inquiry.created_at }}</p>
+</div>
+
+<div class="panel">
+    <h2>對話紀錄</h2>
+
+    <div class="message-list">
+        {% for msg in messages %}
+            {% if msg.customer_id %}
+                <div class="msg msg-customer">
+                    <div class="msg-meta">
+                        顧客 {{ msg.customer_name or '顧客' }} ｜ {{ msg.sent_at }}
+                    </div>
+                    <div>{{ msg.content }}</div>
+                </div>
+            {% else %}
+                <div class="msg msg-staff">
+                    <div class="msg-meta">
+                        客服 {{ msg.staff_name or '客服人員' }} ｜ {{ msg.sent_at }}
+                    </div>
+                    <div>{{ msg.content }}</div>
+                </div>
+            {% endif %}
+        {% else %}
+            <p style="text-align:center;color:#777;">目前沒有訊息紀錄</p>
+        {% endfor %}
+    </div>
+</div>
+
+<div class="panel">
+    {% if inquiry.status != 'closed' %}
+        <h2>回覆顧客</h2>
+
+        <form method="post" action="{{ url_for('staff.inquiry.reply', id=inquiry.id) }}">
+            <textarea name="content" placeholder="輸入回覆內容..."></textarea>
+            <br><br>
+            <button type="submit" class="btn btn-green">送出回覆</button>
+        </form>
+
+        <br>
+
+        <form method="post" action="{{ url_for('staff.inquiry.close', id=inquiry.id) }}"
+              onsubmit="return confirm('確定要結案此客服案件嗎？');">
+            <button type="submit" class="btn btn-red">結案</button>
+        </form>
+    {% else %}
+        <h2>此案件已結案</h2>
+
+        <form method="post" action="{{ url_for('staff.inquiry.reopen', id=inquiry.id) }}">
+            <button type="submit" class="btn btn-blue">重新開啟案件</button>
+        </form>
+    {% endif %}
+</div>
+
+</body>
+</html>
