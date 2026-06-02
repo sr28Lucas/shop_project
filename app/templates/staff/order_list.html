@@ -2,81 +2,171 @@
 <html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
-    <title>出貨管理 - 後臺系統</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/staff/common.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/staff/product_list.css') }}">
+    <title>出貨管理</title>
+    <style>
+        body {
+            font-family: Arial, "Microsoft JhengHei", sans-serif;
+            background: #f5f6f8;
+            padding: 30px 60px;
+            color: #24384a;
+        }
+
+        h1 {
+            margin-bottom: 25px;
+        }
+
+        .top-actions {
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 8px 14px;
+            border: none;
+            border-radius: 4px;
+            color: white;
+            text-decoration: none;
+            cursor: pointer;
+            font-size: 14px;
+            margin-right: 4px;
+        }
+
+        .btn-gray {
+            background: #5f6b75;
+        }
+
+        .btn-blue {
+            background: #007bff;
+        }
+
+        .btn-green {
+            background: #28a745;
+        }
+
+        .btn-yellow {
+            background: #f0ad00;
+        }
+
+        .btn-red {
+            background: #dc3545;
+        }
+
+        table {
+            width: 100%;
+            background: white;
+            border-collapse: collapse;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        th, td {
+            padding: 14px 16px;
+            border-bottom: 1px solid #eee;
+            text-align: left;
+        }
+
+        th {
+            background: #f0f2f4;
+        }
+
+        .flash {
+            background: #fff3cd;
+            border: 1px solid #ffeeba;
+            padding: 10px 15px;
+            margin: 15px 0;
+            border-radius: 4px;
+            color: #856404;
+        }
+
+        .status {
+            font-weight: bold;
+        }
+
+        .actions form {
+            display: inline-block;
+            margin: 2px;
+        }
+
+        .empty {
+            text-align: center;
+            padding: 30px;
+            color: #777;
+        }
+    </style>
 </head>
 <body>
-    <h1>出貨管理</h1>
 
-    <div class="action-bar">
-        <a href="{{ url_for('staff.dashboard') }}" class="btn" style="background: #6c757d; color: white;">← 返回儀表板</a>
-    </div>
+<h1>出貨管理</h1>
 
-    {% with messages = get_flashed_messages() %}
-      {% if messages %}
-        <div style="background: #d4edda; color: #155724; padding: 10px; border-radius: 5px; margin-bottom: 20px; border: 1px solid #c3e6cb;">
+<div class="top-actions">
+    <a href="{{ url_for('staff.dashboard') }}" class="btn btn-gray">← 返回儀表板</a>
+    <a href="{{ url_for('staff.order.order_history') }}" class="btn btn-blue">查看訂單歷史</a>
+</div>
+
+{% with messages = get_flashed_messages() %}
+    {% if messages %}
         {% for message in messages %}
-          {{ message }}
+            <div class="flash">{{ message }}</div>
         {% endfor %}
-        </div>
-      {% endif %}
-    {% endwith %}
+    {% endif %}
+{% endwith %}
 
-    <form action="{{ url_for('staff.order.bulk_update_shipment') }}" method="POST">
-        <div class="action-bar" style="margin-bottom: 10px;">
-            <select name="status" style="padding: 8px 12px; font-size: 16px;">
-                <option value="pending">處理中</option>
-                <option value="shipped">已出貨</option>
-                <option value="delivered">已送達</option>
-            </select>
-            <button type="submit" class="btn btn-add" style="padding: 8px 16px; font-size: 16px;">批量更新狀態</button>
-        </div>
+<table>
+    <thead>
+        <tr>
+            <th>訂單 ID</th>
+            <th>顧客名稱</th>
+            <th>總金額</th>
+            <th>出貨狀態</th>
+            <th>訂單狀態</th>
+            <th>建立時間</th>
+            <th>操作</th>
+        </tr>
+    </thead>
 
-        <div class="product-table-container">
-            <table class="product-table">
-                <thead>
-                    <tr>
-                        <th style="width: 30px;"><input type="checkbox" id="select-all"></th>
-                        <th>訂單 ID</th>
-                        <th>顧客名稱</th>
-                        <th>總金額</th>
-                        <th>出貨狀態</th>
-                        <th>建立時間</th>
-                        <th>操作</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for order in orders %}
-                    <tr>
-                        <td><input type="checkbox" name="order_ids" value="{{ order.id }}"></td>
-                        <td>{{ order.id }}</td>
-                        <td>{{ order.customer_name }}</td>
-                        <td>{{ order.total }}</td>
-                        <td>{{ order.shipment_status or '待處理' }}</td>
-                        <td>{{ order.created_at.strftime('%Y-%m-%d %H:%M') if order.created_at else '-' }}</td>
-                        <td>
-                            <a href="{{ url_for('staff.order.order_edit', id=order.id) }}" class="btn btn-edit">修改</a>
-                            <form action="{{ url_for('staff.order.cancel_order', id=order.id) }}" method="POST" style="display:inline;">
-                                <button type="submit" class="btn btn-delete" onclick="return confirm('確定要取消此訂單嗎？')">取消訂單</button>
-                            </form>
-                        </td>
-                    </tr>
-                    {% else %}
-                    <tr>
-                        <td colspan="7" style="text-align: center; padding: 30px;">查無訂單資料</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </form>
-    
-    <script>
-        document.getElementById('select-all').addEventListener('change', function() {
-            var checkboxes = document.querySelectorAll('input[name="order_ids"]');
-            checkboxes.forEach(cb => cb.checked = this.checked);
-        });
-    </script>
+    <tbody>
+        {% for order in orders %}
+        <tr>
+            <td>{{ order.id }}</td>
+
+            <td>{{ order.customer_name or order.name }}</td>
+
+            <td>{{ order.total }}</td>
+
+            <td class="status">未出貨</td>
+
+            <td>{{ order.status }}</td>
+
+            <td>
+                {{ order.created_at.strftime('%Y-%m-%d %H:%M') if order.created_at else '-' }}
+            </td>
+
+            <td class="actions">
+                <a href="{{ url_for('staff.order.order_edit', id=order.id) }}" class="btn btn-yellow">
+                    查看 / 修改
+                </a>
+
+                <form method="post" action="{{ url_for('staff.order.ship_order', id=order.id) }}">
+                    <button type="submit" class="btn btn-green"
+                            onclick="return confirm('確定要確認訂單 {{ order.id }} 出貨嗎？');">
+                        確認出貨
+                    </button>
+                </form>
+
+                <form method="post" action="{{ url_for('staff.order.cancel_order', id=order.id) }}">
+                    <button type="submit" class="btn btn-red"
+                            onclick="return confirm('確定要取消訂單 {{ order.id }} 嗎？取消後會恢復庫存並移至訂單歷史。');">
+                        取消訂單
+                    </button>
+                </form>
+            </td>
+        </tr>
+        {% else %}
+        <tr>
+            <td colspan="7" class="empty">目前沒有未出貨訂單</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
 </body>
 </html>

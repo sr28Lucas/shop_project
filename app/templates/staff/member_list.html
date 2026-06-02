@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <title>會員瀏覽</title>
+    <style>
+        body {
+            font-family: Arial, "Microsoft JhengHei", sans-serif;
+            background: #f5f6f8;
+            padding: 30px 60px;
+            color: #24384a;
+        }
+
+        h1 {
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 8px 14px;
+            border: none;
+            border-radius: 4px;
+            color: white;
+            text-decoration: none;
+            cursor: pointer;
+            font-size: 14px;
+            margin: 2px;
+        }
+
+        .btn-gray { background: #5f6b75; }
+        .btn-blue { background: #007bff; }
+        .btn-green { background: #28a745; }
+        .btn-red { background: #dc3545; }
+
+        .search-box {
+            background: white;
+            padding: 18px;
+            border-radius: 8px;
+            margin: 20px 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        input, select {
+            padding: 8px;
+            margin-right: 8px;
+        }
+
+        input {
+            width: 260px;
+        }
+
+        table {
+            width: 100%;
+            background: white;
+            border-collapse: collapse;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        th, td {
+            padding: 14px 16px;
+            border-bottom: 1px solid #eee;
+            text-align: left;
+            vertical-align: top;
+        }
+
+        th {
+            background: #f0f2f4;
+        }
+
+        .flash {
+            background: #fff3cd;
+            border: 1px solid #ffeeba;
+            padding: 10px 15px;
+            margin: 15px 0;
+            border-radius: 4px;
+            color: #856404;
+        }
+
+        .active {
+            color: #28a745;
+            font-weight: bold;
+        }
+
+        .inactive {
+            color: #dc3545;
+            font-weight: bold;
+        }
+
+        form.inline {
+            display: inline-block;
+        }
+    </style>
+</head>
+<body>
+
+<h1>會員瀏覽</h1>
+
+<a href="{{ url_for('staff.dashboard') }}" class="btn btn-gray">← 返回儀表板</a>
+
+{% with messages = get_flashed_messages() %}
+    {% if messages %}
+        {% for message in messages %}
+            <div class="flash">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+{% endwith %}
+
+<div class="search-box">
+    <form method="get" action="{{ url_for('staff.member.member_list') }}">
+        <select name="status">
+            <option value="" {% if not status %}selected{% endif %}>全部狀態</option>
+            <option value="active" {% if status == 'active' %}selected{% endif %}>啟用會員</option>
+            <option value="inactive" {% if status == 'inactive' %}selected{% endif %}>停用會員</option>
+        </select>
+
+        <input type="text" name="keyword" value="{{ keyword or '' }}" placeholder="搜尋會員ID、姓名、Email、電話">
+
+        <button type="submit" class="btn btn-blue">搜尋</button>
+        <a href="{{ url_for('staff.member.member_list') }}">清除</a>
+    </form>
+</div>
+
+<table>
+    <thead>
+        <tr>
+            <th>會員 ID</th>
+            <th>姓名</th>
+            <th>Email</th>
+            <th>電話</th>
+            <th>狀態</th>
+            <th>訂單數</th>
+            <th>消費金額</th>
+            <th>客服案件</th>
+            <th>註冊時間</th>
+            <th>操作</th>
+        </tr>
+    </thead>
+
+    <tbody>
+    {% for member in members %}
+        <tr>
+            <td>{{ member.id }}</td>
+            <td>{{ member.name }}</td>
+            <td>{{ member.email }}</td>
+            <td>{{ member.phone or '-' }}</td>
+            <td>
+                {% if member.is_active %}
+                    <span class="active">啟用</span>
+                {% else %}
+                    <span class="inactive">停用</span>
+                {% endif %}
+            </td>
+            <td>{{ member.order_count }}</td>
+            <td>${{ member.total_spent }}</td>
+            <td>{{ member.inquiry_count }}</td>
+            <td>
+                {{ member.created_at.strftime('%Y-%m-%d %H:%M') if member.created_at else '-' }}
+            </td>
+            <td>
+                <a href="{{ url_for('staff.member.member_detail', id=member.id) }}" class="btn btn-blue">
+                    查看
+                </a>
+
+                <form method="post"
+                      action="{{ url_for('staff.member.toggle_member', id=member.id) }}"
+                      class="inline">
+                    {% if member.is_active %}
+                        <button type="submit" class="btn btn-red"
+                                onclick="return confirm('確定要停用會員 {{ member.name }} 嗎？');">
+                            停用
+                        </button>
+                    {% else %}
+                        <button type="submit" class="btn btn-green"
+                                onclick="return confirm('確定要啟用會員 {{ member.name }} 嗎？');">
+                            啟用
+                        </button>
+                    {% endif %}
+                </form>
+            </td>
+        </tr>
+    {% else %}
+        <tr>
+            <td colspan="10" style="text-align:center;">查無會員資料</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+
+</body>
+</html>

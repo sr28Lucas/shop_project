@@ -1,0 +1,143 @@
+{% extends "home/base.html" %}
+
+{% block title %}退貨 / 退款申請{% endblock %}
+
+{% block content %}
+<style>
+    .refund-container {
+        max-width: 900px;
+        margin: 30px auto;
+        background: white;
+        padding: 30px;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    }
+
+    .form-group {
+        margin-bottom: 18px;
+    }
+
+    label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: bold;
+        color: #2c3e50;
+    }
+
+    select, textarea {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        box-sizing: border-box;
+    }
+
+    textarea {
+        height: 160px;
+        resize: vertical;
+    }
+
+    .btn {
+        display: inline-block;
+        padding: 10px 18px;
+        border: none;
+        border-radius: 4px;
+        background: #d63384;
+        color: white;
+        text-decoration: none;
+        cursor: pointer;
+    }
+
+    .btn-gray {
+        background: #6c757d;
+    }
+
+    .notice {
+        background: #f8f9fa;
+        border-left: 4px solid #d63384;
+        padding: 12px 15px;
+        margin-bottom: 20px;
+        color: #555;
+        line-height: 1.6;
+    }
+
+    .flash {
+        background: #fff3cd;
+        border: 1px solid #ffeeba;
+        padding: 10px 15px;
+        margin-bottom: 15px;
+        border-radius: 4px;
+        color: #856404;
+    }
+
+    .empty {
+        text-align: center;
+        color: #777;
+        padding: 30px 0;
+    }
+</style>
+
+<div class="refund-container">
+    <h2>退貨 / 退款申請</h2>
+
+    <div class="notice">
+        請選擇要申請退貨或退款的訂單，並填寫原因。  
+        申請送出後會建立客服案件，客服人員會在後台回覆您。
+    </div>
+
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            {% for message in messages %}
+                <div class="flash">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    {% if orders %}
+        <form method="post" action="{{ url_for('home.support.refund_request') }}">
+            <div class="form-group">
+                <label>選擇訂單</label>
+                <select name="order_id" required>
+                    <option value="">請選擇訂單</option>
+                    {% for order in orders %}
+                        <option value="{{ order.id }}">
+                            訂單 #{{ order.id }}｜
+                            金額 ${{ order.total }}｜
+                            狀態 {{ order.status }}｜
+                            {{ order.created_at.strftime('%Y-%m-%d %H:%M') if order.created_at else '' }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>申請原因</label>
+                <select name="reason" required>
+                    <option value="">請選擇原因</option>
+                    <option value="尺寸不合">尺寸不合</option>
+                    <option value="商品瑕疵">商品瑕疵</option>
+                    <option value="寄錯商品">寄錯商品</option>
+                    <option value="商品與描述不符">商品與描述不符</option>
+                    <option value="不想要了">不想要了</option>
+                    <option value="其他原因">其他原因</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>詳細說明</label>
+                <textarea name="detail" placeholder="請描述退貨 / 退款原因，例如商品問題、尺寸問題、是否已拆封等..." required></textarea>
+            </div>
+
+            <button type="submit" class="btn">送出申請</button>
+		<a href="{{ url_for('customer.center') }}" class="btn btn-gray">返回會員中心</a>            <a href="{{ url_for('home.support.list_inquiries') }}" class="btn btn-gray">查看客服對話歷史</a>
+        </form>
+    {% else %}
+        <div class="empty">
+            目前沒有可申請退貨 / 退款的訂單。<br>
+            只有已出貨或已完成的訂單可以申請。
+        </div>
+
+	<a href="{{ url_for('customer.center') }}" class="btn btn-gray">返回會員中心</a>
+    {% endif %}
+</div>
+{% endblock %}

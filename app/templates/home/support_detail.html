@@ -1,0 +1,160 @@
+{% extends "home/base.html" %}
+
+{% block title %}客服對話詳情{% endblock %}
+
+{% block content %}
+<style>
+    .support-container {
+        max-width: 900px;
+        margin: 30px auto;
+        background: white;
+        padding: 30px;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    }
+
+    .btn {
+        display: inline-block;
+        padding: 8px 14px;
+        border-radius: 4px;
+        background: #d63384;
+        color: white;
+        text-decoration: none;
+        border: none;
+        cursor: pointer;
+    }
+
+    .btn-gray {
+        background: #6c757d;
+    }
+
+    .message-box {
+        margin-top: 20px;
+    }
+
+    .msg {
+        max-width: 70%;
+        padding: 12px 16px;
+        margin: 12px 0;
+        border-radius: 8px;
+        line-height: 1.6;
+    }
+
+    .msg-customer {
+        margin-left: auto;
+        background: #ffe3f1;
+    }
+
+    .msg-staff {
+        margin-right: auto;
+        background: #f1f3f5;
+        border: 1px solid #ddd;
+    }
+
+    .msg-meta {
+        font-size: 12px;
+        color: #666;
+        margin-bottom: 6px;
+    }
+
+    textarea {
+        width: 100%;
+        height: 120px;
+        padding: 10px;
+        box-sizing: border-box;
+        resize: vertical;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+    }
+
+    .flash {
+        background: #fff3cd;
+        border: 1px solid #ffeeba;
+        padding: 10px 15px;
+        margin-bottom: 15px;
+        border-radius: 4px;
+        color: #856404;
+    }
+
+    .status-open {
+        color: #dc3545;
+        font-weight: bold;
+    }
+
+    .status-replied {
+        color: #007bff;
+        font-weight: bold;
+    }
+
+    .status-closed {
+        color: #28a745;
+        font-weight: bold;
+    }
+</style>
+
+<div class="support-container">
+    <h2>客服案件 #{{ inquiry.id }}</h2>
+
+    <a href="{{ url_for('home.support.list_inquiries') }}" class="btn btn-gray">← 返回客服對話歷史</a>
+
+    <hr>
+
+    {% with messages_flash = get_flashed_messages() %}
+        {% if messages_flash %}
+            {% for message in messages_flash %}
+                <div class="flash">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <p><strong>問題類型：</strong>{{ inquiry.purpose }}</p>
+
+    <p>
+        <strong>案件狀態：</strong>
+        {% if inquiry.status == 'open' %}
+            <span class="status-open">待客服回覆</span>
+        {% elif inquiry.status == 'replied' %}
+            <span class="status-replied">客服已回覆</span>
+        {% elif inquiry.status == 'closed' %}
+            <span class="status-closed">已結案</span>
+        {% else %}
+            {{ inquiry.status }}
+        {% endif %}
+    </p>
+
+    <div class="message-box">
+        <h3>對話內容</h3>
+
+        {% for msg in messages %}
+            {% if msg.customer_id %}
+                <div class="msg msg-customer">
+                    <div class="msg-meta">我 ｜ {{ msg.sent_at }}</div>
+                    <div>{{ msg.content }}</div>
+                </div>
+            {% else %}
+                <div class="msg msg-staff">
+                    <div class="msg-meta">客服 {{ msg.staff_name or '' }} ｜ {{ msg.sent_at }}</div>
+                    <div>{{ msg.content }}</div>
+                </div>
+            {% endif %}
+        {% else %}
+            <p style="text-align:center;color:#777;">目前沒有訊息</p>
+        {% endfor %}
+    </div>
+
+    <hr>
+
+    {% if inquiry.status != 'closed' %}
+        <h3>繼續回覆</h3>
+
+        <form method="post" action="{{ url_for('home.support.reply', id=inquiry.id) }}">
+            <textarea name="content" placeholder="輸入要回覆客服的內容..." required></textarea>
+            <br><br>
+            <button type="submit" class="btn">送出回覆</button>
+        </form>
+    {% else %}
+        <p style="color:#777;">此案件已結案，如有新問題請重新建立客服案件。</p>
+        <a href="{{ url_for('home.support.new_inquiry') }}" class="btn">新增客服問題</a>
+    {% endif %}
+</div>
+{% endblock %}

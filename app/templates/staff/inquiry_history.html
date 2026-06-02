@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <title>客服歷史</title>
+    <style>
+        body {
+            font-family: Arial, "Microsoft JhengHei", sans-serif;
+            background: #f5f6f8;
+            padding: 30px 60px;
+            color: #24384a;
+        }
+
+        h1 {
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 8px 14px;
+            border: none;
+            border-radius: 4px;
+            color: white;
+            text-decoration: none;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .btn-gray { background: #5f6b75; }
+        .btn-blue { background: #007bff; }
+        .btn-green { background: #28a745; }
+
+        .search-box {
+            background: white;
+            padding: 18px;
+            border-radius: 8px;
+            margin: 20px 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        input {
+            padding: 8px;
+            width: 260px;
+            margin-right: 8px;
+        }
+
+        table {
+            width: 100%;
+            background: white;
+            border-collapse: collapse;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        th, td {
+            padding: 14px 16px;
+            border-bottom: 1px solid #eee;
+            text-align: left;
+        }
+
+        th {
+            background: #f0f2f4;
+        }
+
+        .closed {
+            color: #28a745;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+<h1>客服歷史</h1>
+
+<a href="{{ url_for('staff.dashboard') }}" class="btn btn-gray">← 返回儀表板</a>
+<a href="{{ url_for('staff.inquiry.active_list') }}" class="btn btn-blue">活躍會話</a>
+
+<div class="search-box">
+    <form method="get" action="{{ url_for('staff.inquiry.history_list') }}">
+        <input type="text" name="keyword" value="{{ keyword or '' }}" placeholder="搜尋案件ID、顧客、Email、問題">
+        <button type="submit" class="btn btn-blue">搜尋</button>
+        <a href="{{ url_for('staff.inquiry.history_list') }}">清除</a>
+    </form>
+</div>
+
+<table>
+    <thead>
+        <tr>
+            <th>案件 ID</th>
+            <th>顧客</th>
+            <th>問題類型</th>
+            <th>狀態</th>
+            <th>最後訊息</th>
+            <th>結案 / 更新時間</th>
+            <th>操作</th>
+        </tr>
+    </thead>
+
+    <tbody>
+    {% for inquiry in inquiries %}
+        <tr>
+            <td>{{ inquiry.id }}</td>
+            <td>
+                {{ inquiry.customer_name }}<br>
+                <small>{{ inquiry.customer_email }}</small>
+            </td>
+            <td>{{ inquiry.purpose }}</td>
+            <td><span class="closed">已結案</span></td>
+            <td>{{ inquiry.last_message or '-' }}</td>
+            <td>
+                {{ inquiry.updated_at.strftime('%Y-%m-%d %H:%M') if inquiry.updated_at else '-' }}
+            </td>
+            <td>
+                <a href="{{ url_for('staff.inquiry.detail', id=inquiry.id) }}" class="btn btn-green">查看紀錄</a>
+            </td>
+        </tr>
+    {% else %}
+        <tr>
+            <td colspan="7" style="text-align:center;">目前沒有客服歷史紀錄</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+
+</body>
+</html>

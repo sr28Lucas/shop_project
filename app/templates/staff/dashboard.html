@@ -43,30 +43,31 @@
             </ul>
         </div>
 
-        <div class="card">
-            <div class="card-header">會員管理</div>
-            <ul class="card-body">
-                <li><a href="#">會員瀏覽</a></li>
-            </ul>
-        </div>
+<div class="card">
+    <div class="card-header">會員管理</div>
+    <ul class="card-body">
+        <li><a href="{{ url_for('staff.member.member_list') }}">會員瀏覽</a></li>
+    </ul>
+</div>
     </div>
     <div class='card-gap'></div>
     <div class="menu">
         <div class="card">
-            <div class="card-header">客服管理</div>
-            <ul class="card-body">
-                <li><a href="#">活躍會話</a></li>
-                <li><a href="#">客服歷史</a></li>
-            </ul>
-        </div>
+   	 <div class="card-header">客服管理</div>
+    	<ul class="card-body">
+      		  <li><a href="{{ url_for('staff.inquiry.active_list') }}">活躍會話</a></li>
+       		 <li><a href="{{ url_for('staff.inquiry.history_list') }}">客服歷史</a></li>
+		<li><a href="{{ url_for('staff.inquiry.refund_list') }}">退貨 / 退款處理</a></li>
+   	 </ul>
+	</div>
 
-        <div class="card">
-            <div class="card-header">數據統計</div>
-            <ul class="card-body">
-                <li><a href="#">營收統計</a></li>
-                <li><a href="#">銷售分析</a></li>
-            </ul>
-        </div>
+	<div class="card">
+   		 <div class="card-header">數據統計</div>
+   		 <ul class="card-body">
+      		 <li><a href="{{ url_for('staff.statistic.revenue') }}">營收統計</a></li>
+        	<li><a href="{{ url_for('staff.statistic.sales') }}">銷售分析</a></li>
+   	   </ul>
+	</div>
 
         <div class="card">
             <div class="card-header">員工管理</div>

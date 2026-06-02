@@ -2,54 +2,173 @@
 <html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
-    <title>訂單歷史紀錄 - 後臺系統</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/staff/common.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/staff/product_list.css') }}">
+    <title>訂單歷史紀錄</title>
+    <style>
+        body {
+            font-family: Arial, "Microsoft JhengHei", sans-serif;
+            background: #f5f6f8;
+            padding: 30px 60px;
+            color: #24384a;
+        }
+
+        h1 {
+            margin-bottom: 25px;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 8px 14px;
+            border: none;
+            border-radius: 4px;
+            color: white;
+            text-decoration: none;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .btn-gray { background: #5f6b75; }
+        .btn-blue { background: #007bff; }
+        .btn-green { background: #28a745; }
+
+        .search-box {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 6px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        input, select {
+            padding: 8px;
+            margin-right: 8px;
+        }
+
+        input {
+            width: 240px;
+        }
+
+        table {
+            width: 100%;
+            background: white;
+            border-collapse: collapse;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        th, td {
+            padding: 14px 16px;
+            border-bottom: 1px solid #eee;
+            text-align: left;
+        }
+
+        th {
+            background: #f0f2f4;
+        }
+
+        .cancelled {
+            color: #dc3545;
+            font-weight: bold;
+        }
+
+        .shipped {
+            color: #007bff;
+            font-weight: bold;
+        }
+
+        .completed {
+            color: #28a745;
+            font-weight: bold;
+        }
+
+        .actions form {
+            display: inline-block;
+        }
+    </style>
 </head>
 <body>
-    <h1>訂單歷史紀錄</h1>
-    
-    <div class="action-bar">
-        <a href="{{ url_for('staff.dashboard') }}" class="btn" style="background: #6c757d; color: white;">← 返回儀表板</a>
-    </div>
 
-    <section class="filter-section">
-        <form method="GET" action="{{ url_for('staff.order.order_history') }}">
-            <input type="text" name="search" placeholder="搜尋顧客、訂單ID..." value="{{ request.args.get('search', '') }}">
-            <button type="submit" class="btn">搜尋</button>
-            <a href="{{ url_for('staff.order.order_history') }}" class="btn">清除</a>
-        </form>
-    </section>
+<h1>訂單歷史紀錄</h1>
 
-    <div class="product-table-container">
-        <table class="product-table">
-            <thead>
-                <tr>
-                    <th>訂單 ID</th>
-                    <th>顧客名稱</th>
-                    <th>總金額</th>
-                    <th>出貨狀態</th>
-                    <th>訂單狀態</th>
-                    <th>建立時間</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for order in orders %}
-                <tr>
-                    <td>{{ order.id }}</td>
-                    <td>{{ order.customer_name }}</td>
-                    <td>{{ order.total }}</td>
-                    <td>{{ order.shipment_status or '-' }}</td>
-                    <td>{{ order.status }}</td>
-                    <td>{{ order.created_at.strftime('%Y-%m-%d %H:%M') if order.created_at else '-' }}</td>
-                </tr>
+<a href="{{ url_for('staff.order.order_list') }}" class="btn btn-gray">← 返回出貨管理</a>
+<a href="{{ url_for('staff.dashboard') }}" class="btn btn-gray">← 返回儀表板</a>
+
+<div class="search-box">
+    <form method="get" action="{{ url_for('staff.order.order_history') }}">
+        <select name="status">
+            <option value="" {% if not status_filter %}selected{% endif %}>全部紀錄</option>
+            <option value="shipped" {% if status_filter == 'shipped' %}selected{% endif %}>已出貨</option>
+            <option value="completed" {% if status_filter == 'completed' %}selected{% endif %}>已完成</option>
+            <option value="cancelled" {% if status_filter == 'cancelled' %}selected{% endif %}>已取消</option>
+        </select>
+
+        <input type="text" name="keyword" value="{{ keyword or '' }}" placeholder="搜尋顧客、訂單ID、電話">
+        <button type="submit" class="btn btn-blue">搜尋</button>
+        <a href="{{ url_for('staff.order.order_history') }}">清除</a>
+    </form>
+</div>
+
+<table>
+    <thead>
+        <tr>
+            <th>訂單 ID</th>
+            <th>顧客名稱</th>
+            <th>總金額</th>
+            <th>出貨狀態</th>
+            <th>訂單狀態</th>
+            <th>建立時間</th>
+            <th>操作</th>
+        </tr>
+    </thead>
+
+    <tbody>
+    {% for order in orders %}
+        <tr>
+            <td>{{ order.id }}</td>
+            <td>{{ order.customer_name or order.name }}</td>
+            <td>{{ order.total }}</td>
+
+            <td>
+                {% if order.shipment_status == 'cancelled' %}
+                    <span class="cancelled">已取消</span>
+                {% elif order.shipment_status == 'shipped' %}
+                    <span class="shipped">已出貨</span>
+                {% elif order.shipment_status == 'delivered' %}
+                    <span class="completed">已送達</span>
                 {% else %}
-                <tr>
-                    <td colspan="6" style="text-align: center; padding: 30px;">查無訂單歷史紀錄</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
+                    {{ order.shipment_status or '-' }}
+                {% endif %}
+            </td>
+
+            <td>
+                {% if order.status == 'cancelled' %}
+                    <span class="cancelled">已取消</span>
+                {% elif order.status == 'shipped' %}
+                    <span class="shipped">已出貨</span>
+                {% elif order.status == 'completed' %}
+                    <span class="completed">已完成</span>
+                {% else %}
+                    {{ order.status }}
+                {% endif %}
+            </td>
+
+            <td>{{ order.created_at.strftime('%Y-%m-%d %H:%M') if order.created_at else '-' }}</td>
+
+            <td class="actions">
+                {% if order.status == 'shipped' or order.shipment_status == 'shipped' %}
+                    <form method="post" action="{{ url_for('staff.order.deliver_order', id=order.id) }}">
+                        <button type="submit" class="btn btn-green">完成送達</button>
+                    </form>
+                {% else %}
+                    -
+                {% endif %}
+            </td>
+        </tr>
+    {% else %}
+        <tr>
+            <td colspan="7" style="text-align:center;">查無訂單歷史紀錄</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+
 </body>
 </html>

@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <title>退貨 / 退款處理</title>
+    <style>
+        body {
+            font-family: Arial, "Microsoft JhengHei", sans-serif;
+            background: #f5f6f8;
+            padding: 30px 60px;
+            color: #24384a;
+        }
+
+        h1 {
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 8px 14px;
+            border: none;
+            border-radius: 4px;
+            color: white;
+            text-decoration: none;
+            cursor: pointer;
+            font-size: 14px;
+            margin: 2px;
+        }
+
+        .btn-gray { background: #5f6b75; }
+        .btn-blue { background: #007bff; }
+        .btn-green { background: #28a745; }
+        .btn-red { background: #dc3545; }
+        .btn-yellow { background: #f0ad00; }
+
+        .search-box {
+            background: white;
+            padding: 18px;
+            border-radius: 8px;
+            margin: 20px 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        input, select {
+            padding: 8px;
+            margin-right: 8px;
+        }
+
+        table {
+            width: 100%;
+            background: white;
+            border-collapse: collapse;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        th, td {
+            padding: 14px 16px;
+            border-bottom: 1px solid #eee;
+            text-align: left;
+            vertical-align: top;
+        }
+
+        th {
+            background: #f0f2f4;
+        }
+
+        .flash {
+            background: #fff3cd;
+            border: 1px solid #ffeeba;
+            padding: 10px 15px;
+            margin: 15px 0;
+            border-radius: 4px;
+            color: #856404;
+        }
+
+        .status-open {
+            color: #dc3545;
+            font-weight: bold;
+        }
+
+        .status-replied {
+            color: #007bff;
+            font-weight: bold;
+        }
+
+        .status-closed {
+            color: #28a745;
+            font-weight: bold;
+        }
+
+        form.inline {
+            display: inline-block;
+        }
+
+        .reject-box {
+            margin-top: 6px;
+        }
+
+        .reject-box input {
+            width: 220px;
+        }
+    </style>
+</head>
+<body>
+
+<h1>退貨 / 退款處理</h1>
+
+<a href="{{ url_for('staff.dashboard') }}" class="btn btn-gray">← 返回儀表板</a>
+<a href="{{ url_for('staff.inquiry.active_list') }}" class="btn btn-blue">活躍會話</a>
+<a href="{{ url_for('staff.inquiry.history_list') }}" class="btn btn-blue">客服歷史</a>
+
+{% with messages = get_flashed_messages() %}
+    {% if messages %}
+        {% for message in messages %}
+            <div class="flash">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+{% endwith %}
+
+<div class="search-box">
+    <form method="get" action="{{ url_for('staff.inquiry.refund_list') }}">
+        <select name="status">
+            <option value="" {% if not status %}selected{% endif %}>全部狀態</option>
+            <option value="open" {% if status == 'open' %}selected{% endif %}>待處理</option>
+            <option value="replied" {% if status == 'replied' %}selected{% endif %}>已回覆 / 處理中</option>
+            <option value="closed" {% if status == 'closed' %}selected{% endif %}>已結案</option>
+        </select>
+
+        <input type="text" name="keyword" value="{{ keyword or '' }}" placeholder="搜尋案件ID、顧客、Email、電話">
+        <button type="submit" class="btn btn-blue">搜尋</button>
+        <a href="{{ url_for('staff.inquiry.refund_list') }}">清除</a>
+    </form>
+</div>
+
+<table>
+    <thead>
+        <tr>
+            <th>案件 ID</th>
+            <th>訂單</th>
+            <th>顧客</th>
+            <th>申請狀態</th>
+            <th>最後訊息</th>
+            <th>更新時間</th>
+            <th>操作</th>
+        </tr>
+    </thead>
+
+    <tbody>
+    {% for refund in refunds %}
+        <tr>
+            <td>{{ refund.id }}</td>
+
+            <td>
+                {% if refund.order %}
+                    訂單 #{{ refund.order.id }}<br>
+                    金額：${{ refund.order.total }}<br>
+                    訂單狀態：{{ refund.order.status }}
+                {% elif refund.order_id %}
+                    訂單 #{{ refund.order_id }}<br>
+                    <span style="color:#dc3545;">找不到訂單資料</span>
+                {% else %}
+                    <span style="color:#dc3545;">無法解析訂單編號</span>
+                {% endif %}
+            </td>
+
+            <td>
+                {{ refund.customer_name }}<br>
+                <small>{{ refund.customer_email }}</small><br>
+                <small>{{ refund.customer_phone or '' }}</small>
+            </td>
+
+            <td>
+                {% if refund.status == 'open' %}
+                    <span class="status-open">待處理</span>
+                {% elif refund.status == 'replied' %}
+                    <span class="status-replied">處理中</span>
+                {% elif refund.status == 'closed' %}
+                    <span class="status-closed">已結案</span>
+                {% else %}
+                    {{ refund.status }}
+                {% endif %}
+            </td>
+
+            <td>{{ refund.last_message or '-' }}</td>
+
+            <td>
+                {{ refund.updated_at.strftime('%Y-%m-%d %H:%M') if refund.updated_at else '-' }}
+            </td>
+
+            <td>
+                <a href="{{ url_for('staff.inquiry.detail', id=refund.id) }}" class="btn btn-yellow">
+                    查看對話
+                </a>
+
+                {% if refund.status != 'closed' %}
+                    <form method="post"
+                          action="{{ url_for('staff.inquiry.approve_refund', id=refund.id) }}"
+                          class="inline">
+                        <button type="submit" class="btn btn-green"
+                                onclick="return confirm('確定通過此退貨 / 退款申請嗎？');">
+                            通過審核
+                        </button>
+                    </form>
+
+                    <form method="post"
+                          action="{{ url_for('staff.inquiry.complete_refund', id=refund.id) }}"
+                          class="inline">
+                        <button type="submit" class="btn btn-blue"
+                                onclick="return confirm('確定完成退款並回補庫存嗎？');">
+                            完成退款
+                        </button>
+                    </form>
+
+                    <form method="post"
+                          action="{{ url_for('staff.inquiry.reject_refund', id=refund.id) }}"
+                          class="reject-box">
+                        <input type="text" name="reason" placeholder="拒絕原因，可不填">
+                        <button type="submit" class="btn btn-red"
+                                onclick="return confirm('確定拒絕此申請嗎？');">
+                            拒絕申請
+                        </button>
+                    </form>
+                {% else %}
+                    -
+                {% endif %}
+            </td>
+        </tr>
+    {% else %}
+        <tr>
+            <td colspan="7" style="text-align:center;">目前沒有退貨 / 退款申請</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+
+</body>
+</html>

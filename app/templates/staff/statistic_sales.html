@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <title>銷售分析</title>
+    <style>
+        body {
+            font-family: Arial, "Microsoft JhengHei", sans-serif;
+            background: #f5f6f8;
+            padding: 30px 60px;
+            color: #24384a;
+        }
+
+        h1 {
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 8px 14px;
+            border-radius: 4px;
+            background: #5f6b75;
+            color: white;
+            text-decoration: none;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn-blue {
+            background: #007bff;
+        }
+
+        .filter-box {
+            background: white;
+            padding: 18px;
+            border-radius: 8px;
+            margin: 20px 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        input {
+            padding: 8px;
+            margin-right: 8px;
+        }
+
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin: 20px 0;
+        }
+
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .card-title {
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        .card-value {
+            font-size: 26px;
+            font-weight: bold;
+            color: #24384a;
+        }
+
+        .section {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 12px;
+        }
+
+        th, td {
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+            text-align: left;
+        }
+
+        th {
+            background: #f0f2f4;
+        }
+
+        .danger {
+            color: #dc3545;
+            font-weight: bold;
+        }
+
+        .warning {
+            color: #f0ad00;
+            font-weight: bold;
+        }
+
+        .nav {
+            margin-bottom: 18px;
+        }
+
+        .nav a {
+            margin-right: 8px;
+        }
+    </style>
+</head>
+<body>
+
+<h1>銷售分析</h1>
+
+<div class="nav">
+    <a href="{{ url_for('staff.dashboard') }}" class="btn">← 返回儀表板</a>
+    <a href="{{ url_for('staff.statistic.revenue') }}" class="btn btn-blue">營收統計</a>
+</div>
+
+<div class="filter-box">
+    <form method="get" action="{{ url_for('staff.statistic.sales') }}">
+        起始日期：
+        <input type="date" name="start_date" value="{{ start_date }}">
+        結束日期：
+        <input type="date" name="end_date" value="{{ end_date }}">
+        <button type="submit" class="btn btn-blue">查詢</button>
+    </form>
+</div>
+
+<div class="cards">
+    <div class="card">
+        <div class="card-title">SKU 總數</div>
+        <div class="card-value">{{ stock_kpi.sku_count }}</div>
+    </div>
+
+    <div class="card">
+        <div class="card-title">總庫存量</div>
+        <div class="card-value">{{ stock_kpi.total_stock }}</div>
+    </div>
+
+    <div class="card">
+        <div class="card-title">低庫存 SKU</div>
+        <div class="card-value">{{ stock_kpi.low_stock_count }}</div>
+    </div>
+
+    <div class="card">
+        <div class="card-title">缺貨 SKU</div>
+        <div class="card-value">{{ stock_kpi.out_of_stock_count }}</div>
+    </div>
+</div>
+
+<div class="section">
+    <h2>商品銷售排行</h2>
+    <table>
+        <thead>
+        <tr>
+            <th>商品名稱</th>
+            <th>顏色</th>
+            <th>尺寸</th>
+            <th>銷售數量</th>
+            <th>平均單價</th>
+            <th>營收</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for row in product_sales %}
+            <tr>
+                <td>{{ row.product_name }}</td>
+                <td>{{ row.color }}</td>
+                <td>{{ row.size }}</td>
+                <td>{{ row.total_qty }}</td>
+                <td>${{ row.avg_price or 0 }}</td>
+                <td>${{ row.total_revenue }}</td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="6" style="text-align:center;">查無銷售資料</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="section">
+    <h2>分類銷售分析</h2>
+    <table>
+        <thead>
+        <tr>
+            <th>分類</th>
+            <th>銷售數量</th>
+            <th>營收</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for row in category_sales %}
+            <tr>
+                <td>{{ row.category_name }}</td>
+                <td>{{ row.total_qty }}</td>
+                <td>${{ row.total_revenue }}</td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="3" style="text-align:center;">查無分類銷售資料</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="section">
+    <h2>低庫存商品</h2>
+    <table>
+        <thead>
+        <tr>
+            <th>商品名稱</th>
+            <th>顏色</th>
+            <th>尺寸</th>
+            <th>價格</th>
+            <th>庫存</th>
+            <th>SKU Code</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for row in low_stock_items %}
+            <tr>
+                <td>{{ row.product_name }}</td>
+                <td>{{ row.color }}</td>
+                <td>{{ row.size }}</td>
+                <td>${{ row.price }}</td>
+                <td>
+                    {% if row.stock == 0 %}
+                        <span class="danger">{{ row.stock }}</span>
+                    {% else %}
+                        <span class="warning">{{ row.stock }}</span>
+                    {% endif %}
+                </td>
+                <td>{{ row.sku_code }}</td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="6" style="text-align:center;">目前沒有低庫存商品</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="section">
+    <h2>顧客消費排行 TOP 10</h2>
+    <table>
+        <thead>
+        <tr>
+            <th>顧客名稱</th>
+            <th>訂單數</th>
+            <th>消費金額</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for row in top_customers %}
+            <tr>
+                <td>{{ row.customer_name }}</td>
+                <td>{{ row.order_count }}</td>
+                <td>${{ row.total_spent }}</td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="3" style="text-align:center;">查無顧客消費資料</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+</body>
+</html>
