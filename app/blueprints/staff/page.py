@@ -1,10 +1,12 @@
 from flask import Blueprint, session, request, redirect, render_template, url_for, flash 
 from app.db import get_db_connection
 from datetime import datetime
+from .permission import require_permission
 
 page_bp = Blueprint('page', __name__) #建立藍圖
 
 @page_bp.route('/announcement')
+@require_permission('announcement')
 def announcement_list():
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
@@ -15,6 +17,7 @@ def announcement_list():
     return render_template('staff/announcement_list.html', announcements=announcements)
 
 @page_bp.route('/announcement/add', methods=['GET', 'POST'])
+@require_permission('announcement')
 def announcement_add():
     if request.method == 'POST':
         title = request.form.get('title')
@@ -40,6 +43,7 @@ def announcement_add():
     return render_template('staff/announcement_add.html')
 
 @page_bp.route('/announcement/edit/<int:id>', methods=['GET', 'POST'])
+@require_permission('announcement')
 def announcement_edit(id):
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
@@ -71,6 +75,7 @@ def announcement_edit(id):
     return render_template('staff/announcement_edit.html', announcement=announcement)
 
 @page_bp.route('/announcement/delete/<int:id>', methods=['POST'])
+@require_permission('announcement')
 def announcement_delete(id):
     conn = get_db_connection()
     cursor = conn.cursor()

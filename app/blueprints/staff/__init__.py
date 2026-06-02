@@ -17,6 +17,8 @@ from .statistic import statistic_bp
 from .inquiry import inquiry_bp
 from .member import member_bp
 from .return_order import staff_return_bp
+from .role import role_bp
+from .staff_account import staff_account_bp
 
 
 staff_bp.register_blueprint(product_bp, url_prefix='/product')
@@ -28,6 +30,8 @@ staff_bp.register_blueprint(statistic_bp, url_prefix='/statistic')
 staff_bp.register_blueprint(inquiry_bp, url_prefix='/inquiry')
 staff_bp.register_blueprint(member_bp, url_prefix='/member')
 staff_bp.register_blueprint(staff_return_bp, url_prefix='/return')
+staff_bp.register_blueprint(role_bp, url_prefix='/role')
+staff_bp.register_blueprint(staff_account_bp, url_prefix='/staff_account')
 
 
 
@@ -43,14 +47,14 @@ def dashboard():
     cursor.execute("SELECT * FROM staff WHERE id = %s", (session['staff_id'],))
     user = cursor.fetchone()
     
-    # 👇👇 3. 防護罩必須放在這裡！(拿到 user 後立刻檢查) 👇👇
+
     if not user:
         cursor.close()
         conn.close()
         session.clear()
         flash("找不到管理員資料，請重新登入")
         return redirect(url_for("auth.staff_login"))
-    # 👆👆 ------------------------------------------------ 👆👆
+    
     
     # 4. 確定 user 存在後，才安全地去撈他的 role (權限)
     cursor.execute("SELECT * FROM role WHERE id = %s", (user['role_id'],))

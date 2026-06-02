@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <title>角色管理 - 後臺系統</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/staff/common.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/staff/product_list.css') }}">
+</head>
+<body>
+    <h1>角色管理</h1>
+    <div class="action-bar">
+        <a href="{{ url_for('staff.dashboard') }}" class="btn" style="background: #6c757d; color: white;">← 返回儀表板</a>
+        <a href="{{ url_for('staff.role.role_add') }}" class="btn btn-add">+ 新增角色</a>
+    </div>
+
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <div style="background: #f8d7da; color: #721c24; padding: 10px; border-radius: 5px; margin-bottom: 20px; border: 1px solid #f5c6cb;">
+        {% for message in messages %}
+          {{ message }}
+        {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    <table class="product-table">
+        <thead>
+            <tr>
+                <th>名稱</th>
+                <th>權限</th>
+                <th>操作</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for role in roles %}
+            <tr>
+                <td>{{ role.name }}</td>
+                <td>
+                    {% if role.member %}會員 {% endif %}
+                    {% if role.orders %}訂單 {% endif %}
+                    {% if role.product %}商品 {% endif %}
+                    {% if role.inquiry %}客服 {% endif %}
+                    {% if role.statistic %}統計 {% endif %}
+                    {% if role.staff %}員工 {% endif %}
+                    {% if role.announcement %}公告 {% endif %}
+                    {% if role.return %}退貨 {% endif %}
+                    {% if role.promo %}促銷 {% endif %}
+                </td>
+                <td>
+                    <a href="{{ url_for('staff.role.role_edit', id=role.id) }}" class="btn btn-edit">編輯</a>
+                    {% if role.id != 1 %}
+                    <form action="{{ url_for('staff.role.role_delete', id=role.id) }}" method="POST" style="display:inline;">
+                        <button type="submit" class="btn btn-delete" onclick="return confirm('確定要刪除嗎？')">刪除</button>
+                    </form>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>

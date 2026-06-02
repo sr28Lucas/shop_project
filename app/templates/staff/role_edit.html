@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <title>{% if role %}編輯{% else %}新增{% endif %}角色 - 後臺系統</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/staff/common.css') }}">
+    <style>
+        .form-group { margin-bottom: 1.5rem; }
+        .form-group label { display: block; margin-bottom: 0.5rem; font-weight: bold; }
+        .form-group input { width: 100%; padding: 0.75rem; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        .permissions-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem; padding: 1rem; border: 1px solid #ddd; border-radius: 4px; background: #f9f9f9; }
+        .permissions-grid label { display: flex; align-items: center; gap: 0.5rem; font-weight: normal; margin-bottom: 0; }
+        .btn-group { margin-top: 2rem; }
+        .btn { padding: 0.75rem 1.5rem; border-radius: 4px; text-decoration: none; cursor: pointer; border: none; }
+        .btn-primary { background: #007bff; color: white; }
+        .btn-secondary { background: #6c757d; color: white; }
+    </style>
+</head>
+<body>
+    <h1>{% if role %}編輯{% else %}新增{% endif %}角色</h1>
+    <form method="POST" style="max-width: 800px;">
+        <div class="form-group">
+            <label>角色名稱</label>
+            <input type="text" name="name" value="{{ role.name if role else '' }}" required>
+        </div>
+        <div class="form-group">
+            <label>權限設定</label>
+            <div class="permissions-grid">
+                {% set perms = [('member', '會員管理'), ('orders', '訂單管理'), ('product', '商品管理'), ('inquiry', '客服管理'), ('statistic', '統計報表'), ('staff', '員工管理'), ('announcement', '公告管理'), ('return', '退貨管理'), ('promo', '促銷管理')] %}
+                {% for p_id, p_name in perms %}
+                <label>
+                    <input type="checkbox" name="{{ p_id }}" {% if role and role[p_id] %}checked{% endif %} style="width: auto;">
+                    {{ p_name }}
+                </label>
+                {% endfor %}
+            </div>
+        </div>
+        <div class="btn-group">
+            <button type="submit" class="btn btn-primary">儲存變更</button>
+            <a href="{{ url_for('staff.role.role_list') }}" class="btn btn-secondary">取消</a>
+        </div>
+    </form>
+</body>
+</html>

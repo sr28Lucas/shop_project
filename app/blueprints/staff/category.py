@@ -1,9 +1,11 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from app.db import get_db_connection
+from .permission import require_permission
 
 category_bp = Blueprint('category', __name__)
 
 @category_bp.route('/')
+@require_permission('product')
 def category_list():
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
@@ -14,6 +16,7 @@ def category_list():
     return render_template('staff/category_list.html', categories=categories)
 
 @category_bp.route('/add', methods=['POST'])
+@require_permission('product')
 def category_add():
     name = request.form.get('name', '').strip()
     if not name:
@@ -46,6 +49,7 @@ def category_add():
     return redirect(url_for('staff.category.category_list'))
 
 @category_bp.route('/edit/<int:id>', methods=['POST'])
+@require_permission('product')
 def category_edit(id):
     name = request.form.get('name', '').strip()
     if not name:
@@ -78,6 +82,7 @@ def category_edit(id):
     return redirect(url_for('staff.category.category_list'))
 
 @category_bp.route('/delete/<int:id>', methods=['POST'])
+@require_permission('product')
 def category_delete(id):
     conn = get_db_connection()
     cursor = conn.cursor()

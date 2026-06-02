@@ -20,33 +20,58 @@
         <div class="card">
             <div class="card-header">頁面管理</div>
             <ul class="card-body">
+                {% if role.product %}
                 <li><a href="{{ url_for('staff.category.category_list') }}">分類管理</a></li>
+                {% else %}
+                <li>分類管理 (無權限)</li>
+                {% endif %}
+                {% if role.announcement %}
                 <li><a href="{{ url_for('staff.page.announcement_list') }}">公告管理</a></li>
+                {% else %}
+                <li>公告管理 (無權限)</li>
+                {% endif %}
             </ul>
         </div>
 
         <div class="card">
             <div class="card-header">商品管理</div>
             <ul class="card-body">
+                {% if role.product %}
                 <li><a href="{{ url_for('staff.product.product_list') }}">修改商品</a></li>
+                {% else %}
+                <li>修改商品 (無權限)</li>
+                {% endif %}
+                {% if role.promo %}
                 <li><a href="{{ url_for('staff.promo.promo_list') }}">折扣碼管理</a></li>
-                
+                {% else %}
+                <li>折扣碼管理 (無權限)</li>
+                {% endif %}
             </ul>
         </div>
 
         <div class="card">
             <div class="card-header">訂單管理</div>
             <ul class="card-body">
+                {% if role.orders %}
                 <li><a href="{{ url_for('staff.order.order_list') }}">出貨管理</a></li>
                 <li><a href="{{ url_for('staff.order.order_history') }}">訂單紀錄</a></li>
                 <li><a href="{{ url_for('staff.order.logistics_settings') }}">運費管理</a></li>
+                {% else %}
+                <li>出貨管理 (無權限)</li>
+                <li>訂單紀錄 (無權限)</li>
+                <li>運費管理 (無權限)</li>
+                {% endif %}
             </ul>
         </div>
 
 <div class="card">
     <div class="card-header">會員管理</div>
     <ul class="card-body">
+        {% if role.member %}
         <li><a href="{{ url_for('staff.member.member_list') }}">會員瀏覽</a></li>
+        {% else %}
+        <li>會員瀏覽 (無權限)</li>
+        {% endif %}
     </ul>
 </div>
     </div>
@@ -55,26 +80,44 @@
         <div class="card">
    	 <div class="card-header">客服管理</div>
     	<ul class="card-body">
+            {% if role.inquiry %}
       		  <li><a href="{{ url_for('staff.inquiry.active_list') }}">活躍會話</a></li>
        		 <li><a href="{{ url_for('staff.inquiry.history_list') }}">客服歷史</a></li>
+            {% else %}
+            <li>活躍會話 (無權限)</li>
+            <li>客服歷史 (無權限)</li>
+            {% endif %}
+            {% if role.return %}
 		<li><a href="{{ url_for('staff.staff_return.list_requests') }}">退貨管理</a></li>
+            {% else %}
+            <li>退貨管理 (無權限)</li>
+            {% endif %}
    	 </ul>
 	</div>
 
 	<div class="card">
    		 <div class="card-header">數據統計</div>
    		 <ul class="card-body">
+            {% if role.statistic %}
       		 <li><a href="{{ url_for('staff.statistic.revenue') }}">營收統計</a></li>
         	<li><a href="{{ url_for('staff.statistic.sales') }}">銷售分析</a></li>
+            {% else %}
+            <li>營收統計 (無權限)</li>
+            <li>銷售分析 (無權限)</li>
+            {% endif %}
    	   </ul>
 	</div>
 
         <div class="card">
             <div class="card-header">員工管理</div>
             <ul class="card-body">
-                <li><a href="#">新增員工</a></li>
-                <li><a href="#">瀏覽員工</a></li>
-                <li><a href="#">職位設定</a></li>
+                {% if role.staff %}
+                <li><a href="{{ url_for('staff.staff_account.staff_list') }}">員工帳號管理</a></li>
+                <li><a href="{{ url_for('staff.role.role_list') }}">角色權限管理</a></li>
+                {% else %}
+                <li>員工帳號管理 (無權限)</li>
+                <li>角色權限管理 (無權限)</li>
+                {% endif %}
             </ul>
         </div>
 

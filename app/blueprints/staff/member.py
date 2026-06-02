@@ -1,19 +1,14 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session
 from app.db import get_db_connection
 from datetime import datetime
+from .permission import require_permission
 
 member_bp = Blueprint('member', __name__)
 
 
-def require_staff_login():
-    return 'staff_id' in session
-
-
 @member_bp.route('/list')
+@require_permission('member')
 def member_list():
-    if not require_staff_login():
-        return redirect(url_for('auth.staff_login'))
-
     keyword = request.args.get('keyword', '').strip()
     status = request.args.get('status', '').strip()
 
@@ -91,10 +86,8 @@ def member_list():
 
 
 @member_bp.route('/detail/<int:id>')
+@require_permission('member')
 def member_detail(id):
-    if not require_staff_login():
-        return redirect(url_for('auth.staff_login'))
-
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
 
@@ -181,10 +174,8 @@ def member_detail(id):
 
 
 @member_bp.route('/toggle/<int:id>', methods=['POST'])
+@require_permission('member')
 def toggle_member(id):
-    if not require_staff_login():
-        return redirect(url_for('auth.staff_login'))
-
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
 

@@ -1,17 +1,13 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session
 from app.db import get_db_connection
 from datetime import datetime
+from .permission import require_permission
 
 staff_return_bp = Blueprint('staff_return', __name__)
 
-def require_staff_login():
-    return 'staff_id' in session
-
 @staff_return_bp.route('/list')
+@require_permission('return')
 def list_requests():
-    if not require_staff_login():
-        return redirect(url_for('auth.staff_login'))
-
     status_filter = request.args.get('status', '').strip()
     keyword = request.args.get('keyword', '').strip()
 
@@ -46,10 +42,8 @@ def list_requests():
     return render_template('staff/return_list.html', returns=returns, status_filter=status_filter, keyword=keyword)
 
 @staff_return_bp.route('/detail/<int:id>')
+@require_permission('return')
 def detail(id):
-    if not require_staff_login():
-        return redirect(url_for('auth.staff_login'))
-
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
 
@@ -81,10 +75,8 @@ def detail(id):
     return render_template('staff/return_detail.html', return_req=return_req, items=items)
 
 @staff_return_bp.route('/approve/<int:id>', methods=['POST'])
+@require_permission('return')
 def approve(id):
-    if not require_staff_login():
-        return redirect(url_for('auth.staff_login'))
-
     conn = get_db_connection()
     cursor = conn.cursor()
     try:
@@ -101,10 +93,8 @@ def approve(id):
     return redirect(url_for('staff.staff_return.detail', id=id))
 
 @staff_return_bp.route('/reject/<int:id>', methods=['POST'])
+@require_permission('return')
 def reject(id):
-    if not require_staff_login():
-        return redirect(url_for('auth.staff_login'))
-
     conn = get_db_connection()
     cursor = conn.cursor()
     try:
@@ -121,10 +111,8 @@ def reject(id):
     return redirect(url_for('staff.staff_return.detail', id=id))
 
 @staff_return_bp.route('/complete/<int:id>', methods=['POST'])
+@require_permission('return')
 def complete(id):
-    if not require_staff_login():
-        return redirect(url_for('auth.staff_login'))
-
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
     try:

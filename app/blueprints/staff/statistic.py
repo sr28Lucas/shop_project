@@ -1,6 +1,7 @@
 from flask import Blueprint, render_template, request
 from app.db import get_db_connection
 from datetime import date
+from .permission import require_permission
 
 statistic_bp = Blueprint('statistic', __name__)
 
@@ -16,11 +17,13 @@ def get_date_range():
 
 
 @statistic_bp.route('/')
+@require_permission('statistic')
 def index():
     return revenue()
 
 
 @statistic_bp.route('/revenue')
+@require_permission('statistic')
 def revenue():
     start_date, end_date = get_date_range()
 
@@ -132,6 +135,7 @@ def revenue():
 
 
 @statistic_bp.route('/sales')
+@require_permission('statistic')
 def sales():
     start_date, end_date = get_date_range()
 

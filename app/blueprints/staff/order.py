@@ -4,11 +4,13 @@ from datetime import datetime
 import json
 import os
 from app.config import config
+from .permission import require_permission
 
 order_bp = Blueprint('order', __name__)
 
 
 @order_bp.route('/logistics_settings', methods=['GET', 'POST'])
+@require_permission('orders')
 def logistics_settings():
     json_path = os.path.join(config.BASE_DIR, 'app', 'static', 'json', 'taiwan_districts.json')
 
@@ -53,6 +55,7 @@ def logistics_settings():
 
 
 @order_bp.route('/list')
+@require_permission('orders')
 def order_list():
     """
     出貨管理只顯示未出貨訂單。
@@ -85,6 +88,7 @@ def order_list():
 
 
 @order_bp.route('/history')
+@require_permission('orders')
 def order_history():
     """
     訂單歷史顯示：
@@ -166,6 +170,7 @@ def order_history():
 
 
 @order_bp.route('/ship/<int:id>', methods=['POST'])
+@require_permission('orders')
 def ship_order(id):
     """
     確認出貨：
@@ -243,6 +248,7 @@ def ship_order(id):
 
 
 @order_bp.route('/cancel/<int:id>', methods=['POST'])
+@require_permission('orders')
 def cancel_order(id):
     """
     取消訂單：
@@ -346,6 +352,7 @@ def cancel_order(id):
 
 
 @order_bp.route('/deliver/<int:id>', methods=['POST'])
+@require_permission('orders')
 def deliver_order(id):
     """
     訂單歷史裡可以把 shipped 改成 completed。
@@ -414,6 +421,7 @@ def deliver_order(id):
 
 
 @order_bp.route('/edit/<int:id>', methods=['GET', 'POST'])
+@require_permission('orders')
 def order_edit(id):
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)

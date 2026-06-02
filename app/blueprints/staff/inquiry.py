@@ -1,21 +1,16 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session
 from app.db import get_db_connection
 from datetime import datetime
+from .permission import require_permission
 
 import re
 
 inquiry_bp = Blueprint('inquiry', __name__)
 
 
-def require_staff_login():
-    return 'staff_id' in session
-
-
 @inquiry_bp.route('/active')
+@require_permission('inquiry')
 def active_list():
-    if not require_staff_login():
-        return redirect(url_for('auth.staff_login'))
-
     keyword = request.args.get('keyword', '').strip()
 
     conn = get_db_connection()
@@ -92,10 +87,8 @@ def active_list():
 
 
 @inquiry_bp.route('/history')
+@require_permission('inquiry')
 def history_list():
-    if not require_staff_login():
-        return redirect(url_for('auth.staff_login'))
-
     keyword = request.args.get('keyword', '').strip()
 
     conn = get_db_connection()
@@ -163,10 +156,8 @@ def history_list():
 
 
 @inquiry_bp.route('/detail/<int:id>')
+@require_permission('inquiry')
 def detail(id):
-    if not require_staff_login():
-        return redirect(url_for('auth.staff_login'))
-
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
 
@@ -222,10 +213,8 @@ def detail(id):
 
 
 @inquiry_bp.route('/reply/<int:id>', methods=['POST'])
+@require_permission('inquiry')
 def reply(id):
-    if not require_staff_login():
-        return redirect(url_for('auth.staff_login'))
-
     content = request.form.get('content', '').strip()
 
     if not content:
@@ -278,10 +267,8 @@ def reply(id):
 
 
 @inquiry_bp.route('/close/<int:id>', methods=['POST'])
+@require_permission('inquiry')
 def close(id):
-    if not require_staff_login():
-        return redirect(url_for('auth.staff_login'))
-
     now = datetime.now()
 
     conn = get_db_connection()
@@ -310,10 +297,8 @@ def close(id):
 
 
 @inquiry_bp.route('/reopen/<int:id>', methods=['POST'])
+@require_permission('inquiry')
 def reopen(id):
-    if not require_staff_login():
-        return redirect(url_for('auth.staff_login'))
-
     now = datetime.now()
 
     conn = get_db_connection()
