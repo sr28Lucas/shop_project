@@ -4,60 +4,62 @@
     <meta charset="UTF-8">
     <title>訂單詳情 #{{ order.id }} - 會員中心</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/customer/common.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/staff/product_list.css') }}">
-    <style>
-        .order-info-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; padding: 15px; border: 1px solid #ddd; background: #f9f9f9; margin-bottom: 20px; }
-        .order-info-grid p { margin: 0; font-size: 14px; }
-        .product-table th, .product-table td { padding: 8px; font-size: 14px; }
-        h3 { margin: 10px 0; font-size: 18px; }
-    </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/customer/order.css') }}">
 </head>
 <body>
-    <h1>訂單詳情 #{{ order.id }}</h1>
-    <div class="action-bar">
-        <a href="{{ url_for('customer.customer_order.order_list') }}" class="btn">← 返回列表</a>
-    </div>
+    <div style="max-width: 800px; margin: 0 auto; padding: 20px;">
+        <h1>訂單詳情 #{{ order.id }}</h1>
+        <div class="action-bar" style="margin-bottom: 20px;">
+            <a href="{{ url_for('customer.customer_order.order_list') }}" class="btn btn-outline">← 返回列表</a>
+        </div>
 
-    <div class="product-table-container">
-        <h3>訂單資訊</h3>
-        <div class="order-info-grid">
-            <p><strong>收件人：</strong>{{ order.name }}</p>
-            <p><strong>電話：</strong>{{ order.phone }}</p>
-            <p><strong>地址：</strong>{{ order.region }} {{ order.locality }} {{ order.address }}</p>
-            <p><strong>狀態：</strong>{{ order.status }}</p>
-            <p><strong>小計/運費/折扣：</strong>{{ order.subtotal }} / {{ order.shipping_fee }} / {{ order.discount_total }}</p>
-            <p><strong>總金額：</strong>{{ order.total }}</p>
-            <p><strong>優惠碼：</strong>{{ order.promo_code_snapshot or '無' }}</p>
-            <p><strong>時間：</strong>{{ order.created_at.strftime('%Y-%m-%d %H:%M') if order.created_at else '-' }}</p>
+        <div class="order-card">
+            <h3>訂單資訊</h3>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                <div>
+                    <p><strong>收件人：</strong>{{ order.name }}</p>
+                    <p><strong>電話：</strong>{{ order.phone }}</p>
+                    <p><strong>地址：</strong>{{ order.region }} {{ order.locality }} {{ order.address }}</p>
+                    <p><strong>狀態：</strong>{{ order.status }}</p>
+                    <p><strong>時間：</strong>{{ order.created_at.strftime('%Y-%m-%d %H:%M') if order.created_at else '-' }}</p>
+                </div>
+                <div>
+                    <p><strong>成交價小計：</strong>${{ "{:,.0f}".format(order.subtotal) }}</p>
+                    <p><strong>總折扣：</strong>-${{ "{:,.0f}".format(order.discount_total) }}</p>
+                    <p><strong>運費：</strong>+${{ "{:,.0f}".format(order.shipping_fee) }}</p>
+                    <p><strong>實際總金額：</strong>${{ "{:,.0f}".format(order.total) }}</p>
+                    <p><strong>優惠碼：</strong>{{ order.promo_code_snapshot or '無' }}</p>
+                </div>
+            </div>
         </div>
 
         <h3>訂單明細</h3>
-        <table class="product-table">
-            <thead>
-                <tr>
-                    <th>商品名稱</th>
-                    <th>規格</th>
-                    <th>SKU 代碼</th>
-                    <th>數量</th>
-                    <th>價格</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for item in items %}
-                <tr>
-                    <td>{{ item.product_name }}</td>
-                    <td>{{ item.variant_name }} / {{ item.size }} / {{ item.color }}</td>
-                    <td>{{ item.sku_code }}</td>
-                    <td>{{ item.qty }}</td>
-                    <td>{{ item.price }}</td>
-                </tr>
-                {% else %}
-                <tr>
-                    <td colspan="5" style="text-align: center; padding: 20px;">無訂單項目</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+        <div class="order-card">
+            <table style="width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr style="border-bottom: 2px solid #eee;">
+                        <th style="padding: 10px; text-align: left;">商品名稱</th>
+                        <th style="padding: 10px; text-align: left;">規格</th>
+                        <th style="padding: 10px; text-align: center;">數量</th>
+                        <th style="padding: 10px; text-align: right;">成交單價</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in items %}
+                    <tr style="border-bottom: 1px solid #eee;">
+                        <td style="padding: 10px;">{{ item.product_name }}</td>
+                        <td style="padding: 10px;">{{ item.variant_name }} / {{ item.size }} / {{ item.color }}</td>
+                        <td style="padding: 10px; text-align: center;">{{ item.qty }}</td>
+                        <td style="padding: 10px; text-align: right;">${{ "{:,.0f}".format(item.unit_price) }}</td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="4" style="text-align: center; padding: 20px;">無訂單項目</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </div>
 </body>
 </html>

@@ -127,6 +127,12 @@ def bulk_update_shipment():
             """, (order_id, status, 
                   datetime.now() if status == 'shipped' else None,
                   datetime.now() if status == 'delivered' else None))
+            
+            # 同步更新 orders 狀態
+            order_status = 'shipped' if status == 'shipped' else ('completed' if status == 'delivered' else 'pending')
+            cursor.execute("""
+                UPDATE orders SET status = %s WHERE id = %s
+            """, (order_status, order_id))
         conn.commit()
         flash("出貨狀態已更新")
     except Exception as e:

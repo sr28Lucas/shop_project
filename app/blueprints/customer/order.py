@@ -51,7 +51,7 @@ def order_view(id):
         flash("找不到該訂單")
         return redirect(url_for('customer_order.order_list'))
         
-    # 獲取訂單項目
+    # 獲取訂單項目，注意 SQL 欄位已變更，需確保模板正確讀取
     cursor.execute("SELECT * FROM order_item WHERE order_id = %s", (id,))
     items = cursor.fetchall()
     
@@ -94,9 +94,3 @@ def cancel_order(id):
         conn.close()
         
     return redirect(url_for('customer.customer_order.order_list'))
-
-@customer_order_bp.route('/return/<int:id>', methods=['GET', 'POST'])
-@login_required
-def return_order(id):
-    # 實作退貨/退款申請流程
-    return f"Return/Refund Request for order {id} (To be implemented)"

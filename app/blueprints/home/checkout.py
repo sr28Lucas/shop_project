@@ -317,9 +317,9 @@ def place_order():
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
     
-    # 獲取有效的購物車項目，增加圖片獲取
+    # 獲取有效的購物車項目，增加圖片與成本獲取
     cursor.execute("""
-        SELECT ci.qty, s.id as sku_id, s.sku_code, s.price, s.size, s.stock, v.color, v.id as variant_id, p.name as product_name, p.id as product_id,
+        SELECT ci.qty, s.id as sku_id, s.sku_code, s.price, s.cost, s.size, s.stock, v.color, v.id as variant_id, p.name as product_name, p.id as product_id,
         COALESCE(
             (SELECT filename FROM image WHERE variant_id = v.id LIMIT 1),
             (SELECT filename FROM image WHERE product_id = p.id AND image_type = 'product' ORDER BY sort_order ASC LIMIT 1)
@@ -346,6 +346,7 @@ def place_order():
             flash(f"商品 {item['product_name']} ({item['color']}/{item['size']}) 庫存不足，剩餘 {item['stock']}。")
             return redirect(url_for('home.checkout.view_cart'))
 
+    # 計算原價小計 (subtotal)
     subtotal = sum(item['qty'] * item['price'] for item in cart_items)
     
     cursor.execute("SELECT fee FROM region WHERE name = %s", (session['checkout_info']['region'],))
@@ -353,7 +354,7 @@ def place_order():
     shipping_fee = region_data['fee'] if region_data else 0
     
     promo_code = session['checkout_info'].get('promo_code')
-    discount = 0
+    discount_total = 0
     promo_id = None
     if promo_code:
         cursor.execute("SELECT * FROM promo_code WHERE code = %s AND is_active = 1", (promo_code,))
@@ -365,17 +366,18 @@ def place_order():
         
         promo_id = promo['id']
         if promo['discount_type'] == 'subtotal_discount':
-            discount = subtotal * (promo['discount_value'] / 100)
+            discount_total = subtotal * (promo['discount_value'] / 100)
         elif promo['discount_type'] == 'subtotal_deduction':
-            discount = promo['discount_value']
+            discount_total = promo['discount_value']
     
-    total = subtotal - discount + shipping_fee
+    # 計算最終總計 (total)
+    total = subtotal - discount_total + shipping_fee
     
     if request.method == 'POST':
         try:
             # 再次獲取購物車項目並鎖定庫存 (FOR UPDATE)
             cursor.execute("""
-                SELECT ci.qty, s.id as sku_id, s.stock, s.price, p.name as product_name, v.color, s.size
+                SELECT ci.qty, s.id as sku_id, s.stock, s.price, s.cost, p.name as product_name, v.color, s.size
                 FROM cart_item ci
                 JOIN sku s ON ci.sku_id = s.id
                 JOIN variant v ON s.variant_id = v.id
@@ -398,20 +400,27 @@ def place_order():
             order_sql = """INSERT INTO orders (customer_id, subtotal, shipping_fee, discount_total, total, promo_code_id, promo_code_snapshot,
                            name, phone, region, locality, address, created_at, updated_at)
                            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"""
-            cursor.execute(order_sql, (session['customer_id'], subtotal, shipping_fee, discount, total, promo_id, promo_code,
+            cursor.execute(order_sql, (session['customer_id'], subtotal, shipping_fee, discount_total, total, promo_id, promo_code,
                                       session['checkout_info']['name'], session['checkout_info']['phone'], 
                                       session['checkout_info']['region'], session['checkout_info']['locality'], 
                                       session['checkout_info']['address'], now, now))
             order_id = cursor.lastrowid
+            
+            # 計算折扣比例
+            discount_rate = discount_total / subtotal if subtotal > 0 else 0
             
             # 插入訂單明細，並扣除庫存
             for item in cart_items:
                 # 扣除庫存
                 cursor.execute("UPDATE sku SET stock = stock - %s WHERE id = %s", (item['qty'], item['sku_id']))
                 
-                cursor.execute("""INSERT INTO order_item (order_id, product_id, variant_id, sku_id, product_name, variant_name, sku_code, size, color, qty, price) 
-                                  VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)""",
-                               (order_id, item['product_id'], item['variant_id'], item['sku_id'], item['product_name'], item['color'], item['sku_code'], item['size'], item['color'], item['qty'], item['price']))
+                # 計算單價
+                original_price = item['price']
+                unit_price = original_price * (1 - discount_rate)
+                
+                cursor.execute("""INSERT INTO order_item (order_id, product_id, variant_id, sku_id, product_name, variant_name, sku_code, size, color, qty, original_price, unit_price, unit_cost) 
+                                  VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)""",
+                               (order_id, item['product_id'], item['variant_id'], item['sku_id'], item['product_name'], item['color'], item['sku_code'], item['size'], item['color'], item['qty'], original_price, unit_price, item['cost']))
             
             # 插入付款記錄
             cursor.execute("INSERT INTO payment (order_id, method, card_number, status, paid_at) VALUES (%s, 'credit_card', %s, 'paid', %s)",
@@ -442,7 +451,7 @@ def place_order():
                            cart_items=cart_items, 
                            info=session['checkout_info'],
                            subtotal=subtotal, 
-                           discount=discount, 
+                           discount=discount_total, 
                            shipping_fee=shipping_fee, 
                            total=total)
 

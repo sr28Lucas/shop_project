@@ -1,12 +1,18 @@
-# AI Agent Persistent Notes - Shop Project
+# 退貨功能開發計畫
 
-## Active Migration Context
-- **Goal:** Shift to variant-based product management and remove soft deletes.
-- **Current Status:** Refactoring completed. Implementing input validation for all user input fields.
+## 1. 資料庫變更摘要
+- `order_item`: 移除 `price`，新增 `unit_price` (成交價) 與 `unit_cost` (成本)。
+- 新增 `return_request` (退貨主表) 與 `return_item` (退貨細項表)。
 
-## Validation Policy
-- **Password:** Temporary minimum length set to 1 for easier testing.
+## 2. 修改計畫
+### 第一階段：修正現有模組 (相容性調整)
+- [x] `app\blueprints\home\checkout.py`: 更新 `place_order` 的 SQL `INSERT`，確保正確寫入 `unit_price` 與 `unit_cost`。
+- [x] `app\blueprints\customer\order.py`: 更新查詢與顯示，將 `item.price` 改為 `item.unit_price`。
+- [x] `app\blueprints\staff\order.py`: 更新查詢與顯示，將 `item.price` 改為 `item.unit_price`。
+- [x] `templates\customer\order_view.html` 與相關模板: 更新渲染變數。
+- *注意*: 確保所有 `status` 欄位在前後端邏輯保持一致（如 'pending', 'cancelled', 'requested', 'approved', 'rejected', 'refunded'）。
 
-## Next Steps
-1. Implement input validation logic for identified fields across blueprints (numeric bounds, string lengths).
-2. Final review of the entire application.
+### 第二階段：實作退貨功能
+- [x] 建立 `app\blueprints\customer\return_order.py` (會員申請)。
+- [x] 建立 `app\blueprints\staff\return_order.py` (後台處理)。
+- [x] 開發對應的 HTML 模板。

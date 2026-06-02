@@ -1,6 +1,6 @@
 /* 認證頁面 (登入/註冊) 樣式 */
 .auth-container {
-    max-width: 800px;
+    max-width: 450px;
     margin: 50px auto;
     padding: 40px;
     background: white;
