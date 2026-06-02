@@ -8,7 +8,9 @@ from datetime import datetime
 customer_bp = Blueprint('customer', __name__, template_folder = '../templates/customer') #建立藍圖
 
 from .profile import profile_bp
+from .order import customer_order_bp
 customer_bp.register_blueprint(profile_bp, url_prefix='/profile')
+customer_bp.register_blueprint(customer_order_bp, url_prefix='/order')
 
 
 #會員中心

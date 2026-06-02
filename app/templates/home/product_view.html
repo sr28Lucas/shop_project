@@ -3,37 +3,7 @@
 {% block title %}{{ product.name }}{% endblock %}
 
 {% block head %}
-<style>
-    .product-detail-container { display: flex; gap: 40px; background: white; padding: 40px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
-    .product-images { flex: 0 0 450px; }
-    .main-image { width: 100%; height: 450px; background: #f9f9f9; border-radius: 8px; overflow: hidden; margin-bottom: 15px; }
-    .main-image img { width: 100%; height: 100%; object-fit: cover; }
-    .thumbnail-list { display: flex; gap: 10px; overflow-x: auto; }
-    .thumbnail { width: 80px; height: 80px; border: 2px solid transparent; border-radius: 4px; cursor: pointer; overflow: hidden; }
-    .thumbnail.active { border-color: #d63384; }
-    .thumbnail img { width: 100%; height: 100%; object-fit: cover; }
-    
-    .product-selection { flex: 1; }
-    .product-category { color: #888; font-size: 14px; margin-bottom: 10px; }
-    .product-title { font-size: 28px; margin: 0 0 20px 0; color: #2c3e50; }
-    .product-price-range { font-size: 24px; color: #d63384; font-weight: bold; margin-bottom: 30px; }
-    
-    .sku-selector { margin-bottom: 20px; }
-    .sku-label { font-weight: bold; margin-bottom: 10px; display: block; }
-    .sku-options { display: flex; flex-wrap: wrap; gap: 10px; }
-    .sku-btn { border: 1px solid #ddd; padding: 8px 20px; border-radius: 4px; background: white; cursor: pointer; transition: all 0.2s; }
-    .sku-btn:hover { border-color: #d63384; color: #d63384; }
-    .sku-btn.active { background: #d63384; color: white; border-color: #d63384; }
-    
-    .quantity-selector { display: flex; align-items: center; gap: 10px; margin-bottom: 30px; }
-    .qty-btn { width: 35px; height: 35px; border: 1px solid #ddd; background: white; cursor: pointer; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
-    .qty-btn:hover { border-color: #d63384; color: #d63384; }
-    #buy-qty { width: 60px; height: 35px; text-align: center; border: 1px solid #ddd; border-radius: 4px; font-size: 16px; }
-    
-    .buy-actions { display: flex; gap: 15px; margin-top: 40px; }
-    .btn-cart { flex: 1; padding: 15px; background: #fff; color: #d63384; border: 2px solid #d63384; border-radius: 4px; font-size: 18px; font-weight: bold; cursor: pointer; transition: all 0.2s; }
-    .btn-cart:hover { background: #d63384; color: white; }
-</style>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/home/product_view.css') }}">
 {% endblock %}
 
 {% block content %}
@@ -54,10 +24,9 @@
         <div class="product-selection">
             <h1 class="product-title">{{ product.name }}</h1>
             <div class="product-category">{{ product.category_name }}</div>
-            
-            <form id="add-to-cart-form" action="{{ url_for('home.checkout.add_to_cart') }}" method="POST">
+            <form id="add-to-cart-form">
                 <input type="hidden" name="sku_id" id="selected-sku-id">
-                
+
                 <!-- 1. 選擇顏色 (Variants) -->
                 <div class="sku-selector">
                     <label class="sku-label">顏色</label>
@@ -73,9 +42,7 @@
                 <!-- 2. 選擇大小 (SKUs) -->
                 <div class="sku-selector" id="size-selector" style="display: none;">
                     <label class="sku-label">尺寸</label>
-                    <div class="sku-options" id="size-options">
-                        <!-- 動態生成 -->
-                    </div>
+                    <div class="sku-options" id="size-options"></div>
                 </div>
 
                 <!-- 3. 數量選擇 -->
@@ -91,8 +58,10 @@
                 <div id="selected-price" style="font-size: 24px; color: #d63384; font-weight: bold; margin-bottom: 20px; display: none;"></div>
                 
                 <div class="buy-actions">
-                    <button type="submit" class="btn-cart">加入購物車</button>
+                    <button type="submit" class="btn-cart" id="add-to-cart-btn">加入購物車</button>
                 </div>
+                
+                <div id="cart-message" style="margin-top: 10px; padding: 10px; display: none;"></div>
             </form>
             
             <div style="margin-top: 40px; border-top: 1px solid #eee; padding-top: 20px;">
@@ -112,7 +81,7 @@
             image: '{{ variant.image if variant.image else "" }}',
             skus: [
                 {% for sku in variant.skus %}
-                { id: {{ sku.id }}, size: '{{ sku.size }}', price: {{ sku.price }} },
+                { id: {{ sku.id }}, size: '{{ sku.size }}', price: {{ sku.price }}, stock: {{ sku.stock }} },
                 {% endfor %}
             ]
         },
@@ -148,8 +117,15 @@
             const btn = document.createElement('button');
             btn.type = 'button';
             btn.className = 'sku-btn';
-            btn.innerText = sku.size;
-            btn.onclick = function() { selectSku(sku.id, sku.price, this); };
+            if (sku.stock <= 0) {
+                btn.innerText = sku.size + ' (已售罄)';
+                btn.disabled = true;
+                btn.style.opacity = '0.5';
+                btn.style.cursor = 'not-allowed';
+            } else {
+                btn.innerText = sku.size;
+                btn.onclick = function() { selectSku(sku.id, sku.price, this); };
+            }
             sizeOptions.appendChild(btn);
         });
         
@@ -176,13 +152,56 @@
         input.value = val;
     }
     
-    document.getElementById('add-to-cart-form').onsubmit = function(e) {
+    async function addToCart(event) {
+        event.preventDefault();
         const skuId = document.getElementById('selected-sku-id').value;
         if (!skuId) {
             alert('請先選擇規格');
-            e.preventDefault();
-            return false;
+            return;
         }
-    };
+
+        const form = event.target;
+        const formData = new FormData(form);
+        const messageDiv = document.getElementById('cart-message');
+
+        try {
+            const response = await fetch("{{ url_for('home.checkout.add_to_cart') }}", {
+                method: 'POST',
+                body: formData
+            });
+            const result = await response.json();
+
+            // 1. 顯示訊息
+            messageDiv.style.display = 'block';
+            messageDiv.innerText = result.message;
+            messageDiv.style.backgroundColor = result.success ? '#d4edda' : '#f8d7da';
+            messageDiv.style.color = result.success ? '#155724' : '#721c24';
+            
+            // 2. 自動隱藏訊息
+            if (result.success) {
+                setTimeout(() => {
+                    messageDiv.style.display = 'none';
+                }, 2000); // 2秒後隱藏
+
+                // 3. 更新購物車圖標數字
+                const cartCountEl = document.querySelector('.cart-count');
+                if (cartCountEl) {
+                    const currentCount = parseInt(cartCountEl.innerText) || 0;
+                    const addedQty = parseInt(document.getElementById('buy-qty').value) || 0;
+                    cartCountEl.innerText = currentCount + addedQty;
+                }
+            }
+        } catch (error) {
+            messageDiv.style.display = 'block';
+            messageDiv.innerText = '系統錯誤，請稍後再試';
+            messageDiv.style.backgroundColor = '#f8d7da';
+            
+            setTimeout(() => {
+                messageDiv.style.display = 'none';
+            }, 3000);
+        }
+    }
+    
+    document.getElementById('add-to-cart-form').onsubmit = addToCart;
 </script>
 {% endblock %}

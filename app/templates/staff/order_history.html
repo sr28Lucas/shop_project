@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <title>訂單歷史紀錄 - 後臺系統</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/staff/common.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/staff/product_list.css') }}">
+</head>
+<body>
+    <h1>訂單歷史紀錄</h1>
+    
+    <div class="action-bar">
+        <a href="{{ url_for('staff.dashboard') }}" class="btn" style="background: #6c757d; color: white;">← 返回儀表板</a>
+    </div>
+
+    <section class="filter-section">
+        <form method="GET" action="{{ url_for('staff.order.order_history') }}">
+            <input type="text" name="search" placeholder="搜尋顧客、訂單ID..." value="{{ request.args.get('search', '') }}">
+            <button type="submit" class="btn">搜尋</button>
+            <a href="{{ url_for('staff.order.order_history') }}" class="btn">清除</a>
+        </form>
+    </section>
+
+    <div class="product-table-container">
+        <table class="product-table">
+            <thead>
+                <tr>
+                    <th>訂單 ID</th>
+                    <th>顧客名稱</th>
+                    <th>總金額</th>
+                    <th>出貨狀態</th>
+                    <th>訂單狀態</th>
+                    <th>建立時間</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for order in orders %}
+                <tr>
+                    <td>{{ order.id }}</td>
+                    <td>{{ order.customer_name }}</td>
+                    <td>{{ order.total }}</td>
+                    <td>{{ order.shipment_status or '-' }}</td>
+                    <td>{{ order.status }}</td>
+                    <td>{{ order.created_at.strftime('%Y-%m-%d %H:%M') if order.created_at else '-' }}</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="6" style="text-align: center; padding: 30px;">查無訂單歷史紀錄</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>

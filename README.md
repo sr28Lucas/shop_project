@@ -65,6 +65,6 @@ python reset_db.py
 * **Password:** `root`
 
 ### 網站登入地址
-* **一般會員登入:** `http://web-[你的IPv4]/auth/login`
-* **管理員登入:** `http://web-[你的IPv4]/auth/staff_login`
+* **網站首頁:** `http://[你的IPv4]/`
+* **管理員登入:** `http://[你的IPv4]/auth/staff_login`
 #### port撞了就自己改一下

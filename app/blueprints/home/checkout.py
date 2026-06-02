@@ -79,21 +79,34 @@ def view_cart():
 @checkout_bp.route('/add_to_cart', methods=['POST'])
 def add_to_cart():
     if 'customer_id' not in session:
-        return redirect(url_for('auth.login'))
+        return {'success': False, 'message': '請先登入'}, 401
     
     sku_id = request.form.get('sku_id')
     try:
         qty = int(request.form.get('qty', 1))
     except ValueError:
-        return "<script>alert('無效的數量！'); window.history.back();</script>"
+        return {'success': False, 'message': '無效的數量'}, 400
         
     if not sku_id or qty <= 0:
-        return "<script>alert('請選擇有效的規格與數量！'); window.history.back();</script>"
+        return {'success': False, 'message': '請選擇有效的規格與數量'}, 400
         
     cart_id = get_active_cart(session['customer_id'])
     
     conn = get_db_connection()
-    cursor = conn.cursor()
+    cursor = conn.cursor(dictionary=True)
+    
+    # 檢查庫存
+    cursor.execute("SELECT stock FROM sku WHERE id = %s", (sku_id,))
+    sku_data = cursor.fetchone()
+    if not sku_data:
+        cursor.close()
+        conn.close()
+        return {'success': False, 'message': '商品不存在'}, 404
+        
+    if sku_data['stock'] < qty:
+        cursor.close()
+        conn.close()
+        return {'success': False, 'message': f'庫存不足，剩餘 {sku_data["stock"]} 件'}, 400
     
     # Check if item exists
     cursor.execute("SELECT qty FROM cart_item WHERE cart_id = %s AND sku_id = %s", (cart_id, sku_id))
@@ -101,18 +114,27 @@ def add_to_cart():
     
     now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     
-    if item:
-        cursor.execute("UPDATE cart_item SET qty = qty + %s, updated_at = %s WHERE cart_id = %s AND sku_id = %s",
-                       (qty, now, cart_id, sku_id))
-    else:
-        cursor.execute("INSERT INTO cart_item (cart_id, sku_id, qty, created_at, updated_at) VALUES (%s, %s, %s, %s, %s)",
-                       (cart_id, sku_id, qty, now, now))
-    
-    conn.commit()
-    cursor.close()
-    conn.close()
-    
-    return redirect(url_for('home.checkout.view_cart'))
+    try:
+        if item:
+            # 檢查更新後的總數量是否超過庫存
+            if sku_data['stock'] < item['qty'] + qty:
+                cursor.close()
+                conn.close()
+                return {'success': False, 'message': f'庫存不足，無法再加入 {qty} 件'}, 400
+            
+            cursor.execute("UPDATE cart_item SET qty = qty + %s, updated_at = %s WHERE cart_id = %s AND sku_id = %s",
+                           (qty, now, cart_id, sku_id))
+        else:
+            cursor.execute("INSERT INTO cart_item (cart_id, sku_id, qty, created_at, updated_at) VALUES (%s, %s, %s, %s, %s)",
+                           (cart_id, sku_id, qty, now, now))
+        conn.commit()
+        return {'success': True, 'message': '已加入購物車'}
+    except Exception as e:
+        conn.rollback()
+        return {'success': False, 'message': f'加入購物車失敗: {e}'}, 500
+    finally:
+        cursor.close()
+        conn.close()
 
 @checkout_bp.route('/update_qty', methods=['POST'])
 def update_qty():
@@ -182,35 +204,38 @@ def information():
         phone = request.form.get('phone', '').strip()
         address = request.form.get('address', '').strip()
         promo_code = request.form.get('promo_code', '').strip()
+        region = request.form.get('region', '')
+        locality = request.form.get('locality', '')
 
         # 簡單後端驗證
+        error = None
         if len(name) < 1 or len(name) > 30:
-            flash("姓名長度需在 1-30 字元之間。")
-            return redirect(url_for('home.checkout.information'))
-        if len(phone) < 8 or len(phone) > 20:
-            flash("電話長度需在 8-20 碼之間。")
-            return redirect(url_for('home.checkout.information'))
-        if len(address) < 5 or len(address) > 100:
-            flash("地址長度需在 5-100 字元之間。")
-            return redirect(url_for('home.checkout.information'))
+            error = "姓名長度需在 1-30 字元之間。"
+        elif len(phone) < 8 or len(phone) > 20:
+            error = "電話長度需在 8-20 碼之間。"
+        elif len(address) < 5 or len(address) > 100:
+            error = "地址長度需在 5-100 字元之間。"
         
-        # 驗證優惠碼，移除 is_deleted
-        if promo_code:
+        if not error and promo_code:
             cursor.execute("SELECT id FROM promo_code WHERE code = %s AND is_active = 1", (promo_code,))
             if not cursor.fetchone():
-                flash("無效的優惠碼，請重新輸入。")
-                cursor.close()
-                conn.close()
-                return redirect(url_for('home.checkout.information'))
+                error = "無效的優惠碼，請重新輸入。"
+
+        if error:
+            flash(error)
+            # 準備傳回前端的暫存資訊
+            temp_info = {
+                'name': name, 'phone': phone, 'address': address,
+                'promo_code': promo_code, 'region': region, 'locality': locality
+            }
+            cursor.close()
+            conn.close()
+            return render_template('home/information.html', customer=customer, temp_info=temp_info)
 
         # 暫存訂購資訊到 session
         session['checkout_info'] = {
-            'name': name,
-            'phone': phone,
-            'region': request.form['region'],
-            'locality': request.form['locality'],
-            'address': address,
-            'promo_code': promo_code
+            'name': name, 'phone': phone, 'region': region,
+            'locality': locality, 'address': address, 'promo_code': promo_code
         }
         cursor.close()
         conn.close()
@@ -348,6 +373,25 @@ def place_order():
     
     if request.method == 'POST':
         try:
+            # 再次獲取購物車項目並鎖定庫存 (FOR UPDATE)
+            cursor.execute("""
+                SELECT ci.qty, s.id as sku_id, s.stock, s.price, p.name as product_name, v.color, s.size
+                FROM cart_item ci
+                JOIN sku s ON ci.sku_id = s.id
+                JOIN variant v ON s.variant_id = v.id
+                JOIN product p ON v.product_id = p.id
+                WHERE ci.cart_id = %s
+                FOR UPDATE
+            """, (cart_id,))
+            locked_items = cursor.fetchall()
+            
+            # 1. 最終在庫存鎖定狀態下檢查庫存
+            for item in locked_items:
+                if item['qty'] > item['stock']:
+                    conn.rollback()
+                    flash(f"商品 {item['product_name']} ({item['color']}/{item['size']}) 在您結帳時已被搶購一空或數量不足。")
+                    return redirect(url_for('home.checkout.view_cart'))
+            
             now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             
             # 插入訂單
@@ -362,7 +406,7 @@ def place_order():
             
             # 插入訂單明細，並扣除庫存
             for item in cart_items:
-                # 再次檢查庫存並鎖定行 (可選，但在這裡先簡單處理)
+                # 扣除庫存
                 cursor.execute("UPDATE sku SET stock = stock - %s WHERE id = %s", (item['qty'], item['sku_id']))
                 
                 cursor.execute("""INSERT INTO order_item (order_id, product_id, variant_id, sku_id, product_name, variant_name, sku_code, size, color, qty, price) 
@@ -386,6 +430,7 @@ def place_order():
             return redirect(url_for('home.checkout.complete', order_id=order_id))
         except Exception as e:
             conn.rollback()
+            print(f"DEBUG: 下單錯誤: {e}")
             return f"<script>alert('下單失敗，請稍後再試。'); window.location.href='/checkout/view_cart';</script>"
         finally:
             cursor.close()

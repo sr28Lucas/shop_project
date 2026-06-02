@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <title>我的訂單 - 會員中心</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/customer/common.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/staff/product_list.css') }}">
+</head>
+<body>
+    <h1>我的訂單</h1>
+    <div class="action-bar">
+        <a href="{{ url_for('customer.center') }}" class="btn">← 返回會員中心</a>
+    </div>
+
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <div class="flash-msg">
+        {% for message in messages %}
+          {{ message }}
+        {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    <div class="product-table-container">
+        <table class="product-table">
+            <thead>
+                <tr>
+                    <th>訂單 ID</th>
+                    <th>金額</th>
+                    <th>出貨狀態</th>
+                    <th>訂單狀態</th>
+                    <th>建立時間</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for order in orders %}
+                <tr>
+                    <td>{{ order.id }}</td>
+                    <td>{{ order.total }}</td>
+                    <td>{{ order.shipment_status or '待處理' }}</td>
+                    <td>{{ order.status }}</td>
+                    <td>{{ order.created_at.strftime('%Y-%m-%d %H:%M') if order.created_at else '-' }}</td>
+                    <td>
+                        <a href="{{ url_for('customer.customer_order.order_view', id=order.id) }}" class="btn btn-edit">詳情</a>
+                        
+                        {# 僅允許未出貨的訂單進行取消 #}
+                        {% if (order.shipment_status == 'pending' or order.shipment_status == None) and order.status != 'cancelled' %}
+                        <form action="{{ url_for('customer.customer_order.cancel_order', id=order.id) }}" method="POST" style="display:inline;">
+                            <button type="submit" class="btn btn-delete" onclick="return confirm('確定要取消此訂單嗎？')">取消訂單</button>
+                        </form>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="6" style="text-align: center; padding: 30px;">尚無訂單紀錄</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>

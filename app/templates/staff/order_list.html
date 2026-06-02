@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <title>出貨管理 - 後臺系統</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/staff/common.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/staff/product_list.css') }}">
+</head>
+<body>
+    <h1>出貨管理</h1>
+
+    <div class="action-bar">
+        <a href="{{ url_for('staff.dashboard') }}" class="btn" style="background: #6c757d; color: white;">← 返回儀表板</a>
+    </div>
+
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <div style="background: #d4edda; color: #155724; padding: 10px; border-radius: 5px; margin-bottom: 20px; border: 1px solid #c3e6cb;">
+        {% for message in messages %}
+          {{ message }}
+        {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    <form action="{{ url_for('staff.order.bulk_update_shipment') }}" method="POST">
+        <div class="action-bar" style="margin-bottom: 10px;">
+            <select name="status" style="padding: 8px 12px; font-size: 16px;">
+                <option value="pending">處理中</option>
+                <option value="shipped">已出貨</option>
+                <option value="delivered">已送達</option>
+            </select>
+            <button type="submit" class="btn btn-add" style="padding: 8px 16px; font-size: 16px;">批量更新狀態</button>
+        </div>
+
+        <div class="product-table-container">
+            <table class="product-table">
+                <thead>
+                    <tr>
+                        <th style="width: 30px;"><input type="checkbox" id="select-all"></th>
+                        <th>訂單 ID</th>
+                        <th>顧客名稱</th>
+                        <th>總金額</th>
+                        <th>出貨狀態</th>
+                        <th>建立時間</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in orders %}
+                    <tr>
+                        <td><input type="checkbox" name="order_ids" value="{{ order.id }}"></td>
+                        <td>{{ order.id }}</td>
+                        <td>{{ order.customer_name }}</td>
+                        <td>{{ order.total }}</td>
+                        <td>{{ order.shipment_status or '待處理' }}</td>
+                        <td>{{ order.created_at.strftime('%Y-%m-%d %H:%M') if order.created_at else '-' }}</td>
+                        <td>
+                            <a href="{{ url_for('staff.order.order_edit', id=order.id) }}" class="btn btn-edit">修改</a>
+                            <form action="{{ url_for('staff.order.cancel_order', id=order.id) }}" method="POST" style="display:inline;">
+                                <button type="submit" class="btn btn-delete" onclick="return confirm('確定要取消此訂單嗎？')">取消訂單</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="7" style="text-align: center; padding: 30px;">查無訂單資料</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </form>
+    
+    <script>
+        document.getElementById('select-all').addEventListener('change', function() {
+            var checkboxes = document.querySelectorAll('input[name="order_ids"]');
+            checkboxes.forEach(cb => cb.checked = this.checked);
+        });
+    </script>
+</body>
+</html>

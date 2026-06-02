@@ -18,7 +18,7 @@
     <p>我們會盡快為您處理。</p>
     
     <div>
-        <a href="#" class="btn-link">查看訂單狀態</a>
+        <a href="{{ url_for('customer.customer_order.order_view', id=order_id) }}" class="btn-link">查看訂單狀態</a>
         <a href="{{ url_for('home.index') }}" class="btn-link">繼續購物</a>
     </div>
 </div>
