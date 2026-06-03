@@ -141,7 +141,9 @@ CREATE TABLE `order_item` (
   `size` varchar(30),
   `color` varchar(30),
   `qty` int NOT NULL DEFAULT 1,
-  `price` decimal(12,2) NOT NULL
+  `original_price` decimal(12,2) NOT NULL,
+  `unit_price` decimal(12,2) NOT NULL,
+  `unit_cost` decimal(12,2) NOT NULL
 );
 
 CREATE TABLE `payment` (
@@ -185,6 +187,8 @@ CREATE TABLE `role` (
   `statistic` bool NOT NULL DEFAULT 0,
   `staff` bool NOT NULL DEFAULT 0,
   `announcement` bool NOT NULL DEFAULT 0,
+  `return` bool NOT NULL DEFAULT 0,
+  `promo` bool NOT NULL DEFAULT 0,
   `created_at` datetime,
   `updated_at` datetime
 );
@@ -234,6 +238,30 @@ CREATE TABLE `locality` (
   `name` varchar(30)
 );
 
+CREATE TABLE `return_request` (
+  `id` int PRIMARY KEY AUTO_INCREMENT,
+  `order_id` int NOT NULL,
+  `status` varchar(30) NOT NULL DEFAULT 'requested',
+  `reason` varchar(2000),
+  `requested_at` datetime,
+  `approved_at` datetime,
+  `rejected_at` datetime,
+  `refunded_at` datetime,
+  `created_at` datetime,
+  `updated_at` datetime
+);
+
+CREATE TABLE `return_item` (
+  `id` int PRIMARY KEY AUTO_INCREMENT,
+  `return_request_id` int NOT NULL,
+  `order_item_id` int NOT NULL,
+  `qty` int NOT NULL,
+  `reason` varchar(500),
+  `status` varchar(30) NOT NULL DEFAULT 'requested',
+  `created_at` datetime,
+  `updated_at` datetime
+);
+
 ALTER TABLE `wishlist` ADD FOREIGN KEY (`customer_id`) REFERENCES `customer` (`id`);
 
 ALTER TABLE `wishlist_item` ADD FOREIGN KEY (`wishlist_id`) REFERENCES `wishlist` (`id`);
@@ -281,3 +309,9 @@ ALTER TABLE `customer` ADD FOREIGN KEY (`region_id`) REFERENCES `region` (`id`);
 ALTER TABLE `customer` ADD FOREIGN KEY (`locality_id`) REFERENCES `locality` (`id`);
 
 ALTER TABLE `locality` ADD FOREIGN KEY (`region_id`) REFERENCES `region` (`id`);
+
+ALTER TABLE `return_request` ADD FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`);
+
+ALTER TABLE `return_item` ADD FOREIGN KEY (`return_request_id`) REFERENCES `return_request` (`id`);
+
+ALTER TABLE `return_item` ADD FOREIGN KEY (`order_item_id`) REFERENCES `order_item` (`id`);

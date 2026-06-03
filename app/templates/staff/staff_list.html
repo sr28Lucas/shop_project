@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <title>員工帳號管理 - 後臺系統</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/staff/common.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/staff/product_list.css') }}">
+</head>
+<body>
+    <h1>員工帳號管理</h1>
+    <div class="action-bar">
+        <a href="{{ url_for('staff.dashboard') }}" class="btn" style="background: #6c757d; color: white;">← 返回儀表板</a>
+        <a href="{{ url_for('staff.staff_account.staff_add') }}" class="btn btn-add">+ 新增員工</a>
+    </div>
+
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <div style="background: #d4edda; color: #155724; padding: 10px; border-radius: 5px; margin-bottom: 20px; border: 1px solid #c3e6cb;">
+        {% for message in messages %}
+          {{ message }}
+        {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    <table class="product-table">
+        <thead>
+            <tr>
+                <th>姓名</th>
+                <th>Email</th>
+                <th>電話</th>
+                <th>角色</th>
+                <th>狀態</th>
+                <th>建立時間</th>
+                <th>最後更新</th>
+                <th>操作</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for s in staffs %}
+            <tr>
+                <td>{{ s.name }}</td>
+                <td>{{ s.email }}</td>
+                <td>{{ s.phone or '無' }}</td>
+                <td>{{ s.role_name }}</td>
+                <td>
+                    {% if s.is_active %}
+                    <span class="status-badge status-active">啟用</span>
+                    {% else %}
+                    <span class="status-badge status-inactive">停用</span>
+                    {% endif %}
+                </td>
+                <td>{{ s.created_at.strftime('%Y-%m-%d %H:%M') if s.created_at else 'N/A' }}</td>
+                <td>{{ s.updated_at.strftime('%Y-%m-%d %H:%M') if s.updated_at else 'N/A' }}</td>
+                <td>
+                    <a href="{{ url_for('staff.staff_account.staff_edit', id=s.id) }}" class="btn btn-edit">編輯</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>

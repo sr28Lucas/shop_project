@@ -1,0 +1,129 @@
+{% extends "home/base.html" %}
+
+{% block title %}我的願望清單{% endblock %}
+
+{% block head %}
+<style>
+    .wishlist-container {
+        padding: 20px 0;
+    }
+    .wishlist-title {
+        margin-bottom: 30px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #eee;
+    }
+    .wishlist-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 20px;
+    }
+    .wishlist-item {
+        border: 1px solid #eee;
+        border-radius: 8px;
+        overflow: hidden;
+        transition: transform 0.2s, box-shadow 0.2s;
+        background: white;
+        display: flex;
+        flex-direction: column;
+    }
+    .wishlist-item:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    .item-image {
+        width: 100%;
+        aspect-ratio: 1;
+        object-fit: cover;
+    }
+    .item-info {
+        padding: 15px;
+        flex-grow: 1;
+    }
+    .item-name {
+        font-size: 1.1em;
+        font-weight: bold;
+        margin-bottom: 10px;
+        display: block;
+        color: #333;
+        text-decoration: none;
+    }
+    .item-price {
+        color: #d63384;
+        font-weight: bold;
+        font-size: 1.2em;
+    }
+    .item-actions {
+        padding: 15px;
+        border-top: 1px solid #eee;
+        display: flex;
+        gap: 10px;
+    }
+    .btn-view {
+        flex: 1;
+        padding: 8px;
+        background: #007bff;
+        color: white;
+        text-align: center;
+        text-decoration: none;
+        border-radius: 4px;
+        font-size: 0.9em;
+    }
+    .btn-remove {
+        padding: 8px 12px;
+        background: #f8f9fa;
+        color: #dc3545;
+        border: 1px solid #dc3545;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 0.9em;
+    }
+    .empty-wishlist {
+        text-align: center;
+        padding: 50px;
+        color: #666;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="wishlist-container">
+    <h1 class="wishlist-title">我的願望清單</h1>
+
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            {% for message in messages %}
+                <div style="background: #d4edda; color: #155724; padding: 10px; margin-bottom: 20px; border-radius: 4px;">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    {% if items %}
+        <div class="wishlist-grid">
+            {% for item in items %}
+                <div class="wishlist-item">
+                    <a href="{{ url_for('home.product_view', id=item.id) }}">
+                        <img src="{{ url_for('static', filename='upload/' + item.main_image) if item.main_image else '' }}" alt="{{ item.name }}" class="item-image">
+                    </a>
+                    <div class="item-info">
+                        <a href="{{ url_for('home.product_view', id=item.id) }}" class="item-name">{{ item.name }}</a>
+                        <div class="item-price">${{ "{:,.0f}".format(item.min_price) if item.min_price else 'N/A' }} 起</div>
+                    </div>
+                    <div class="item-actions">
+                        <a href="{{ url_for('home.product_view', id=item.id) }}" class="btn-view">查看詳情</a>
+                        <form action="{{ url_for('home.wishlist.remove', product_id=item.id) }}" method="POST" style="margin: 0;">
+                            <button type="submit" class="btn-remove" onclick="return confirm('確定要移除此商品嗎？')">移除</button>
+                        </form>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty-wishlist">
+            <p style="font-size: 1.2em;">您的願望清單目前是空的。</p>
+            <a href="{{ url_for('home.index') }}" style="color: #007bff; text-decoration: none; margin-top: 20px; display: inline-block;">去逛逛商品吧！</a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

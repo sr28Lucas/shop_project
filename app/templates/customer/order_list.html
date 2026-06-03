@@ -4,62 +4,51 @@
     <meta charset="UTF-8">
     <title>我的訂單 - 會員中心</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/customer/common.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/staff/product_list.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/customer/order.css') }}">
 </head>
 <body>
-    <h1>我的訂單</h1>
-    <div class="action-bar">
-        <a href="{{ url_for('customer.center') }}" class="btn">← 返回會員中心</a>
-    </div>
-
-    {% with messages = get_flashed_messages() %}
-      {% if messages %}
-        <div class="flash-msg">
-        {% for message in messages %}
-          {{ message }}
-        {% endfor %}
+    <div style="max-width: 800px; margin: 0 auto; padding: 20px;">
+        <h1>我的訂單</h1>
+        <div class="action-bar" style="margin-bottom: 20px;">
+            <a href="{{ url_for('customer.center') }}" class="btn btn-outline">← 返回會員中心</a>
         </div>
-      {% endif %}
-    {% endwith %}
 
-    <div class="product-table-container">
-        <table class="product-table">
-            <thead>
-                <tr>
-                    <th>訂單 ID</th>
-                    <th>金額</th>
-                    <th>出貨狀態</th>
-                    <th>訂單狀態</th>
-                    <th>建立時間</th>
-                    <th>操作</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for order in orders %}
-                <tr>
-                    <td>{{ order.id }}</td>
-                    <td>{{ order.total }}</td>
-                    <td>{{ order.shipment_status or '待處理' }}</td>
-                    <td>{{ order.status }}</td>
-                    <td>{{ order.created_at.strftime('%Y-%m-%d %H:%M') if order.created_at else '-' }}</td>
-                    <td>
-                        <a href="{{ url_for('customer.customer_order.order_view', id=order.id) }}" class="btn btn-edit">詳情</a>
-                        
-                        {# 僅允許未出貨的訂單進行取消 #}
-                        {% if (order.shipment_status == 'pending' or order.shipment_status == None) and order.status != 'cancelled' %}
-                        <form action="{{ url_for('customer.customer_order.cancel_order', id=order.id) }}" method="POST" style="display:inline;">
-                            <button type="submit" class="btn btn-delete" onclick="return confirm('確定要取消此訂單嗎？')">取消訂單</button>
-                        </form>
-                        {% endif %}
-                    </td>
-                </tr>
-                {% else %}
-                <tr>
-                    <td colspan="6" style="text-align: center; padding: 30px;">尚無訂單紀錄</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <div class="flash-msg" style="padding: 10px; background: #eee; margin-bottom: 20px;">
+            {% for message in messages %} {{ message }} {% endfor %}
+            </div>
+        {% endif %}
+        {% endwith %}
+
+        {% for order in orders %}
+        <div class="order-card">
+            <div class="order-header">
+                <strong>訂單編號：#{{ order.id }}</strong>
+                <span class="status-badge status-{{ order.status }}">
+                    {% if order.status == 'pending' %}待處理
+                    {% elif order.status == 'shipped' %}已出貨
+                    {% elif order.status == 'completed' %}已完成
+                    {% elif order.status == 'cancelled' %}已取消
+                    {% elif order.status == 'refunded' %}已退款
+                    {% else %}{{ order.status }}{% endif %}
+                </span>
+            </div>
+            <p>建立時間：{{ order.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
+            <p>金額：${{ "{:,.0f}".format(order.total) }}</p>
+            
+            <div class="action-bar">
+                <a href="{{ url_for('customer.customer_order.order_view', id=order.id) }}" class="btn btn-primary">查看詳情</a>
+                {% if (order.shipment_status == 'pending' or order.shipment_status == None) and order.status != 'cancelled' %}
+                <form action="{{ url_for('customer.customer_order.cancel_order', id=order.id) }}" method="POST" style="display:inline;">
+                    <button type="submit" class="btn btn-danger" onclick="return confirm('確定要取消此訂單嗎？')">取消訂單</button>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+        {% else %}
+        <p style="text-align: center; padding: 30px;">尚無訂單紀錄</p>
+        {% endfor %}
     </div>
 </body>
 </html>

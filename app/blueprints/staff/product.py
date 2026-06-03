@@ -4,12 +4,14 @@ from app.db import get_db_connection
 from datetime import datetime
 from app.config import config
 import os
+from .permission import require_permission
 
 
 product_bp = Blueprint('product', __name__) #建立藍圖
 
 
 @product_bp.route('/list')
+@require_permission('product')
 def product_list():
     #從URL獲取篩選範圍
     category_id = request.args.get('category_id')
@@ -50,6 +52,7 @@ def product_list():
 
 
 @product_bp.route('/add', methods=['GET', 'POST'])
+@require_permission('product')
 def product_add():
     if request.method == 'POST':
         #從表單獲取商品資料
@@ -132,6 +135,7 @@ def product_add():
 
 
 @product_bp.route('/edit/<int:id>', methods=['GET', 'POST'])
+@require_permission('product')
 def product_edit(id):
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
@@ -231,6 +235,7 @@ def product_edit(id):
 
 
 @product_bp.route('/bulk_update_status', methods=['POST'])
+@require_permission('product')
 def bulk_update_status():
     product_ids = request.form.getlist('product_ids')
     action = request.form.get('action')
@@ -259,6 +264,7 @@ def bulk_update_status():
 
 
 @product_bp.route('/delete/<int:id>', methods=['POST'])
+@require_permission('product')
 def product_delete(id):
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -279,6 +285,7 @@ def product_delete(id):
 
 
 @product_bp.route('/<int:product_id>/variant')
+@require_permission('product')
 def variant_list(product_id):
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
@@ -300,6 +307,7 @@ def variant_list(product_id):
     return render_template("staff/variant_list.html", product_id=product_id, product_name=product['name'] if product else "未知商品", variants=variants)
 
 @product_bp.route('/<int:product_id>/variant/add', methods=['GET', 'POST'])
+@require_permission('product')
 def variant_add(product_id):
     if request.method == 'POST':
         color = request.form.get('color')
@@ -364,6 +372,7 @@ def variant_add(product_id):
     return render_template('staff/variant_add.html', product_id=product_id)
 
 @product_bp.route('/<int:product_id>/variant/<int:variant_id>/edit', methods=['GET', 'POST'])
+@require_permission('product')
 def variant_edit(product_id, variant_id):
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
@@ -476,6 +485,7 @@ def variant_edit(product_id, variant_id):
 
 
 @product_bp.route('/sku/delete/<int:sku_id>', methods=['POST'])
+@require_permission('product')
 def sku_delete(sku_id):
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)

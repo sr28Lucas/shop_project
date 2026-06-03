@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <title>退貨紀錄 - 會員中心</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/customer/common.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/customer/order.css') }}">
+</head>
+<body>
+    <div style="max-width: 900px; margin: 0 auto; padding: 20px;">
+        <h1>退貨紀錄</h1>
+        <div class="action-bar" style="margin-bottom: 20px;">
+            <a href="{{ url_for('customer.center') }}" class="btn btn-outline">← 返回會員中心</a>
+        </div>
+
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                {% for message in messages %}
+                    <div style="background: #e1f5fe; padding: 10px; margin-bottom: 15px; border-radius: 4px;">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <div class="order-card">
+            <table style="width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr style="border-bottom: 2px solid #eee;">
+                        <th style="padding: 12px; text-align: left;">申請時間</th>
+                        <th style="padding: 12px; text-align: left;">相關訂單</th>
+                        <th style="padding: 12px; text-align: center;">狀態</th>
+                        <th style="padding: 12px; text-align: right;">操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for ret in returns %}
+                    <tr style="border-bottom: 1px solid #eee;">
+                        <td style="padding: 12px;">{{ ret.requested_at.strftime('%Y-%m-%d %H:%M') if ret.requested_at else '-' }}</td>
+                        <td style="padding: 12px;">#{{ ret.order_id }} (總計: ${{ "{:,.0f}".format(ret.order_total) }})</td>
+                        <td style="padding: 12px; text-align: center;">
+                            {% if ret.status == 'requested' %}
+                                <span style="color: #f39c12;">待審核</span>
+                            {% elif ret.status == 'approved' %}
+                                <span style="color: #3498db;">已受理</span>
+                            {% elif ret.status == 'rejected' %}
+                                <span style="color: #e74c3c;">已拒絕</span>
+                            {% elif ret.status == 'refunded' %}
+                                <span style="color: #27ae60;">已退款</span>
+                            {% else %}
+                                {{ ret.status }}
+                            {% endif %}
+                        </td>
+                        <td style="padding: 12px; text-align: right;">
+                            <a href="{{ url_for('customer.customer_return.view', id=ret.id) }}" class="btn btn-outline" style="font-size: 13px;">查看詳情</a>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="4" style="text-align: center; padding: 30px;">目前尚無退貨申請紀錄</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+</html>

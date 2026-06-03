@@ -1,6 +1,7 @@
 from flask import Blueprint, session, request, redirect, render_template, url_for, flash
 from app.db import get_db_connection
 from datetime import datetime
+from .permission import require_permission
 
 promo_bp = Blueprint('promo', __name__)
 
@@ -17,10 +18,8 @@ def validate_discount(discount_type, discount_value):
     return None
 
 @promo_bp.route('/list')
+@require_permission('promo')
 def promo_list():
-    if 'staff_id' not in session:
-        return redirect(url_for('auth.staff_login'))
-    
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
     cursor.execute("SELECT * FROM promo_code")
@@ -30,10 +29,8 @@ def promo_list():
     return render_template('staff/promo_list.html', promos=promos)
 
 @promo_bp.route('/add', methods=['GET', 'POST'])
+@require_permission('promo')
 def promo_add():
-    if 'staff_id' not in session:
-        return redirect(url_for('auth.staff_login'))
-    
     form_data = {}
         
     if request.method == 'POST':
@@ -85,10 +82,8 @@ def promo_add():
     return render_template('staff/promo_add.html', form_data=form_data)
 
 @promo_bp.route('/edit/<int:id>', methods=['GET', 'POST'])
+@require_permission('promo')
 def promo_edit(id):
-    if 'staff_id' not in session:
-        return redirect(url_for('auth.staff_login'))
-        
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
     
@@ -134,10 +129,8 @@ def promo_edit(id):
     return render_template('staff/promo_edit.html', promo=promo)
 
 @promo_bp.route('/delete/<int:id>', methods=['POST'])
+@require_permission('promo')
 def promo_delete(id):
-    if 'staff_id' not in session:
-        return redirect(url_for('auth.staff_login'))
-        
     conn = get_db_connection()
     cursor = conn.cursor()
     # 移除軟刪除，改用物理刪除

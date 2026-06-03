@@ -4,25 +4,86 @@
 
 {% block head %}
 <style>
-    .center-container { display: flex; gap: 30px; flex-wrap: wrap; }
-    .center-card { flex: 1 1 300px; background: white; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); overflow: hidden; }
-    .center-card-header { background: #f8f9fa; padding: 15px 20px; font-weight: bold; border-bottom: 1px solid #eee; color: #2c3e50; }
-    .center-card-body { padding: 20px; }
-    .center-list { list-style: none; padding: 0; margin: 0; }
-    .center-list li { margin-bottom: 15px; }
-    .center-list li a { text-decoration: none; color: #555; display: block; padding: 10px; border-radius: 4px; border: 1px solid #eee; transition: all 0.2s; }
-    .center-list li a:hover { background: #f8f9fa; color: #d63384; border-color: #d63384; }
-    .user-welcome { background: white; padding: 20px; border-radius: 8px; margin-bottom: 30px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+    .center-container { 
+        display: flex; 
+        gap: 30px; 
+        flex-wrap: wrap; 
+    }
+
+    .center-card { 
+        flex: 1 1 300px; 
+        background: white; 
+        border-radius: 8px; 
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05); 
+        overflow: hidden; 
+    }
+
+    .center-card-header { 
+        background: #f8f9fa; 
+        padding: 15px 20px; 
+        font-weight: bold; 
+        border-bottom: 1px solid #eee; 
+        color: #2c3e50; 
+    }
+
+    .center-card-body { 
+        padding: 20px; 
+    }
+
+    .center-list { 
+        list-style: none; 
+        padding: 0; 
+        margin: 0; 
+    }
+
+    .center-list li { 
+        margin-bottom: 15px; 
+    }
+
+    .center-list li a { 
+        text-decoration: none; 
+        color: #555; 
+        display: block; 
+        padding: 10px; 
+        border-radius: 4px; 
+        border: 1px solid #eee; 
+        transition: all 0.2s; 
+    }
+
+    .center-list li a:hover { 
+        background: #f8f9fa; 
+        color: #d63384; 
+        border-color: #d63384; 
+    }
+
+    .user-welcome { 
+        background: white; 
+        padding: 20px; 
+        border-radius: 8px; 
+        margin-bottom: 30px; 
+        display: flex; 
+        justify-content: space-between; 
+        align-items: center; 
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05); 
+    }
 </style>
 {% endblock %}
 
 {% block content %}
     <div class="user-welcome">
         <div>
-            <span style="font-size: 20px; font-weight: bold; color: #2c3e50;">您好，{{ user.name }}！</span>
-            <p style="margin: 5px 0 0 0; color: #888;">歡迎來到會員中心，您可以在這裡管理您的個人資料與訂單。</p>
+            <span style="font-size: 20px; font-weight: bold; color: #2c3e50;">
+                您好，{{ user.name }}！
+            </span>
+            <p style="margin: 5px 0 0 0; color: #888;">
+                歡迎來到會員中心，您可以在這裡管理您的個人資料與訂單。
+            </p>
         </div>
-        <a href="{{ url_for('auth.logout') }}" style="background: #6c757d; color: white; padding: 8px 20px; border-radius: 4px; text-decoration: none; font-weight: bold;">登出系統</a>
+
+        <a href="{{ url_for('auth.logout') }}" 
+           style="background: #6c757d; color: white; padding: 8px 20px; border-radius: 4px; text-decoration: none; font-weight: bold;">
+            登出系統
+        </a>
     </div>
 
     <div class="center-container">
@@ -30,8 +91,16 @@
             <div class="center-card-header">👤 會員資料</div>
             <div class="center-card-body">
                 <ul class="center-list">
-                    <li><a href="{{ url_for('customer.profile.edit') }}">編輯個人基本資料</a></li>
-                    <li><a href="{{ url_for('customer.profile.change_password') }}">修改帳號密碼</a></li>
+                    <li>
+                        <a href="{{ url_for('customer.profile.edit') }}">
+                            編輯個人基本資料
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('customer.profile.change_password') }}">
+                            修改帳號密碼
+                        </a>
+                    </li>
                 </ul>
             </div>
         </div>
@@ -40,8 +109,16 @@
             <div class="center-card-header">📦 訂單管理</div>
             <div class="center-card-body">
                 <ul class="center-list">
-                    <li><a href="{{ url_for('customer.customer_order.order_list') }}">查詢歷史訂單紀錄</a></li>
-                    <li><a href="#">退貨/退款申請</a></li>
+                    <li>
+                        <a href="{{ url_for('customer.customer_order.order_list') }}">
+                            查詢歷史訂單紀錄
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('customer.customer_return.list_requests') }}">
+                            查詢退貨申請進度
+                        </a>
+                    </li>
                 </ul>
             </div>
         </div>
@@ -50,8 +127,16 @@
             <div class="center-card-header">💬 客服與支援</div>
             <div class="center-card-body">
                 <ul class="center-list">
-                    <li><a href="#">向客服人員提問</a></li>
-                    <li><a href="#">查看客服對話歷史</a></li>
+                    <li>
+                        <a href="{{ url_for('home.support.new_inquiry') }}">
+                            向客服人員提問
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('home.support.list_inquiries') }}">
+                            查看客服對話歷史
+                        </a>
+                    </li>
                 </ul>
             </div>
         </div>

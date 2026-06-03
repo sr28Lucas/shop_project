@@ -22,7 +22,12 @@
         </div>
         
         <div class="product-selection">
-            <h1 class="product-title">{{ product.name }}</h1>
+            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                <h1 class="product-title" style="margin-top: 0;">{{ product.name }}</h1>
+                <button type="button" id="wishlist-btn" class="wishlist-btn {{ 'active' if is_in_wishlist }}" onclick="toggleWishlist({{ product.id }})">
+                    <span class="heart-icon">{{ '❤️' if is_in_wishlist else '🤍' }}</span>
+                </button>
+            </div>
             <div class="product-category">{{ product.category_name }}</div>
             <form id="add-to-cart-form">
                 <input type="hidden" name="sku_id" id="selected-sku-id">
@@ -200,6 +205,55 @@
                 messageDiv.style.display = 'none';
             }, 3000);
         }
+    }
+    
+    async function toggleWishlist(productId) {
+        try {
+            const response = await fetch("{{ url_for('home.wishlist.toggle', product_id=product.id) }}", {
+                method: 'POST'
+            });
+            const result = await response.json();
+
+            if (response.status === 401) {
+                alert('請先登入後再加入願望清單');
+                window.location.href = "{{ url_for('auth.login') }}?next=" + encodeURIComponent(window.location.pathname);
+                return;
+            }
+
+            if (result.success) {
+                const btn = document.getElementById('wishlist-btn');
+                const icon = btn.querySelector('.heart-icon');
+                if (result.action === 'added') {
+                    btn.classList.add('active');
+                    icon.innerText = '❤️';
+                } else {
+                    btn.classList.remove('active');
+                    icon.innerText = '🤍';
+                }
+                
+                showToast(result.message);
+            }
+        } catch (error) {
+            console.error('Wishlist error:', error);
+        }
+    }
+
+    function showToast(message) {
+        const toast = document.createElement('div');
+        toast.style.cssText = `
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            z-index: 1000;
+        `;
+        toast.innerText = message;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 2000);
     }
     
     document.getElementById('add-to-cart-form').onsubmit = addToCart;

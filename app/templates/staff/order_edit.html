@@ -48,7 +48,7 @@
                     <td>{{ item.product_name }}</td>
                     <td>{{ item.variant_name }} / {{ item.size }} / {{ item.color }}</td>
                     <td>{{ item.qty }}</td>
-                    <td>{{ item.price }}</td>
+                    <td>{{ item.unit_price }}</td>
                     <td>
                         <form action="{{ url_for('staff.order.order_edit', id=order.id) }}" method="POST" onsubmit="return confirm('確定要刪除此訂單項目嗎？')">
                             <input type="hidden" name="item_id" value="{{ item.id }}">
@@ -63,6 +63,8 @@
                 {% endfor %}
             </tbody>
         </table>
+    </div>
+
     </div>
 </body>
 </html>

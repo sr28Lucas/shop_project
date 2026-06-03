@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <title>會員詳情</title>
+    <style>
+        body {
+            font-family: Arial, "Microsoft JhengHei", sans-serif;
+            background: #f5f6f8;
+            padding: 30px 60px;
+            color: #24384a;
+        }
+
+        h1, h2 {
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 8px 14px;
+            border: none;
+            border-radius: 4px;
+            color: white;
+            text-decoration: none;
+            cursor: pointer;
+            font-size: 14px;
+            margin: 2px;
+        }
+
+        .btn-gray { background: #5f6b75; }
+        .btn-blue { background: #007bff; }
+        .btn-green { background: #28a745; }
+        .btn-red { background: #dc3545; }
+
+        .panel {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 14px;
+        }
+
+        .info-item {
+            padding: 12px;
+            background: #f8f9fa;
+            border-radius: 4px;
+        }
+
+        .label {
+            color: #666;
+            margin-bottom: 6px;
+            font-size: 14px;
+        }
+
+        .value {
+            font-weight: bold;
+            color: #24384a;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 14px;
+        }
+
+        .summary-card {
+            background: #f8f9fa;
+            padding: 18px;
+            border-radius: 6px;
+            text-align: center;
+        }
+
+        .summary-number {
+            font-size: 24px;
+            font-weight: bold;
+            color: #24384a;
+        }
+
+        .summary-title {
+            color: #666;
+            margin-top: 6px;
+        }
+
+        table {
+            width: 100%;
+            background: white;
+            border-collapse: collapse;
+            margin-top: 12px;
+        }
+
+        th, td {
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+            text-align: left;
+        }
+
+        th {
+            background: #f0f2f4;
+        }
+
+        .active {
+            color: #28a745;
+            font-weight: bold;
+        }
+
+        .inactive {
+            color: #dc3545;
+            font-weight: bold;
+        }
+
+        form.inline {
+            display: inline-block;
+        }
+    </style>
+</head>
+<body>
+
+<h1>會員詳情</h1>
+
+<a href="{{ url_for('staff.member.member_list') }}" class="btn btn-gray">← 返回會員列表</a>
+<a href="{{ url_for('staff.dashboard') }}" class="btn btn-gray">← 返回儀表板</a>
+
+<div class="panel">
+    <h2>基本資料</h2>
+
+    <div class="info-grid">
+        <div class="info-item">
+            <div class="label">會員 ID</div>
+            <div class="value">{{ member.id }}</div>
+        </div>
+
+        <div class="info-item">
+            <div class="label">帳號狀態</div>
+            <div class="value">
+                {% if member.is_active %}
+                    <span class="active">啟用</span>
+                {% else %}
+                    <span class="inactive">停用</span>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="info-item">
+            <div class="label">姓名</div>
+            <div class="value">{{ member.name }}</div>
+        </div>
+
+        <div class="info-item">
+            <div class="label">Email</div>
+            <div class="value">{{ member.email }}</div>
+        </div>
+
+        <div class="info-item">
+            <div class="label">電話</div>
+            <div class="value">{{ member.phone or '-' }}</div>
+        </div>
+
+        <div class="info-item">
+            <div class="label">地址</div>
+            <div class="value">
+                {{ member.region or '' }}
+                {{ member.locality or '' }}
+                {{ member.address or '' }}
+            </div>
+        </div>
+
+        <div class="info-item">
+            <div class="label">註冊時間</div>
+            <div class="value">
+                {{ member.created_at.strftime('%Y-%m-%d %H:%M') if member.created_at else '-' }}
+            </div>
+        </div>
+
+        <div class="info-item">
+            <div class="label">最後更新</div>
+            <div class="value">
+                {{ member.updated_at.strftime('%Y-%m-%d %H:%M') if member.updated_at else '-' }}
+            </div>
+        </div>
+    </div>
+
+    <br>
+
+    <form method="post"
+          action="{{ url_for('staff.member.toggle_member', id=member.id) }}"
+          class="inline">
+        {% if member.is_active %}
+            <button type="submit" class="btn btn-red"
+                    onclick="return confirm('確定要停用會員 {{ member.name }} 嗎？');">
+                停用會員
+            </button>
+        {% else %}
+            <button type="submit" class="btn btn-green"
+                    onclick="return confirm('確定要啟用會員 {{ member.name }} 嗎？');">
+                啟用會員
+            </button>
+        {% endif %}
+    </form>
+</div>
+
+<div class="panel">
+    <h2>會員統計</h2>
+
+    <div class="summary-grid">
+        <div class="summary-card">
+            <div class="summary-number">{{ summary.order_count }}</div>
+            <div class="summary-title">總訂單數</div>
+        </div>
+
+        <div class="summary-card">
+            <div class="summary-number">${{ summary.total_spent }}</div>
+            <div class="summary-title">有效消費金額</div>
+        </div>
+
+        <div class="summary-card">
+            <div class="summary-number">{{ summary.pending_count }}</div>
+            <div class="summary-title">待處理訂單</div>
+        </div>
+
+        <div class="summary-card">
+            <div class="summary-number">{{ summary.cancelled_count }}</div>
+            <div class="summary-title">取消訂單</div>
+        </div>
+
+        <div class="summary-card">
+            <div class="summary-number">{{ summary.refunded_count }}</div>
+            <div class="summary-title">退款訂單</div>
+        </div>
+    </div>
+</div>
+
+<div class="panel">
+    <h2>最近訂單</h2>
+
+    <table>
+        <thead>
+            <tr>
+                <th>訂單 ID</th>
+                <th>狀態</th>
+                <th>總金額</th>
+                <th>收件人</th>
+                <th>電話</th>
+                <th>建立時間</th>
+            </tr>
+        </thead>
+
+        <tbody>
+        {% for order in orders %}
+            <tr>
+                <td>{{ order.id }}</td>
+                <td>{{ order.status }}</td>
+                <td>${{ order.total }}</td>
+                <td>{{ order.name }}</td>
+                <td>{{ order.phone }}</td>
+                <td>{{ order.created_at.strftime('%Y-%m-%d %H:%M') if order.created_at else '-' }}</td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="6" style="text-align:center;">此會員尚無訂單</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="panel">
+    <h2>客服案件</h2>
+
+    <table>
+        <thead>
+            <tr>
+                <th>案件 ID</th>
+                <th>問題類型</th>
+                <th>狀態</th>
+                <th>建立時間</th>
+                <th>更新時間</th>
+            </tr>
+        </thead>
+
+        <tbody>
+        {% for inquiry in inquiries %}
+            <tr>
+                <td>{{ inquiry.id }}</td>
+                <td>{{ inquiry.purpose }}</td>
+                <td>{{ inquiry.status }}</td>
+                <td>{{ inquiry.created_at.strftime('%Y-%m-%d %H:%M') if inquiry.created_at else '-' }}</td>
+                <td>{{ inquiry.updated_at.strftime('%Y-%m-%d %H:%M') if inquiry.updated_at else '-' }}</td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="5" style="text-align:center;">此會員尚無客服案件</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+</body>
+</html>

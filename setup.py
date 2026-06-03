@@ -33,8 +33,8 @@ now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 try:
     #建立root角色
     sql_role = """
-            INSERT INTO role (name, member, orders, product, inquiry, statistic, staff, created_at, updated_at)
-            VALUES (%s, 1, 1, 1, 1, 1, 1, %s, %s)            
+            INSERT INTO role (name, member, orders, product, inquiry, statistic, staff, announcement, `return`, promo, created_at, updated_at)
+            VALUES (%s, 1, 1, 1, 1, 1, 1, 1, 1, 1, %s, %s)            
             """
     cursor.execute(sql_role, (rolename, now, now))
 

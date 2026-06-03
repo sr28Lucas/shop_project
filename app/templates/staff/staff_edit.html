@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <title>{% if staff %}編輯{% else %}新增{% endif %}員工 - 後臺系統</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/staff/common.css') }}">
+    <style>
+        .form-group { margin-bottom: 1.5rem; }
+        .form-group label { display: block; margin-bottom: 0.5rem; font-weight: bold; }
+        .form-group input, .form-group select { width: 100%; padding: 0.75rem; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        .btn-group { margin-top: 2rem; }
+        .btn { padding: 0.75rem 1.5rem; border-radius: 4px; text-decoration: none; cursor: pointer; border: none; }
+        .btn-primary { background: #007bff; color: white; }
+        .btn-secondary { background: #6c757d; color: white; }
+    </style>
+</head>
+<body>
+    <h1>{% if staff %}編輯{% else %}新增{% endif %}員工</h1>
+    <form method="POST" style="max-width: 600px;">
+        <div class="form-group">
+            <label>姓名</label>
+            <input type="text" name="name" value="{{ staff.name if staff else '' }}" required>
+        </div>
+        <div class="form-group">
+            <label>Email (登入帳號)</label>
+            <input type="email" name="email" value="{{ staff.email if staff else '' }}" {% if staff %}readonly{% endif %} required>
+        </div>
+        <div class="form-group">
+            <label>密碼 {% if staff %}(留空則不修改){% endif %}</label>
+            <input type="password" name="password" {% if not staff %}required{% endif %}>
+        </div>
+        <div class="form-group">
+            <label>確認密碼 {% if staff %}(留空則不修改){% endif %}</label>
+            <input type="password" name="password_confirm" {% if not staff %}required{% endif %}>
+        </div>
+        <div class="form-group">
+            <label>電話</label>
+            <input type="text" name="phone" value="{{ staff.phone if staff else '' }}">
+        </div>
+        <div class="form-group">
+            <label>角色</label>
+            <select name="role_id" required>
+                {% for r in roles %}
+                <option value="{{ r.id }}" {% if staff and staff.role_id == r.id %}selected{% endif %}>{{ r.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        {% if staff %}
+        <div class="form-group">
+            <label style="display: inline-flex; align-items: center; gap: 0.5rem; font-weight: normal;">
+                <input type="checkbox" name="is_active" {% if staff.is_active %}checked{% endif %} style="width: auto;">
+                啟用帳號
+            </label>
+        </div>
+        {% endif %}
+        <div class="btn-group">
+            <button type="submit" class="btn btn-primary">儲存變更</button>
+            <a href="{{ url_for('staff.staff_account.staff_list') }}" class="btn btn-secondary">取消</a>
+        </div>
+    </form>
+</body>
+</html>

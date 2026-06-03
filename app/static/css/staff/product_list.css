@@ -98,10 +98,10 @@ h1 {
 .col-name { width: 150px; }
 .col-stock { width: 70px; text-align: center; }
 .col-category { width: 90px; }
-.col-description { width: 120px; }
+.col-description { width: 110px; }
 .col-status { width: 60px; }
 .col-time { width: 80px; }
-.col-actions { width: 190px; }
+.col-actions { width: 250px; }
 
 /* 描述文字溢出處理 */
 .td-description {
