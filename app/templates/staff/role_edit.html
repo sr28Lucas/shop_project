@@ -17,11 +17,17 @@
     </style>
 </head>
 <body>
+    {% set is_root = role and role.name == 'root' %}
+
     <h1>{% if role %}編輯{% else %}新增{% endif %}角色</h1>
+    {% if is_root %}
+    <p style="color: red; font-weight: bold; margin-bottom: 1rem;">注意：Root 角色受保護，禁止修改。</p>
+    {% endif %}
+
     <form method="POST" style="max-width: 800px;">
         <div class="form-group">
             <label>角色名稱</label>
-            <input type="text" name="name" value="{{ role.name if role else '' }}" required>
+            <input type="text" name="name" value="{{ role.name if role else '' }}" {{ 'disabled' if is_root else '' }} required>
         </div>
         <div class="form-group">
             <label>權限設定</label>
@@ -29,14 +35,16 @@
                 {% set perms = [('member', '會員管理'), ('orders', '訂單管理'), ('product', '商品管理'), ('inquiry', '客服管理'), ('statistic', '統計報表'), ('staff', '員工管理'), ('announcement', '公告管理'), ('return', '退貨管理'), ('promo', '促銷管理')] %}
                 {% for p_id, p_name in perms %}
                 <label>
-                    <input type="checkbox" name="{{ p_id }}" {% if role and role[p_id] %}checked{% endif %} style="width: auto;">
+                    <input type="checkbox" name="{{ p_id }}" {% if role and role[p_id] %}checked{% endif %} {{ 'disabled' if is_root else '' }} style="width: auto;">
                     {{ p_name }}
                 </label>
                 {% endfor %}
             </div>
         </div>
         <div class="btn-group">
+            {% if not is_root %}
             <button type="submit" class="btn btn-primary">儲存變更</button>
+            {% endif %}
             <a href="{{ url_for('staff.role.role_list') }}" class="btn btn-secondary">取消</a>
         </div>
     </form>

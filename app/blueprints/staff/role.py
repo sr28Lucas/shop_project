@@ -61,6 +61,21 @@ def role_edit(id):
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
     
+    cursor.execute("SELECT * FROM role WHERE id = %s", (id,))
+    role = cursor.fetchone()
+    
+    if not role:
+        cursor.close()
+        conn.close()
+        flash('找不到角色')
+        return redirect(url_for('staff.role.role_list'))
+    
+    # Root 角色保護
+    if role['name'] == 'root':
+        if request.method == 'POST':
+            flash('無法編輯 root 角色')
+            return redirect(url_for('staff.role.role_list'))
+            
     if request.method == 'POST':
         name = request.form.get('name')
         permissions = {
@@ -93,27 +108,28 @@ def role_edit(id):
             conn.close()
         return redirect(url_for('staff.role.role_list'))
 
-    cursor.execute("SELECT * FROM role WHERE id = %s", (id,))
-    role = cursor.fetchone()
+    cursor.execute("SELECT * FROM role")
+    roles = cursor.fetchall()
     cursor.close()
     conn.close()
     
-    if not role:
-        flash('找不到角色')
-        return redirect(url_for('staff.role.role_list'))
-        
     return render_template('staff/role_edit.html', role=role)
 
 @role_bp.route('/delete/<int:id>', methods=['POST'])
 @require_permission('staff')
 def role_delete(id):
-    if id == 1:
-        flash('無法刪除 root 角色')
-        return redirect(url_for('staff.role.role_list'))
-
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
     
+    cursor.execute("SELECT name FROM role WHERE id = %s", (id,))
+    role = cursor.fetchone()
+    
+    if role and role['name'] == 'root':
+        cursor.close()
+        conn.close()
+        flash('無法刪除 root 角色')
+        return redirect(url_for('staff.role.role_list'))
+
     # 檢查是否有人屬於此角色
     cursor.execute("SELECT COUNT(*) as count FROM staff WHERE role_id = %s", (id,))
     count = cursor.fetchone()['count']
