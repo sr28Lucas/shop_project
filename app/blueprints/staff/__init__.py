@@ -19,6 +19,7 @@ from .member import member_bp
 from .return_order import staff_return_bp
 from .role import role_bp
 from .staff_account import staff_account_bp
+from .profile import staff_profile_bp
 
 
 staff_bp.register_blueprint(product_bp, url_prefix='/product')
@@ -32,6 +33,7 @@ staff_bp.register_blueprint(member_bp, url_prefix='/member')
 staff_bp.register_blueprint(staff_return_bp, url_prefix='/return')
 staff_bp.register_blueprint(role_bp, url_prefix='/role')
 staff_bp.register_blueprint(staff_account_bp, url_prefix='/staff_account')
+staff_bp.register_blueprint(staff_profile_bp, url_prefix='/profile')
 
 
 

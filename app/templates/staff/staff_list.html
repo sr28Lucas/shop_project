@@ -28,8 +28,11 @@
             <tr>
                 <th>姓名</th>
                 <th>Email</th>
+                <th>電話</th>
                 <th>角色</th>
                 <th>狀態</th>
+                <th>建立時間</th>
+                <th>最後更新</th>
                 <th>操作</th>
             </tr>
         </thead>
@@ -38,6 +41,7 @@
             <tr>
                 <td>{{ s.name }}</td>
                 <td>{{ s.email }}</td>
+                <td>{{ s.phone or '無' }}</td>
                 <td>{{ s.role_name }}</td>
                 <td>
                     {% if s.is_active %}
@@ -46,6 +50,8 @@
                     <span class="status-badge status-inactive">停用</span>
                     {% endif %}
                 </td>
+                <td>{{ s.created_at.strftime('%Y-%m-%d %H:%M') if s.created_at else 'N/A' }}</td>
+                <td>{{ s.updated_at.strftime('%Y-%m-%d %H:%M') if s.updated_at else 'N/A' }}</td>
                 <td>
                     <a href="{{ url_for('staff.staff_account.staff_edit', id=s.id) }}" class="btn btn-edit">編輯</a>
                 </td>

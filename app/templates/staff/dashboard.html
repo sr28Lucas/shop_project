@@ -124,8 +124,8 @@
         <div class="card">
             <div class="card-header">帳戶設定</div>
             <ul class="card-body">
-                <li><a href="#">帳戶資料</a></li>
-                <li><a href="#">修改密碼</a></li>
+                <li><a href="{{ url_for('staff.staff_profile.edit_profile') }}">編輯個人資料</a></li>
+                <li><a href="{{ url_for('staff.staff_profile.change_password') }}">修改密碼</a></li>
             </ul>
         </div>
 
