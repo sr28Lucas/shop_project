@@ -32,6 +32,7 @@
             <div class="order-card">
                 <h3>商品清單</h3>
                 {% for item in items %}
+                {% if item.remaining_qty > 0 %}
                 <div class="item-row">
                     <div style="margin-right: 15px;">
                         <input type="checkbox" name="item_ids" value="{{ item.id }}" id="item_{{ item.id }}">
@@ -39,16 +40,17 @@
                     <div class="item-info">
                         <label for="item_{{ item.id }}">
                             <strong>{{ item.product_name }}</strong><br>
-                            <small>{{ item.color }} / {{ item.size }}</small>
+                            <small>{{ item.color }} / {{ item.size }} (剩餘可退: {{ item.remaining_qty }})</small>
                         </label>
                     </div>
                     <div class="item-action">
                         <span>數量:</span>
-                        <input type="number" name="qty_{{ item.id }}" class="qty-input" value="{{ item.qty }}" min="1" max="{{ item.qty }}">
+                        <input type="number" name="qty_{{ item.id }}" class="qty-input" value="{{ item.remaining_qty }}" min="1" max="{{ item.remaining_qty }}">
                         <span>原因:</span>
                         <input type="text" name="reason_{{ item.id }}" class="reason-input" placeholder="單項退貨原因 (選填)">
                     </div>
                 </div>
+                {% endif %}
                 {% endfor %}
 
                 <div class="overall-section">

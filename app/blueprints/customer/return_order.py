@@ -36,13 +36,13 @@ def apply(order_id):
         return redirect(url_for('customer.customer_order.order_list'))
 
     # 2. 移除單一訂單僅限一次退貨的限制，改為檢查已退貨數量
-    # 檢查該訂單中每個項目的累計退貨數量是否超過原始購買數量
+    # 檢查該訂單中每個項目的累計退貨數量 (排除已拒絕的) 是否超過原始購買數量
     cursor.execute("""
         SELECT oi.id, oi.qty as original_qty, 
-               COALESCE(SUM(ri.qty), 0) as returned_qty
+               COALESCE(SUM(CASE WHEN rr.status != 'rejected' THEN ri.qty ELSE 0 END), 0) as returned_qty
         FROM order_item oi
         LEFT JOIN return_item ri ON oi.id = ri.order_item_id
-        LEFT JOIN return_request rr ON ri.return_request_id = rr.id AND rr.status IN ('requested', 'approved', 'refunded')
+        LEFT JOIN return_request rr ON ri.return_request_id = rr.id
         WHERE oi.order_id = %s
         GROUP BY oi.id
     """, (order_id,))
@@ -89,9 +89,21 @@ def apply(order_id):
                 conn.rollback()
                 flash(f"申請失敗: {e}")
 
-    # 獲取訂單商品明細
-    cursor.execute("SELECT * FROM order_item WHERE order_id = %s", (order_id,))
+    # 獲取訂單商品明細，並合併已退貨狀態 (包含所有狀態，排除已拒絕的)
+    cursor.execute("""
+        SELECT oi.*, 
+               COALESCE(SUM(CASE WHEN rr.status != 'rejected' THEN ri.qty ELSE 0 END), 0) as returned_qty
+        FROM order_item oi
+        LEFT JOIN return_item ri ON oi.id = ri.order_item_id
+        LEFT JOIN return_request rr ON ri.return_request_id = rr.id
+        WHERE oi.order_id = %s
+        GROUP BY oi.id
+    """, (order_id,))
     items = cursor.fetchall()
+    
+    # 計算剩餘可退數量
+    for item in items:
+        item['remaining_qty'] = item['qty'] - item['returned_qty']
 
     cursor.close()
     conn.close()

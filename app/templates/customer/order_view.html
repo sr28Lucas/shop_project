@@ -11,7 +11,14 @@
         <h1>訂單詳情 #{{ order.id }}</h1>
         <div class="action-bar" style="margin-bottom: 20px;">
             <a href="{{ url_for('customer.customer_order.order_list') }}" class="btn btn-outline">← 返回列表</a>
-            {% if order.status == 'completed' %}
+            {% set can_return = namespace(value=false) %}
+            {% for item in items %}
+                {# 判斷是否有尚未申請退貨的餘額 #}
+                {% if item.qty - item.requested_qty > 0 %}
+                    {% set can_return.value = true %}
+                {% endif %}
+            {% endfor %}
+            {% if order.status == 'completed' and can_return.value %}
                 <a href="{{ url_for('customer.customer_return.apply', order_id=order.id) }}" class="btn btn-primary" style="background: #e67e22; color: white; padding: 8px 15px; border-radius: 4px; text-decoration: none; margin-left: 10px;">申請退貨</a>
             {% endif %}
         </div>

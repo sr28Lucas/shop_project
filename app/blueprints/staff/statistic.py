@@ -30,15 +30,20 @@ def revenue():
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
 
-    # 1. 基礎 KPI (修正: 使用 order_item 與 return_item 計算淨營收)
+    # 1. 基礎 KPI (使用子查詢彙總退貨，避免JOIN導致重複)
     cursor.execute("""
         SELECT
-            COALESCE(SUM(oi.qty * oi.unit_price), 0) - COALESCE(SUM(ri.qty * oi.unit_price), 0) AS net_revenue,
+            COALESCE(SUM(oi.qty * oi.unit_price), 0) - COALESCE(SUM(agg_ri.total_returned_qty * oi.unit_price), 0) AS net_revenue,
             COUNT(DISTINCT o.id) AS revenue_order_count
         FROM orders o
         JOIN order_item oi ON o.id = oi.order_id
-        LEFT JOIN return_item ri ON oi.id = ri.order_item_id
-        LEFT JOIN return_request rr ON ri.return_request_id = rr.id AND rr.status = 'refunded'
+        LEFT JOIN (
+            SELECT ri.order_item_id, SUM(ri.qty) as total_returned_qty
+            FROM return_item ri
+            JOIN return_request rr ON ri.return_request_id = rr.id
+            WHERE rr.status = 'refunded'
+            GROUP BY ri.order_item_id
+        ) agg_ri ON oi.id = agg_ri.order_item_id
         WHERE DATE(o.created_at) BETWEEN %s AND %s
           AND o.status IN ('shipped', 'completed', 'refunded')
     """, (start_date, end_date))
@@ -62,14 +67,23 @@ def revenue():
     revenue_order_count = int(kpi['revenue_order_count'] or 0)
     avg_order_value = round(total_revenue / revenue_order_count, 2) if revenue_order_count > 0 else 0
 
+    # 每日營收 (使用子查詢彙總退貨)
     cursor.execute("""
         SELECT
             DATE_FORMAT(o.created_at, '%Y-%m-%d') AS order_date,
-            COUNT(*) AS order_count,
-            COALESCE(SUM(o.total), 0) AS daily_revenue
+            COUNT(DISTINCT o.id) AS order_count,
+            COALESCE(SUM(oi.qty * oi.unit_price), 0) - COALESCE(SUM(agg_ri.total_returned_qty * oi.unit_price), 0) AS daily_revenue
         FROM orders o
+        JOIN order_item oi ON o.id = oi.order_id
+        LEFT JOIN (
+            SELECT ri.order_item_id, SUM(ri.qty) as total_returned_qty
+            FROM return_item ri
+            JOIN return_request rr ON ri.return_request_id = rr.id
+            WHERE rr.status = 'refunded'
+            GROUP BY ri.order_item_id
+        ) agg_ri ON oi.id = agg_ri.order_item_id
         WHERE DATE(o.created_at) BETWEEN %s AND %s
-          AND o.status IN ('shipped', 'completed')
+          AND o.status IN ('shipped', 'completed', 'refunded')
         GROUP BY DATE(o.created_at)
         ORDER BY DATE(o.created_at)
     """, (start_date, end_date))
@@ -86,31 +100,47 @@ def revenue():
     """, (start_date, end_date))
     status_summary = cursor.fetchall()
 
+    # 分類營收 (使用子查詢彙總退貨)
     cursor.execute("""
         SELECT
             COALESCE(c.name, '未分類') AS category_name,
-            COALESCE(SUM(oi.qty), 0) AS total_qty,
-            COALESCE(SUM(oi.qty * oi.unit_price), 0) AS total_revenue
+            COALESCE(SUM(oi.qty), 0) - COALESCE(SUM(agg_ri.total_returned_qty), 0) AS total_qty,
+            COALESCE(SUM(oi.qty * oi.unit_price), 0) - COALESCE(SUM(agg_ri.total_returned_qty * oi.unit_price), 0) AS total_revenue
         FROM order_item oi
         JOIN orders o ON oi.order_id = o.id
         LEFT JOIN product p ON oi.product_id = p.id
         LEFT JOIN category c ON p.category_id = c.id
+        LEFT JOIN (
+            SELECT ri.order_item_id, SUM(ri.qty) as total_returned_qty
+            FROM return_item ri
+            JOIN return_request rr ON ri.return_request_id = rr.id
+            WHERE rr.status = 'refunded'
+            GROUP BY ri.order_item_id
+        ) agg_ri ON oi.id = agg_ri.order_item_id
         WHERE DATE(o.created_at) BETWEEN %s AND %s
-          AND o.status IN ('shipped', 'completed')
+          AND o.status IN ('shipped', 'completed', 'refunded')
         GROUP BY c.name
         ORDER BY total_revenue DESC
     """, (start_date, end_date))
     category_revenue = cursor.fetchall()
 
+    # 熱銷商品 (使用子查詢彙總退貨)
     cursor.execute("""
         SELECT
             oi.product_name,
-            COALESCE(SUM(oi.qty), 0) AS total_qty,
-            COALESCE(SUM(oi.qty * oi.unit_price), 0) AS total_revenue
+            COALESCE(SUM(oi.qty), 0) - COALESCE(SUM(agg_ri.total_returned_qty), 0) AS total_qty,
+            COALESCE(SUM(oi.qty * oi.unit_price), 0) - COALESCE(SUM(agg_ri.total_returned_qty * oi.unit_price), 0) AS total_revenue
         FROM order_item oi
         JOIN orders o ON oi.order_id = o.id
+        LEFT JOIN (
+            SELECT ri.order_item_id, SUM(ri.qty) as total_returned_qty
+            FROM return_item ri
+            JOIN return_request rr ON ri.return_request_id = rr.id
+            WHERE rr.status = 'refunded'
+            GROUP BY ri.order_item_id
+        ) agg_ri ON oi.id = agg_ri.order_item_id
         WHERE DATE(o.created_at) BETWEEN %s AND %s
-          AND o.status IN ('shipped', 'completed')
+          AND o.status IN ('shipped', 'completed', 'refunded')
         GROUP BY oi.product_name
         ORDER BY total_revenue DESC
         LIMIT 10
@@ -148,17 +178,22 @@ def sales():
             oi.product_name,
             oi.color,
             oi.size,
-            COALESCE(SUM(oi.qty), 0) - COALESCE(SUM(ri.qty), 0) AS total_qty,
-            COALESCE(SUM(oi.qty * oi.unit_price), 0) - COALESCE(SUM(ri.qty * oi.unit_price), 0) AS total_revenue,
+            COALESCE(SUM(oi.qty), 0) - COALESCE(SUM(agg_ri.total_returned_qty), 0) AS total_qty,
+            COALESCE(SUM(oi.qty * oi.unit_price), 0) - COALESCE(SUM(agg_ri.total_returned_qty * oi.unit_price), 0) AS total_revenue,
             ROUND(
-                (COALESCE(SUM(oi.qty * oi.unit_price), 0) - COALESCE(SUM(ri.qty * oi.unit_price), 0)) / 
-                NULLIF(COALESCE(SUM(oi.qty), 0) - COALESCE(SUM(ri.qty), 0), 0),
+                (COALESCE(SUM(oi.qty * oi.unit_price), 0) - COALESCE(SUM(agg_ri.total_returned_qty * oi.unit_price), 0)) / 
+                NULLIF(COALESCE(SUM(oi.qty), 0) - COALESCE(SUM(agg_ri.total_returned_qty), 0), 0),
                 2
             ) AS avg_price
         FROM order_item oi
         JOIN orders o ON oi.order_id = o.id
-        LEFT JOIN return_item ri ON oi.id = ri.order_item_id
-        LEFT JOIN return_request rr ON ri.return_request_id = rr.id AND rr.status = 'refunded'
+        LEFT JOIN (
+            SELECT ri.order_item_id, SUM(ri.qty) as total_returned_qty
+            FROM return_item ri
+            JOIN return_request rr ON ri.return_request_id = rr.id
+            WHERE rr.status = 'refunded'
+            GROUP BY ri.order_item_id
+        ) agg_ri ON oi.id = agg_ri.order_item_id
         WHERE DATE(o.created_at) BETWEEN %s AND %s
           AND o.status IN ('shipped', 'completed', 'refunded')
         GROUP BY oi.product_name, oi.color, oi.size
@@ -171,20 +206,26 @@ def sales():
     cursor.execute("""
         SELECT
             COALESCE(c.name, '未分類') AS category_name,
-            COALESCE(SUM(oi.qty), 0) - COALESCE(SUM(ri.qty), 0) AS total_qty,
-            COALESCE(SUM(oi.qty * oi.unit_price), 0) - COALESCE(SUM(ri.qty * oi.unit_price), 0) AS total_revenue
+            COALESCE(SUM(oi.qty), 0) - COALESCE(SUM(agg_ri.total_returned_qty), 0) AS total_qty,
+            COALESCE(SUM(oi.qty * oi.unit_price), 0) - COALESCE(SUM(agg_ri.total_returned_qty * oi.unit_price), 0) AS total_revenue
         FROM order_item oi
         JOIN orders o ON oi.order_id = o.id
         LEFT JOIN product p ON oi.product_id = p.id
         LEFT JOIN category c ON p.category_id = c.id
-        LEFT JOIN return_item ri ON oi.id = ri.order_item_id
-        LEFT JOIN return_request rr ON ri.return_request_id = rr.id AND rr.status = 'refunded'
+        LEFT JOIN (
+            SELECT ri.order_item_id, SUM(ri.qty) as total_returned_qty
+            FROM return_item ri
+            JOIN return_request rr ON ri.return_request_id = rr.id
+            WHERE rr.status = 'refunded'
+            GROUP BY ri.order_item_id
+        ) agg_ri ON oi.id = agg_ri.order_item_id
         WHERE DATE(o.created_at) BETWEEN %s AND %s
           AND o.status IN ('shipped', 'completed', 'refunded')
         GROUP BY c.name
         ORDER BY total_qty DESC
     """, (start_date, end_date))
     category_sales = cursor.fetchall()
+
 
     # 3. 庫存 KPI (保持不變)
     cursor.execute("""

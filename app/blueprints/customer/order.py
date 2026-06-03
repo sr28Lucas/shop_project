@@ -51,9 +51,10 @@ def order_view(id):
         flash("找不到該訂單")
         return redirect(url_for('customer_order.order_list'))
         
-    # 獲取訂單項目，並計算已退貨數量 (僅統計狀態為 'refunded' 的項目)
+    # 獲取訂單項目，並計算已申請退貨數量 (排除已拒絕的) 與已退款數量
     cursor.execute("""
         SELECT oi.*, 
+               COALESCE(SUM(CASE WHEN rr.status IN ('requested', 'approved', 'refunded') THEN ri.qty ELSE 0 END), 0) as requested_qty,
                COALESCE(SUM(CASE WHEN rr.status = 'refunded' THEN ri.qty ELSE 0 END), 0) as returned_qty
         FROM order_item oi
         LEFT JOIN return_item ri ON oi.id = ri.order_item_id
