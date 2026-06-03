@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <title>訂單詳情 #{{ order.id }} - 後臺系統</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/staff/common.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/staff/product_list.css') }}">
+</head>
+<body>
+    <h1>訂單詳情 #{{ order.id }}</h1>
+    
+    <div class="action-bar">
+        <a href="{{ url_for('staff.order.order_history') }}" class="btn" style="background: #6c757d; color: white;">← 返回歷史紀錄</a>
+    </div>
+
+    <div class="card">
+        <h3>顧客資訊</h3>
+        <p>名稱：{{ order.customer_name }}</p>
+        <p>電話：{{ order.phone }}</p>
+        <p>地址：{{ order.address }}</p>
+    </div>
+
+    <div class="product-table-container">
+        <h3>訂單項目</h3>
+        <table class="product-table">
+            <thead>
+                <tr>
+                    <th>商品名稱</th>
+                    <th>規格</th>
+                    <th>數量</th>
+                    <th>已退數量</th>
+                    <th>價格</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in items %}
+                <tr>
+                    <td>{{ item.product_name }}</td>
+                    <td>{{ item.color }} / {{ item.size }}</td>
+                    <td>{{ item.qty }}</td>
+                    <td>{{ item.returned_qty }}</td>
+                    <td>{{ item.unit_price }}</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="5" style="text-align: center; padding: 30px;">無訂單項目</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>
