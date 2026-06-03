@@ -13,6 +13,9 @@ class config:
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'secret_key' #加密金鑰 要這才可以用flask的加密功能
     SQLALCHEMY_TRACK_MODIFICATIONS = False #某個看不懂但應該用不到的功能 開了似乎會吃效能
  
+    SESSION_COOKIE_HTTPONLY = True
+    SESSION_COOKIE_SECURE = True
+
     UPLOAD_FOLDER = Path(__file__).resolve().parent / 'static' / 'upload'
     
     print(UPLOAD_FOLDER)

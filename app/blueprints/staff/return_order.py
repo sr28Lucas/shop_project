@@ -117,10 +117,10 @@ def complete(id):
     cursor = conn.cursor(dictionary=True)
     try:
         # 1. 獲取申請資訊
-        cursor.execute("SELECT order_id, status FROM return_request WHERE id = %s", (id,))
+        cursor.execute("SELECT order_id, status FROM return_request WHERE id = %s FOR UPDATE", (id,))
         ret = cursor.fetchone()
-        if not ret or ret['status'] == 'refunded':
-            flash("申請不存在或已完成退款")
+        if not ret or ret['status'] == 'refunded' or ret['status'] == 'rejected':
+            flash("申請不存在，或處於無法退款的狀態 (已退款或已被拒絕)")
             return redirect(url_for('staff.staff_return.list_requests'))
 
         order_id = ret['order_id']
@@ -137,6 +137,7 @@ def complete(id):
             FROM return_item ri
             JOIN order_item oi ON ri.order_item_id = oi.id
             WHERE ri.return_request_id = %s
+            FOR UPDATE
         """, (id,))
         items = cursor.fetchall()
 
