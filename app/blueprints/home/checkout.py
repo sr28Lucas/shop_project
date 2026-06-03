@@ -21,6 +21,47 @@ def get_active_cart(customer_id):
     conn.close()
     return cart_id
 
+def calculate_order_totals(subtotal, shipping_fee, promo):
+    """
+    Helper to calculate discount and adjusted shipping fee based on promo.
+    Returns (discount_total, shipping_fee)
+    """
+    discount_total = 0
+    if not promo:
+        return discount_total, shipping_fee
+    
+    if subtotal < promo['min_order_amount']:
+        return discount_total, shipping_fee
+
+    if promo['discount_type'] == 'subtotal_discount':
+        discount_total = round(subtotal * (promo['discount_value'] / 100))
+    elif promo['discount_type'] == 'subtotal_deduction':
+        discount_total = round(promo['discount_value'])
+    elif promo['discount_type'] == 'shipping_deduction':
+        shipping_fee = max(0, shipping_fee - round(promo['discount_value']))
+    elif promo['discount_type'] == 'free_shipping':
+        shipping_fee = 0
+        
+    return discount_total, shipping_fee
+
+def validate_promo_code(promo):
+    if not promo:
+        return False, "優惠碼不存在或已失效。"
+    
+    now = datetime.now()
+    
+    # 時間檢查
+    if promo['start_at'] and now < promo['start_at']:
+        return False, "優惠碼尚未開始。"
+    if promo['end_at'] and now > promo['end_at']:
+        return False, "優惠碼已過期。"
+        
+    # 使用次數檢查
+    if promo['usage_limit'] and promo['used_count'] >= promo['usage_limit']:
+        return False, "優惠碼使用次數已達上限。"
+        
+    return True, None
+
 @checkout_bp.route('/view_cart')
 def view_cart():
     if 'customer_id' not in session:
@@ -279,17 +320,17 @@ def payment():
     
     # 計算折扣，移除 is_deleted
     promo_code = session['checkout_info'].get('promo_code')
-    discount = 0
-    
+    promo = None
     if promo_code:
         cursor.execute("SELECT * FROM promo_code WHERE code = %s AND is_active = 1", (promo_code,))
         promo = cursor.fetchone()
-        if promo and subtotal >= promo['min_order_amount']:
-            if promo['discount_type'] == 'subtotal_discount':
-                discount = subtotal * (promo['discount_value'] / 100)
-            elif promo['discount_type'] == 'subtotal_deduction':
-                discount = promo['discount_value']
+        is_valid, error = validate_promo_code(promo)
+        if not is_valid:
+            flash(error)
+            promo = None
+            session['checkout_info'].pop('promo_code', None)
     
+    discount, shipping_fee = calculate_order_totals(subtotal, shipping_fee, promo)
     total = subtotal - discount + shipping_fee
     
     if request.method == 'POST':
@@ -354,21 +395,20 @@ def place_order():
     shipping_fee = region_data['fee'] if region_data else 0
     
     promo_code = session['checkout_info'].get('promo_code')
-    discount_total = 0
-    promo_id = None
+    promo = None
     if promo_code:
         cursor.execute("SELECT * FROM promo_code WHERE code = %s AND is_active = 1", (promo_code,))
         promo = cursor.fetchone()
-        if not promo or subtotal < promo['min_order_amount']:
-            cursor.close()
-            conn.close()
-            return "<script>alert('優惠碼已失效或不符合門檻，請重新確認！'); window.location.href='/checkout/information';</script>"
+        is_valid, error = validate_promo_code(promo)
+        if not is_valid:
+            # 如果優惠碼失效，在確認頁面提示並清除
+            flash(error)
+            promo = None
+            session['checkout_info'].pop('promo_code', None)
         
-        promo_id = promo['id']
-        if promo['discount_type'] == 'subtotal_discount':
-            discount_total = subtotal * (promo['discount_value'] / 100)
-        elif promo['discount_type'] == 'subtotal_deduction':
-            discount_total = promo['discount_value']
+    # 計算折扣與運費
+    discount_total, shipping_fee = calculate_order_totals(subtotal, shipping_fee, promo)
+    promo_id = promo['id'] if promo else None
     
     # 計算最終總計 (total)
     total = subtotal - discount_total + shipping_fee
@@ -393,6 +433,19 @@ def place_order():
                     conn.rollback()
                     flash(f"商品 {item['product_name']} ({item['color']}/{item['size']}) 在您結帳時已被搶購一空或數量不足。")
                     return redirect(url_for('home.checkout.view_cart'))
+            
+            # 2. 重新驗證並鎖定優惠碼
+            if promo_id:
+                cursor.execute("SELECT * FROM promo_code WHERE id = %s FOR UPDATE", (promo_id,))
+                promo = cursor.fetchone()
+                is_valid, error = validate_promo_code(promo)
+                if not is_valid:
+                    conn.rollback()
+                    flash(error)
+                    return redirect(url_for('home.checkout.view_cart'))
+                
+                # 更新使用次數
+                cursor.execute("UPDATE promo_code SET used_count = used_count + 1 WHERE id = %s", (promo_id,))
             
             now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             

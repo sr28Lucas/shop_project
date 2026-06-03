@@ -23,7 +23,7 @@ def check_permission(permission_name):
         return False
         
     # 檢查角色權限
-    cursor.execute(f"SELECT {permission_name} FROM role WHERE id = %s", (staff['role_id'],))
+    cursor.execute(f"SELECT `{permission_name}` FROM role WHERE id = %s", (staff['role_id'],))
     role = cursor.fetchone()
     
     cursor.close()
