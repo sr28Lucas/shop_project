@@ -126,32 +126,49 @@ def complete(id):
         order_id = ret['order_id']
         now = datetime.now()
 
-        # 2. 獲取退貨項目以回補庫存
+        # 2. 獲取訂單總額
+        cursor.execute("SELECT total FROM orders WHERE id = %s", (order_id,))
+        order = cursor.fetchone()
+        order_total = order['total']
+
+        # 3. 計算本次退貨金額與回補庫存
         cursor.execute("""
-            SELECT ri.qty, oi.sku_id
+            SELECT ri.qty, oi.sku_id, oi.unit_price
             FROM return_item ri
             JOIN order_item oi ON ri.order_item_id = oi.id
             WHERE ri.return_request_id = %s
         """, (id,))
         items = cursor.fetchall()
 
+        current_refund_amount = 0
         for item in items:
+            current_refund_amount += (item['qty'] * item['unit_price'])
             if item['sku_id']:
                 cursor.execute("UPDATE sku SET stock = stock + %s, updated_at = %s WHERE id = %s",
                                (item['qty'], now, item['sku_id']))
 
-        # 3. 更新狀態
+        # 4. 計算該訂單已退款總額 (包含本次)
+        cursor.execute("""
+            SELECT SUM(ri.qty * oi.unit_price) as total_refunded
+            FROM return_request rr
+            JOIN return_item ri ON rr.id = ri.return_request_id
+            JOIN order_item oi ON ri.order_item_id = oi.id
+            WHERE rr.order_id = %s AND rr.status = 'refunded'
+        """, (order_id,))
+        previous_refunded = cursor.fetchone()['total_refunded'] or 0
+        total_refunded = previous_refunded + current_refund_amount
+
+        # 5. 更新狀態
         cursor.execute("UPDATE return_request SET status = 'refunded', refunded_at = %s, updated_at = %s WHERE id = %s",
                        (now, now, id))
         
-        # 更新訂單狀態為已退款 (部分退款邏輯此處簡化為標記訂單)
-        cursor.execute("UPDATE orders SET status = 'refunded', updated_at = %s WHERE id = %s", (now, order_id))
-        
-        # 更新付款狀態
-        cursor.execute("UPDATE payment SET status = 'refunded' WHERE order_id = %s", (order_id,))
+        # 只有在已退款總額達到或超過訂單總額時，才將訂單標記為 'refunded'
+        if total_refunded >= order_total:
+            cursor.execute("UPDATE orders SET status = 'refunded', updated_at = %s WHERE id = %s", (now, order_id))
+            cursor.execute("UPDATE payment SET status = 'refunded' WHERE order_id = %s", (order_id,))
 
         conn.commit()
-        flash(f"退貨申請 #{id} 已完成退款並回補庫存")
+        flash(f"退貨申請 #{id} 已完成退款並回補庫存 (本次退款: ${current_refund_amount:.0f})")
     except Exception as e:
         conn.rollback()
         flash(f"操作失敗: {e}")

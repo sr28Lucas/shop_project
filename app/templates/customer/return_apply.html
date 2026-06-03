@@ -39,14 +39,14 @@
                     <div class="item-info">
                         <label for="item_{{ item.id }}">
                             <strong>{{ item.product_name }}</strong><br>
-                            <small>{{ item.variant_name }} / {{ item.size }} / {{ item.color }}</small>
+                            <small>{{ item.color }} / {{ item.size }}</small>
                         </label>
                     </div>
                     <div class="item-action">
                         <span>數量:</span>
-                        <input type="number" name="qtys" class="qty-input" value="{{ item.qty }}" min="1" max="{{ item.qty }}">
+                        <input type="number" name="qty_{{ item.id }}" class="qty-input" value="{{ item.qty }}" min="1" max="{{ item.qty }}">
                         <span>原因:</span>
-                        <input type="text" name="reasons" class="reason-input" placeholder="單項退貨原因 (選填)">
+                        <input type="text" name="reason_{{ item.id }}" class="reason-input" placeholder="單項退貨原因 (選填)">
                     </div>
                 </div>
                 {% endfor %}

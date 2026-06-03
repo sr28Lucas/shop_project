@@ -14,7 +14,7 @@ DATABASE_CHARSET = 	utf8mb4
 
 """
 
-# 将内容写入 .env 文件
+# 寫入.env 
 with open(".env", "w") as f:
     f.write(env_content.strip())
 

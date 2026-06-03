@@ -27,7 +27,7 @@ def create_app():
 
     # app.register_blueprint(image_bp, url_prefix='/image') #使圖片可路由
     app.register_blueprint(auth_bp, url_prefix='/auth') #登入功能
-    app.register_blueprint(staff_bp, url_prefix="/staff") #管理員儀錶板 儀錶板裡的功能註冊在dashboard.py裡才能延續前綴 不要註冊在這 
+    app.register_blueprint(staff_bp, url_prefix="/staff") #管理員儀錶板 儀錶板裡的功能註冊在staff.__init__.py裡才能延續前綴 不要註冊在這 
     app.register_blueprint(customer_bp, url_prefix='/customer') #會員中心 
     app.register_blueprint(home_bp, url_prefix='/') #主頁
 

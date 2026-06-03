@@ -35,18 +35,21 @@ def apply(order_id):
         flash("找不到該訂單，或該訂單目前狀態無法申請退貨")
         return redirect(url_for('customer.customer_order.order_list'))
 
-    # 2. 檢查是否已經申請過退貨 (簡化邏輯：一筆訂單目前僅限一次退貨申請)
-    cursor.execute("SELECT id FROM return_request WHERE order_id = %s", (order_id,))
-    if cursor.fetchone():
-        cursor.close()
-        conn.close()
-        flash("該訂單已有退貨申請記錄")
-        return redirect(url_for('customer.customer_order.order_view', id=order_id))
+    # 2. 移除單一訂單僅限一次退貨的限制，改為檢查已退貨數量
+    # 檢查該訂單中每個項目的累計退貨數量是否超過原始購買數量
+    cursor.execute("""
+        SELECT oi.id, oi.qty as original_qty, 
+               COALESCE(SUM(ri.qty), 0) as returned_qty
+        FROM order_item oi
+        LEFT JOIN return_item ri ON oi.id = ri.order_item_id
+        LEFT JOIN return_request rr ON ri.return_request_id = rr.id AND rr.status IN ('requested', 'approved', 'refunded')
+        WHERE oi.order_id = %s
+        GROUP BY oi.id
+    """, (order_id,))
+    item_return_status = {row['id']: row for row in cursor.fetchall()}
 
     if request.method == 'POST':
         item_ids = request.form.getlist('item_ids') # order_item.id
-        reasons = request.form.getlist('reasons')
-        qtys = request.form.getlist('qtys')
         overall_reason = request.form.get('overall_reason')
 
         if not item_ids:
@@ -61,10 +64,19 @@ def apply(order_id):
                 """, (order_id, overall_reason, now, now, now))
                 return_request_id = cursor.lastrowid
 
-                # 建立退貨明細
-                for i, oi_id in enumerate(item_ids):
-                    qty = int(qtys[i])
-                    reason = reasons[i]
+                # 建立退貨明細並驗證數量
+                for oi_id in item_ids:
+                    qty = int(request.form.get(f'qty_{oi_id}', 0))
+                    reason = request.form.get(f'reason_{oi_id}', '')
+                    
+                    if qty <= 0:
+                        raise Exception(f"商品 {oi_id} 的退貨數量必須大於 0")
+                    
+                    # 檢查累計退貨量
+                    status_info = item_return_status.get(int(oi_id), {'original_qty': 0, 'returned_qty': 0})
+                    if status_info['returned_qty'] + qty > status_info['original_qty']:
+                        raise Exception(f"商品 {oi_id} 的累計退貨數量超過購買數量")
+
                     cursor.execute("""
                         INSERT INTO return_item (return_request_id, order_item_id, qty, reason, status, created_at, updated_at)
                         VALUES (%s, %s, %s, %s, 'requested', %s, %s)
