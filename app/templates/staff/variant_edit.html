@@ -86,9 +86,9 @@
                             {% endfor %}
                         </select>
                     </td>
-                    <td><input type="number" name="price[]" value="{{ sku.price }}" class="form-control" step="0.01" required></td>
-                    <td><input type="number" name="cost[]" value="{{ sku.cost }}" class="form-control" step="0.01" required></td>
-                    <td><input type="number" name="stock[]" value="{{ sku.stock }}" class="form-control" required></td>
+                    <td><input type="number" name="price[]" value="{{ sku.price }}" class="form-control" step="0.01" min="0" required></td>
+                    <td><input type="number" name="cost[]" value="{{ sku.cost }}" class="form-control" step="0.01" min="0" required></td>
+                    <td><input type="number" name="stock[]" value="{{ sku.stock }}" class="form-control" min="0" required></td>
                     <td><button type="button" class="btn btn-delete" onclick="removeRow(this)">刪除</button></td>
                 </tr>
                 {% endfor %}
@@ -130,9 +130,9 @@
                     <option value="XL">XL</option>
                 </select>
             </td>
-            <td><input type="number" name="price[]" class="form-control" step="0.01" required></td>
-            <td><input type="number" name="cost[]" class="form-control" step="0.01" required></td>
-            <td><input type="number" name="stock[]" class="form-control" required></td>
+            <td><input type="number" name="price[]" class="form-control" step="0.01" min="0" required></td>
+            <td><input type="number" name="cost[]" class="form-control" step="0.01" min="0" required></td>
+            <td><input type="number" name="stock[]" class="form-control" min="0" required></td>
             <td><button type="button" class="btn btn-delete" onclick="removeRow(this)">刪除</button></td>
         `;
     }

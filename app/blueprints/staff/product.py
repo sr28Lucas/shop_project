@@ -296,7 +296,24 @@ def variant_add(product_id):
         conn = get_db_connection()
         cursor = conn.cursor()
         try:
-            # === 新增：防呆檢查 sku_code 是否重複 ===
+            # === 新增：內部分類檢查與值域檢查 ===
+            seen_sku_codes = set()
+            for i in range(len(sku_codes)):
+                sku_code = sku_codes[i]
+                price = float(prices[i])
+                cost = float(costs[i])
+                stock = int(stocks[i])
+
+                if sku_code in seen_sku_codes:
+                    flash(f"新增失敗：表單中包含重複的貨號 '{sku_code}'！")
+                    return redirect(url_for('staff.product.variant_list', product_id=product_id))
+                seen_sku_codes.add(sku_code)
+
+                if price < 0 or cost < 0 or stock < 0:
+                    flash(f"新增失敗：價格、成本與庫存不能為負數！")
+                    return redirect(url_for('staff.product.variant_list', product_id=product_id))
+
+            # === 原有：防呆檢查 sku_code 是否重複於資料庫 ===
             for sku_code in sku_codes:
                 cursor.execute("SELECT id FROM sku WHERE sku_code = %s AND is_active != 0", (sku_code,))
                 if cursor.fetchone():
@@ -375,7 +392,24 @@ def variant_edit(product_id, variant_id):
         delete_image = request.form.get('delete_image') == '1'
         
         try:
-            # === 新增：防呆檢查 sku_code 是否重複 ===
+            # === 新增：內部分類檢查與值域檢查 ===
+            seen_sku_codes = set()
+            for i in range(len(sizes)):
+                sku_code = sku_codes[i]
+                price = float(prices[i])
+                cost = float(costs[i])
+                stock = int(stocks[i])
+
+                if sku_code in seen_sku_codes:
+                    flash(f"修改失敗：表單中包含重複的貨號 '{sku_code}'！")
+                    return redirect(url_for('staff.product.variant_edit', product_id=product_id, variant_id=variant_id))
+                seen_sku_codes.add(sku_code)
+
+                if price < 0 or cost < 0 or stock < 0:
+                    flash(f"修改失敗：價格、成本與庫存不能為負數！")
+                    return redirect(url_for('staff.product.variant_edit', product_id=product_id, variant_id=variant_id))
+
+            # === 原有：防呆檢查 sku_code 是否重複於資料庫 ===
             for i in range(len(sizes)):
                 s_id = int(sku_ids[i]) if (i < len(sku_ids) and sku_ids[i]) else None
                 sku_code = sku_codes[i]

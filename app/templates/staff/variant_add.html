@@ -106,9 +106,9 @@
                     <option value="XL">XL</option>
                 </select>
             </td>
-            <td><input type="number" name="price[]" class="form-control" step="0.01" required placeholder="0.00"></td>
-            <td><input type="number" name="cost[]" class="form-control" step="0.01" required placeholder="0.00"></td>
-            <td><input type="number" name="stock[]" class="form-control" required value="0"></td>
+            <td><input type="number" name="price[]" class="form-control" step="0.01" min="0" required placeholder="0.00"></td>
+            <td><input type="number" name="cost[]" class="form-control" step="0.01" min="0" required placeholder="0.00"></td>
+            <td><input type="number" name="stock[]" class="form-control" min="0" required value="0"></td>
             <td><button type="button" class="btn btn-delete" onclick="removeRow(this)">刪除</button></td>
         `;
     }
