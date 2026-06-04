@@ -111,11 +111,26 @@ def view_cart():
     cart_items = cursor.fetchall()
     
     subtotal = sum(item['qty'] * item['price'] for item in cart_items)
+
+    # === 3. 新增：撈取「大家都在看」的推薦商品 ===
+    recommend_query = """
+        SELECT 
+            p.id, p.name, 
+            (SELECT price FROM sku s JOIN variant v ON s.variant_id = v.id WHERE v.product_id = p.id AND s.is_active != 0 ORDER BY price ASC LIMIT 1) as min_price,
+            (SELECT filename FROM image i WHERE i.product_id = p.id AND i.image_type = 'product' ORDER BY sort_order ASC LIMIT 1) as main_image
+        FROM product p
+        WHERE p.is_active != 0
+        ORDER BY (SELECT COUNT(*) FROM wishlist_item wi WHERE wi.product_id = p.id) DESC
+        LIMIT 4;
+    """
+    cursor.execute(recommend_query)
+    recommended_products = cursor.fetchall()
+    # ==========================================
     
     cursor.close()
     conn.close()
     
-    return render_template('home/cart.html', cart_items=cart_items, subtotal=subtotal)
+    return render_template('home/cart.html', cart_items=cart_items, subtotal=subtotal, recommended_products=recommended_products)
 
 @checkout_bp.route('/add_to_cart', methods=['POST'])
 def add_to_cart():
@@ -511,6 +526,3 @@ def place_order():
 @checkout_bp.route('/complete/<int:order_id>')
 def complete(order_id):
     return render_template('home/complete.html', order_id=order_id)
-
-
-

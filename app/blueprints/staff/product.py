@@ -296,6 +296,14 @@ def variant_add(product_id):
         conn = get_db_connection()
         cursor = conn.cursor()
         try:
+            # === 新增：防呆檢查 sku_code 是否重複 ===
+            for sku_code in sku_codes:
+                cursor.execute("SELECT id FROM sku WHERE sku_code = %s AND is_active != 0", (sku_code,))
+                if cursor.fetchone():
+                    flash(f"新增失敗：貨號 '{sku_code}' 已經存在且正在使用中！")
+                    return redirect(url_for('staff.product.variant_list', product_id=product_id))
+            # ========================================
+
             cursor.execute("INSERT INTO variant (product_id, color, is_active, created_at, updated_at) VALUES (%s, %s, %s, NOW(), NOW())", (product_id, color, is_active))
             variant_id = cursor.lastrowid
             
@@ -367,6 +375,22 @@ def variant_edit(product_id, variant_id):
         delete_image = request.form.get('delete_image') == '1'
         
         try:
+            # === 新增：防呆檢查 sku_code 是否重複 ===
+            for i in range(len(sizes)):
+                s_id = int(sku_ids[i]) if (i < len(sku_ids) and sku_ids[i]) else None
+                sku_code = sku_codes[i]
+                
+                # 如果是修改舊的 SKU，排除自己；如果是新的 SKU，直接查
+                if s_id:
+                    cursor.execute("SELECT id FROM sku WHERE sku_code = %s AND is_active != 0 AND id != %s", (sku_code, s_id))
+                else:
+                    cursor.execute("SELECT id FROM sku WHERE sku_code = %s AND is_active != 0", (sku_code,))
+                    
+                if cursor.fetchone():
+                    flash(f"修改失敗：貨號 '{sku_code}' 已經存在且正在使用中！")
+                    return redirect(url_for('staff.product.variant_edit', product_id=product_id, variant_id=variant_id))
+            # ========================================
+
             cursor.execute("UPDATE variant SET color = %s, is_active = %s, updated_at = NOW() WHERE id = %s", (color, variant_is_active, variant_id))
             
             submitted_sku_ids = []
@@ -441,7 +465,6 @@ def variant_edit(product_id, variant_id):
     return render_template("staff/variant_edit.html", variant=variant, skus=skus, product_id=product_id, image=image)
 
 
-# ====== 新增：單獨軟刪除 Variant (款式) 的路由 ======
 @product_bp.route('/<int:product_id>/variant/<int:variant_id>/delete', methods=['POST'])
 @require_permission('product')
 def variant_delete(product_id, variant_id):
@@ -486,3 +509,41 @@ def sku_delete(sku_id):
         cursor.close()
         conn.close()
     return redirect(url_for('staff.product.variant_list', product_id=product_id))
+
+
+# ====== 新增：後台潛力商品排行榜 (購物車/願望清單分析) ======
+@product_bp.route('/analytics/hot-items')
+@require_permission('product') # 為了讓你們目前開發順暢，先綁定 product 權限，後續可依需求改為 'statistic'
+def hot_items_analytics():
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+    
+    # 撈出尚未下架的商品，並統計它們在 wishlist 和 cart 的熱度
+    query = """
+        SELECT 
+            p.id, 
+            p.name, 
+            c.name as category_name,
+            (SELECT COUNT(*) FROM wishlist_item wi WHERE wi.product_id = p.id) as wishlist_count,
+            COALESCE((
+                SELECT SUM(ci.qty) 
+                FROM cart_item ci 
+                JOIN sku s ON ci.sku_id = s.id 
+                JOIN variant v ON s.variant_id = v.id 
+                WHERE v.product_id = p.id
+            ), 0) as cart_qty
+        FROM product p
+        LEFT JOIN category c ON p.category_id = c.id
+        WHERE p.is_active != 0
+        ORDER BY (wishlist_count + cart_qty) DESC
+        LIMIT 10;
+    """
+    
+    cursor.execute(query)
+    hot_items = cursor.fetchall()
+    
+    cursor.close()
+    conn.close()
+    
+    # 這個路由對應的 HTML 檔案需要你們後續建立 (staff/analytics_hot_items.html)
+    return render_template('staff/analytics_hot_items.html', items=hot_items)

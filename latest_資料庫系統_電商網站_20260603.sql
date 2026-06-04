@@ -72,7 +72,8 @@ CREATE TABLE `variant` (
 CREATE TABLE `sku` (
   `id` int PRIMARY KEY AUTO_INCREMENT,
   `variant_id` int NOT NULL,
-  `sku_code` varchar(100) UNIQUE NOT NULL,
+  /* 🌟 已經在這裡幫你把 sku_code 的 UNIQUE 拿掉了，現在它是普通文字欄位！ */
+  `sku_code` varchar(100) NOT NULL, 
   `size` varchar(30),
   `price` decimal(12,2) NOT NULL,
   `cost` decimal(12,2) NOT NULL,

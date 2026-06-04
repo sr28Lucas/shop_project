@@ -78,35 +78,37 @@
     <div class='card-gap'></div>
     <div class="menu">
         <div class="card">
-   	 <div class="card-header">客服管理</div>
-    	<ul class="card-body">
+     <div class="card-header">客服管理</div>
+        <ul class="card-body">
             {% if role.inquiry %}
-      		  <li><a href="{{ url_for('staff.inquiry.active_list') }}">活躍會話</a></li>
-       		 <li><a href="{{ url_for('staff.inquiry.history_list') }}">客服歷史</a></li>
+              <li><a href="{{ url_for('staff.inquiry.active_list') }}">活躍會話</a></li>
+             <li><a href="{{ url_for('staff.inquiry.history_list') }}">客服歷史</a></li>
             {% else %}
             <li>活躍會話 (無權限)</li>
             <li>客服歷史 (無權限)</li>
             {% endif %}
             {% if role.return %}
-		<li><a href="{{ url_for('staff.staff_return.list_requests') }}">退貨管理</a></li>
+        <li><a href="{{ url_for('staff.staff_return.list_requests') }}">退貨管理</a></li>
             {% else %}
             <li>退貨管理 (無權限)</li>
             {% endif %}
-   	 </ul>
-	</div>
+     </ul>
+    </div>
 
-	<div class="card">
-   		 <div class="card-header">數據統計</div>
-   		 <ul class="card-body">
+    <div class="card">
+         <div class="card-header">數據統計</div>
+         <ul class="card-body">
             {% if role.statistic %}
-      		 <li><a href="{{ url_for('staff.statistic.revenue') }}">營收統計</a></li>
-        	<li><a href="{{ url_for('staff.statistic.sales') }}">銷售分析</a></li>
+             <li><a href="{{ url_for('staff.statistic.revenue') }}">營收統計</a></li>
+            <li><a href="{{ url_for('staff.statistic.sales') }}">銷售分析</a></li>
+            <li><a href="{{ url_for('staff.product.hot_items_analytics') }}">潛力爆款分析</a></li>
             {% else %}
             <li>營收統計 (無權限)</li>
             <li>銷售分析 (無權限)</li>
+            <li>潛力爆款分析 (無權限)</li>
             {% endif %}
-   	   </ul>
-	</div>
+       </ul>
+    </div>
 
         <div class="card">
             <div class="card-header">員工管理</div>
@@ -131,9 +133,6 @@
 
     </div>
 
-
-    
-    
 
 </body>
 </html>

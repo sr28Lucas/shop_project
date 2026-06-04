@@ -59,5 +59,26 @@
     {% else %}
         <p class="empty-cart">購物車目前是空的。</p>
     {% endif %}
-</div>
+
+    {% if recommended_products %}
+    <div class="recommendation-section" style="margin-top: 60px; border-top: 2px solid #eee; padding-top: 30px;">
+        <h3 style="color: #d63384; font-weight: bold; margin-bottom: 20px; font-size: 1.5em;">🔥 大家也都把這些放進購物車：</h3>
+        <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+            {% for prod in recommended_products %}
+            <div style="width: calc(25% - 15px); border: 1px solid #ddd; border-radius: 8px; padding: 10px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); transition: transform 0.2s;">
+                <a href="{{ url_for('home.product_view', id=prod.id) }}" style="text-decoration: none; color: #333;">
+                    {% if prod.main_image %}
+                    <img src="{{ url_for('static', filename='uploads/' + prod.main_image) }}" style="width: 100%; height: 180px; object-fit: cover; border-radius: 4px;">
+                    {% else %}
+                    <div style="width: 100%; height: 180px; background: #f8f9fa; line-height: 180px; color: #aaa; border-radius: 4px;">無圖片</div>
+                    {% endif %}
+                    <h4 style="font-size: 1.1em; margin: 15px 0 5px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ prod.name }}</h4>
+                    <p style="color: #dc3545; font-weight: bold; margin: 0;">NT$ {{ "{:,.0f}".format(prod.min_price or 0) }} 起</p>
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+    </div>
 {% endblock %}
