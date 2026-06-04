@@ -1,15 +1,31 @@
-/* 前台共用樣式 */
-body {
-    font-family: "Microsoft JhengHei", Arial, sans-serif;
-    margin: 0;
-    padding: 0;
-    background-color: #f5f5f5;
-    color: #333;
+/* =========================================
+   1. 基礎設定與字體升級
+========================================= */
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
+
+:root {
+    --brand-color: #d63384; /* 品牌主色：桃紅色 */
+    --brand-hover: #b82770;
+    --text-main: #333333;
+    --text-muted: #777777;
+    --bg-light: #f8f9fa;
 }
 
+body {
+    font-family: 'Noto Sans TC', "Microsoft JhengHei", sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: var(--bg-light);
+    color: var(--text-main);
+}
+
+/* =========================================
+   2. 導覽列 (毛玻璃與絕對置中對齊)
+========================================= */
 header {
-    background: white;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    background: rgba(255, 255, 255, 0.98);
+    backdrop-filter: blur(8px);
+    box-shadow: 0 2px 15px rgba(0,0,0,0.04);
     position: sticky;
     top: 0;
     z-index: 1000;
@@ -19,141 +35,216 @@ header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    max-width: 1200px;
+    max-width: 1400px;
     margin: 0 auto;
-    padding: 15px 20px;
+    padding: 15px 30px;
 }
 
+.logo {
+    flex: 1;
+}
+
+/* ✨ VIVID 漸層 Logo 樣式 ✨ */
 .logo-placeholder {
-    font-size: 24px;
-    font-weight: bold;
-    color: #d63384;
+    font-size: 32px;
+    font-weight: 900;
     text-decoration: none;
+    letter-spacing: 4px;
+    background: linear-gradient(45deg, var(--brand-color), #ff6b6b);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    transition: transform 0.3s ease, filter 0.3s ease;
+    display: inline-block;
 }
 
-.search-bar {
-    flex: 0 1 500px;
+.logo-placeholder:hover {
+    transform: scale(1.05);
+    filter: brightness(1.1);
 }
 
-.search-bar form {
+/* =========================================
+   3. 極簡選單與圖示
+========================================= */
+.header-nav-inline {
+    flex: 1;
     display: flex;
+    justify-content: center;
+}
+
+.header-nav-inline ul {
+    display: flex;
+    list-style: none;
+    gap: 40px;
+    margin: 0;
+    padding: 0;
+}
+
+.header-nav-inline a {
+    text-decoration: none;
+    color: var(--text-main);
+    font-weight: 500;
+    font-size: 15px;
+    letter-spacing: 1px;
+    transition: color 0.3s;
+    position: relative;
+    padding-bottom: 5px;
+}
+
+.header-nav-inline a:hover {
+    color: var(--brand-color);
+}
+
+.header-nav-inline a::after {
+    content: '';
+    position: absolute;
+    width: 0;
+    height: 2px;
+    bottom: 0;
+    left: 50%;
+    background-color: var(--brand-color);
+    transition: all 0.3s ease;
+    transform: translateX(-50%);
+}
+
+.header-nav-inline a:hover::after {
     width: 100%;
 }
 
-.search-bar input {
+.header-icons {
     flex: 1;
-    padding: 10px 15px;
-    border: 2px solid #eee;
-    border-radius: 20px 0 0 20px;
-    outline: none;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 25px;
 }
 
-.search-bar button {
-    padding: 10px 20px;
-    background: #d63384;
-    color: white;
+.minimal-search {
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 5px;
+    margin-right: 15px;
+}
+
+.minimal-search button {
+    background: transparent;
     border: none;
-    border-radius: 0 20px 20px 0;
+    color: var(--text-muted);
     cursor: pointer;
+    font-size: 16px;
+    padding: 0 8px 0 0;
+}
+
+.minimal-search input {
+    border: none;
+    background: transparent;
+    outline: none;
+    width: 120px;
+    font-size: 14px;
+    color: var(--text-main);
+    transition: width 0.4s ease;
+}
+
+.minimal-search input::placeholder {
+    color: #bbb;
+}
+
+.minimal-search input:focus {
+    width: 200px;
+}
+
+.icon-link {
+    color: var(--text-main);
+    font-size: 22px;
+    text-decoration: none;
+    transition: color 0.2s, transform 0.2s;
+}
+
+.icon-link:hover {
+    color: var(--brand-color);
+    transform: translateY(-2px);
 }
 
 .cart-icon {
-    font-size: 24px;
-    text-decoration: none;
     position: relative;
 }
 
 .cart-count {
     position: absolute;
-    top: -10px;
+    top: -6px;
     right: -10px;
-    background: #ff4757;
+    background: var(--brand-color);
     color: white;
-    font-size: 12px;
+    font-size: 11px;
+    font-weight: 700;
     padding: 2px 6px;
     border-radius: 50%;
+    border: 2px solid white;
 }
 
-.header-nav {
-    border-top: 1px solid #f0f0f0;
-    background: #fafafa;
-}
-
-.header-nav ul {
+/* =========================================
+   4. 滿版 Banner 樣式
+========================================= */
+.hero-banner-full {
+    background-image: linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.3)), url('https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?auto=format&fit=crop&w=1920&q=80');
+    background-size: cover;
+    background-position: center;
+    width: 100%;
+    height: 400px;
     display: flex;
+    align-items: center;
     justify-content: center;
-    list-style: none;
-    margin: 0;
-    padding: 0;
+    color: white;
+    text-align: center;
+    margin-bottom: 40px;
 }
 
-.header-nav li a {
-    display: block;
-    padding: 12px 25px;
-    text-decoration: none;
-    color: #555;
-    font-weight: bold;
-    transition: color 0.2s;
+.banner-content h1 {
+    font-size: 3rem;
+    font-weight: 700;
+    letter-spacing: 4px;
+    margin-bottom: 10px;
+    text-shadow: 0 2px 10px rgba(0,0,0,0.3);
 }
 
-.header-nav li a:hover {
-    color: #d63384;
+.banner-content p {
+    font-size: 1.2rem;
+    font-weight: 300;
+    letter-spacing: 2px;
 }
 
+/* =========================================
+   5. 內容區塊與側邊欄
+========================================= */
 .container {
     max-width: 1200px;
-    margin: 20px auto;
+    margin: 30px auto;
     padding: 0 20px;
     min-height: 600px;
 }
 
-/* 願望清單按鈕 */
-.wishlist-btn {
-    background: white;
-    border: 1px solid #ddd;
-    border-radius: 50%;
-    width: 40px;
-    height: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: all 0.2s;
-    font-size: 20px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-}
-
-.wishlist-btn:hover {
-    transform: scale(1.1);
-    box-shadow: 0 3px 8px rgba(0,0,0,0.1);
-}
-
-.wishlist-btn.active {
-    border-color: #ffb6c1;
-    background-color: #fff0f5;
-}
-
-/* 商店佈局 (側邊欄 + 主內容) */
 .shop-container {
     display: flex;
     gap: 30px;
 }
 
 .sidebar {
-    flex: 0 0 200px;
+    flex: 0 0 220px;
     background: white;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    padding: 25px 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.02);
     height: fit-content;
 }
 
 .sidebar-title {
     margin-top: 0;
-    margin-bottom: 15px;
-    font-size: 18px;
-    padding-bottom: 10px;
-    border-bottom: 2px solid #f5f5f5;
+    margin-bottom: 20px;
+    font-size: 16px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
 }
 
 .category-list {
@@ -163,68 +254,64 @@ header {
 }
 
 .category-list li {
-    margin-bottom: 5px;
+    margin-bottom: 8px;
 }
 
 .category-list a {
     display: block;
-    padding: 8px 12px;
+    padding: 10px 15px;
     text-decoration: none;
-    color: #555;
-    border-radius: 4px;
-    transition: all 0.2s;
+    color: var(--text-main);
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    font-weight: 500;
 }
 
 .category-list a:hover {
-    background: #fff0f6;
-    color: #d63384;
+    background: rgba(214, 51, 132, 0.05);
+    color: var(--brand-color);
+    padding-left: 20px;
 }
 
 .category-list a.active {
-    background: #d63384;
+    background: var(--brand-color);
     color: white;
 }
 
+/* =========================================
+   6. 商品卡片 (微浮動與精緻陰影)
+========================================= */
 .main-content {
     flex: 1;
 }
 
-footer {
-    background: #333;
-    color: white;
-    text-align: center;
-    padding: 30px 0;
-    margin-top: 50px;
-}
-
-/* 商品列表網格 */
 .product-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-    gap: 20px;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 25px;
 }
 
 .product-card {
     background: white;
-    border-radius: 8px;
+    border-radius: 12px;
     overflow: hidden;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-    transition: transform 0.2s;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+    transition: all 0.3s ease;
     text-decoration: none;
     color: inherit;
+    display: flex;
+    flex-direction: column;
 }
 
 .product-card:hover {
-    transform: translateY(-5px);
+    transform: translateY(-8px);
+    box-shadow: 0 12px 25px rgba(0,0,0,0.08);
 }
 
 .product-image {
     width: 100%;
-    height: 220px;
-    background-color: #eee;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    height: 260px;
+    background-color: #f8f9fa;
     overflow: hidden;
 }
 
@@ -232,22 +319,119 @@ footer {
     width: 100%;
     height: 100%;
     object-fit: cover;
+    transition: transform 0.5s ease;
+}
+
+.product-card:hover .product-image img {
+    transform: scale(1.05);
 }
 
 .product-info {
-    padding: 15px;
+    padding: 18px;
 }
 
 .product-name {
-    margin: 0 0 10px 0;
-    font-size: 16px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    margin: 0 0 8px 0;
+    font-size: 15px;
+    font-weight: 500;
+    line-height: 1.4;
 }
 
 .product-price {
-    color: #d63384;
-    font-weight: bold;
+    color: var(--brand-color);
+    font-weight: 700;
     font-size: 18px;
+}
+
+/* =========================================
+   7. 願望清單按鈕
+========================================= */
+.wishlist-btn {
+    background: white;
+    border: 1px solid #eee;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 20px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+
+.wishlist-btn:hover {
+    transform: scale(1.1);
+    color: var(--brand-color);
+}
+
+.wishlist-btn.active {
+    border-color: var(--brand-color);
+    background-color: var(--brand-color);
+    color: white;
+}
+
+/* =========================================
+   8. 空狀態與共用按鈕
+========================================= */
+.empty-state {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 80px 20px;
+    color: #a4b0be;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+}
+
+.empty-state i {
+    font-size: 54px;
+    margin-bottom: 20px;
+    color: #dfe4ea;
+}
+
+.empty-state p {
+    font-size: 16px;
+    margin-bottom: 25px;
+    color: var(--text-muted);
+}
+
+.btn-primary {
+    display: inline-block;
+    padding: 10px 30px;
+    background: var(--brand-color);
+    color: white;
+    text-decoration: none;
+    border-radius: 25px;
+    font-weight: 500;
+    transition: background 0.3s, transform 0.2s;
+}
+
+.btn-primary:hover {
+    background: var(--brand-hover);
+    transform: translateY(-2px);
+    color: white;
+}
+
+.empty-image-placeholder {
+    display: flex;
+    height: 260px;
+    align-items: center;
+    justify-content: center;
+    background: #f1f2f6;
+    color: #a4b0be;
+    font-size: 14px;
+}
+
+/* =========================================
+   9. 頁尾
+========================================= */
+footer {
+    background: #222;
+    color: #aaa;
+    text-align: center;
+    padding: 30px 0;
+    margin-top: 60px;
+    font-size: 14px;
 }

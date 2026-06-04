@@ -4,41 +4,62 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}首頁{% endblock %} - 電商網站</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
     <link rel="stylesheet" href="{{ url_for('static', filename='css/home/common.css') }}">
+    
     {% block head %}{% endblock %}
 </head>
 <body>
     <header>
         <div class="header-top">
             <div class="logo">
-                <a href="{{ url_for('home.index') }}" class="logo-placeholder">LOGO</a>
+                <a href="{{ url_for('home.index') }}" class="logo-placeholder">VIVID</a>
             </div>
-            <div class="search-bar">
-                <form action="{{ url_for('home.index') }}" method="GET">
-                    <input type="text" name="q" placeholder="搜尋商品名稱..." value="{{ request.args.get('q', '') }}" >
-                    <button type="submit">搜尋</button>
-                </form>
-            </div>
+            
+            <nav class="header-nav-inline">
+                <ul>
+                    <li><a href="{{ url_for('home.announcements') }}">最新公告</a></li>
+                    <li><a href="{{ url_for('home.index') }}">全系列商品</a></li>
+                </ul>
+            </nav>
+
             <div class="header-icons">
-                <a href="{{ url_for('home.checkout.view_cart') }}" class="cart-icon">
-                    🛒 <span class="cart-count">{{ cart_count }}</span>
+                <form action="{{ url_for('home.index') }}" method="GET" class="minimal-search">
+                    <button type="submit"><i class="fa-solid fa-magnifying-glass"></i></button>
+                    <input type="text" name="q" placeholder="搜尋商品..." value="{{ request.args.get('q', '') }}">
+                </form>
+
+                {% if session.get('customer_id') %}
+                    <a href="{{ url_for('customer.center') }}" class="icon-link" title="會員中心">
+                        <i class="fa-regular fa-user"></i>
+                    </a>
+                    <a href="{{ url_for('auth.logout') }}" class="icon-link" title="登出" style="font-size: 16px;">
+                        <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                    </a>
+                {% else %}
+                    <a href="{{ url_for('auth.login') }}" class="icon-link" title="登入/註冊">
+                        <i class="fa-regular fa-user"></i>
+                    </a>
+                {% endif %}
+                
+                <a href="{{ url_for('home.wishlist.index') }}" class="icon-link" title="願望清單">
+                    <i class="fa-regular fa-heart"></i>
+                </a>
+                
+                <a href="{{ url_for('home.checkout.view_cart') }}" class="icon-link cart-icon" title="購物車">
+                    <i class="fa-solid fa-bag-shopping"></i>
+                    <span class="cart-count">{{ cart_count|default(0) }}</span>
                 </a>
             </div>
         </div>
-        <nav class="header-nav">
-            <ul>
-                <li><a href="{{ url_for('home.announcements') }}">公告</a></li>
-                <li><a href="{{ url_for('home.index') }}">商品瀏覽</a></li>
-                <li><a href="{{ url_for('home.wishlist.index') }}">願望清單</a></li>
-                <li><a href="{{ url_for('customer.center') }}">顧客中心</a></li>
-                {% if session.get('customer_id') %}
-                    <li><a href="{{ url_for('auth.logout') }}">登出 ({{ session.get('customer_name', '會員') }})</a></li>
-                {% else %}
-                    <li><a href="{{ url_for('auth.login') }}">登入/註冊</a></li>
-                {% endif %}
-            </ul>
-        </nav>
     </header>
+
+    {% block full_width_banner %}{% endblock %}
 
     <main class="container">
         {% block content %}{% endblock %}
