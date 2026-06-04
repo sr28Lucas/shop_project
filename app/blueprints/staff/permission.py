@@ -1,34 +1,38 @@
-from flask import session, redirect, url_for, flash
+from flask import session, redirect, url_for, flash, g
 from app.db import get_db_connection
+
+def get_staff_role():
+    if 'staff_role' not in g:
+        staff_id = session.get('staff_id')
+        if not staff_id:
+            return None
+        
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+        
+        # 取得員工角色 ID
+        cursor.execute("SELECT role_id FROM staff WHERE id = %s", (staff_id,))
+        staff = cursor.fetchone()
+        
+        if not staff:
+            cursor.close()
+            conn.close()
+            return None
+            
+        # 取得角色權限
+        cursor.execute("SELECT * FROM role WHERE id = %s", (staff['role_id'],))
+        g.staff_role = cursor.fetchone()
+        
+        cursor.close()
+        conn.close()
+    return g.staff_role
 
 def check_permission(permission_name):
     """
     檢查當前登入的 staff 是否具備特定權限
     permission_name: role 資料表中的欄位名稱 (如: 'member', 'orders', 'product'...)
     """
-    staff_id = session.get('staff_id')
-    if not staff_id:
-        return False
-    
-    conn = get_db_connection()
-    cursor = conn.cursor(dictionary=True)
-    
-    # 取得員工角色 ID
-    cursor.execute("SELECT role_id FROM staff WHERE id = %s", (staff_id,))
-    staff = cursor.fetchone()
-    
-    if not staff:
-        cursor.close()
-        conn.close()
-        return False
-        
-    # 檢查角色權限
-    cursor.execute(f"SELECT `{permission_name}` FROM role WHERE id = %s", (staff['role_id'],))
-    role = cursor.fetchone()
-    
-    cursor.close()
-    conn.close()
-    
+    role = get_staff_role()
     return role and role.get(permission_name) == 1
 
 def require_permission(permission_name):

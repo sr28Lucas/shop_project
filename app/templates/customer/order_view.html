@@ -11,7 +11,14 @@
         <h1>訂單詳情 #{{ order.id }}</h1>
         <div class="action-bar" style="margin-bottom: 20px;">
             <a href="{{ url_for('customer.customer_order.order_list') }}" class="btn btn-outline">← 返回列表</a>
-            {% if order.status in ('shipped', 'completed') %}
+            {% set can_return = namespace(value=false) %}
+            {% for item in items %}
+                {# 判斷是否有尚未申請退貨的餘額 #}
+                {% if item.qty - item.requested_qty > 0 %}
+                    {% set can_return.value = true %}
+                {% endif %}
+            {% endfor %}
+            {% if order.status == 'completed' and can_return.value %}
                 <a href="{{ url_for('customer.customer_return.apply', order_id=order.id) }}" class="btn btn-primary" style="background: #e67e22; color: white; padding: 8px 15px; border-radius: 4px; text-decoration: none; margin-left: 10px;">申請退貨</a>
             {% endif %}
         </div>
@@ -50,7 +57,8 @@
                     <tr style="border-bottom: 2px solid #eee;">
                         <th style="padding: 10px; text-align: left;">商品名稱</th>
                         <th style="padding: 10px; text-align: left;">規格</th>
-                        <th style="padding: 10px; text-align: center;">數量</th>
+                        <th style="padding: 10px; text-align: center;">購買數量</th>
+                        <th style="padding: 10px; text-align: center;">已退數量</th>
                         <th style="padding: 10px; text-align: right;">成交單價</th>
                     </tr>
                 </thead>
@@ -58,8 +66,9 @@
                     {% for item in items %}
                     <tr style="border-bottom: 1px solid #eee;">
                         <td style="padding: 10px;">{{ item.product_name }}</td>
-                        <td style="padding: 10px;">{{ item.variant_name }} / {{ item.size }} / {{ item.color }}</td>
+                        <td style="padding: 10px;">{{ item.color }} / {{ item.size }}</td>
                         <td style="padding: 10px; text-align: center;">{{ item.qty }}</td>
+                        <td style="padding: 10px; text-align: center;">{{ item.returned_qty }}</td>
                         <td style="padding: 10px; text-align: right;">${{ "{:,.0f}".format(item.unit_price) }}</td>
                     </tr>
                     {% else %}

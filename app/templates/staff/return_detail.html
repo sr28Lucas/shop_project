@@ -76,7 +76,7 @@
                 {% for item in items %}
                 <tr>
                     <td>{{ item.product_name }}</td>
-                    <td>{{ item.variant_name }} / {{ item.size }} / {{ item.color }}</td>
+                    <td>{{ item.color }} / {{ item.size }}</td>
                     <td>{{ item.qty }}</td>
                     <td>${{ "{:,.0f}".format(item.unit_price) }}</td>
                     <td>{{ item.reason or '-' }}</td>
@@ -97,17 +97,17 @@
                     請審核此退貨申請，核准後將進入等待退款狀態。
                 </div>
                 <form action="{{ url_for('staff.staff_return.approve', id=return_req.id) }}" method="post">
-                    <button type="submit" class="btn btn-green">✅ 核准申請</button>
+                    <button type="submit" class="btn btn-green">核准申請</button>
                 </form>
                 <form action="{{ url_for('staff.staff_return.reject', id=return_req.id) }}" method="post">
-                    <button type="submit" class="btn btn-red" onclick="return confirm('確定要拒絕此申請嗎？')">❌ 拒絕申請</button>
+                    <button type="submit" class="btn btn-red" onclick="return confirm('確定要拒絕此申請嗎？')">拒絕申請</button>
                 </form>
             {% elif return_req.status == 'approved' %}
                 <div style="margin-right: auto; color: #666;">
                     申請已核准，請確認已收到退貨或已完成手續後點擊下方按鈕執行退款。
                 </div>
                 <form action="{{ url_for('staff.staff_return.complete', id=return_req.id) }}" method="post">
-                    <button type="submit" class="btn btn-blue" onclick="return confirm('確定要執行退款並回補庫存嗎？此操作不可撤回。')">💰 確認退款並入庫</button>
+                    <button type="submit" class="btn btn-blue" onclick="return confirm('確定要執行退款並回補庫存嗎？此操作不可撤回。')">確認退款並入庫</button>
                 </form>
             {% else %}
                 <div style="color: #666;">

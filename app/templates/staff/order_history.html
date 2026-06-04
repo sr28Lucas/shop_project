@@ -114,7 +114,7 @@
             <th>總金額</th>
             <th>出貨狀態</th>
             <th>訂單狀態</th>
-            <th>建立時間</th>
+            <th style="width: 120px;">建立時間</th>
             <th>操作</th>
         </tr>
     </thead>
@@ -150,16 +150,17 @@
                 {% endif %}
             </td>
 
-            <td>{{ order.created_at.strftime('%Y-%m-%d %H:%M') if order.created_at else '-' }}</td>
+            <td style="width: 120px; white-space: nowrap;">{{ order.created_at.strftime('%Y-%m-%d %H:%M') if order.created_at else '-' }}</td>
 
-            <td class="actions">
-                {% if order.status == 'shipped' or order.shipment_status == 'shipped' %}
-                    <form method="post" action="{{ url_for('staff.order.deliver_order', id=order.id) }}">
-                        <button type="submit" class="btn btn-green">完成送達</button>
-                    </form>
-                {% else %}
-                    -
-                {% endif %}
+            <td class="actions" style="width: 200px; white-space: nowrap;">
+                <a href="{{ url_for('staff.order.order_detail', id=order.id) }}" class="btn btn-blue" style="margin-right: 5px;">查看明細</a>
+                <span style="display: inline-block; width: 85px;">
+                    {% if order.status == 'shipped' or order.shipment_status == 'shipped' %}
+                        <form method="post" action="{{ url_for('staff.order.deliver_order', id=order.id) }}" style="display: inline-block;">
+                            <button type="submit" class="btn btn-green">完成送達</button>
+                        </form>
+                    {% endif %}
+                </span>
             </td>
         </tr>
     {% else %}

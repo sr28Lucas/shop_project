@@ -2,26 +2,16 @@
 <html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
-    <title>修改訂單 #{{ order.id }} - 後臺系統</title>
+    <title>訂單詳情 #{{ order.id }} - 後臺系統</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/staff/common.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/staff/product_list.css') }}">
 </head>
 <body>
-    <h1>修改訂單 #{{ order.id }}</h1>
+    <h1>訂單詳情 #{{ order.id }}</h1>
     
     <div class="action-bar">
-        <a href="{{ url_for('staff.order.order_list') }}" class="btn" style="background: #6c757d; color: white;">← 返回列表</a>
+        <a href="{{ url_for('staff.order.order_history') }}" class="btn" style="background: #6c757d; color: white;">← 返回歷史紀錄</a>
     </div>
-
-    {% with messages = get_flashed_messages() %}
-      {% if messages %}
-        <div style="background: #d4edda; color: #155724; padding: 10px; border-radius: 5px; margin-bottom: 20px; border: 1px solid #c3e6cb;">
-        {% for message in messages %}
-          {{ message }}
-        {% endfor %}
-        </div>
-      {% endif %}
-    {% endwith %}
 
     <div class="card">
         <h3>顧客資訊</h3>
@@ -38,8 +28,8 @@
                     <th>商品名稱</th>
                     <th>規格</th>
                     <th>數量</th>
+                    <th>已退數量</th>
                     <th>價格</th>
-                    <th>操作</th>
                 </tr>
             </thead>
             <tbody>
@@ -48,13 +38,8 @@
                     <td>{{ item.product_name }}</td>
                     <td>{{ item.color }} / {{ item.size }}</td>
                     <td>{{ item.qty }}</td>
+                    <td>{{ item.returned_qty }}</td>
                     <td>{{ item.unit_price }}</td>
-                    <td>
-                        <form action="{{ url_for('staff.order.order_edit', id=order.id) }}" method="POST" onsubmit="return confirm('確定要刪除此訂單項目嗎？')">
-                            <input type="hidden" name="item_id" value="{{ item.id }}">
-                            <button type="submit" class="btn btn-delete">刪除項目</button>
-                        </form>
-                    </td>
                 </tr>
                 {% else %}
                 <tr>
@@ -63,8 +48,6 @@
                 {% endfor %}
             </tbody>
         </table>
-    </div>
-
     </div>
 </body>
 </html>

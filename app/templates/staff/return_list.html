@@ -63,16 +63,16 @@
                     <td>{{ ret.created_at.strftime('%Y-%m-%d %H:%M') if ret.created_at else '-' }}</td>
                     <td>
                         <span class="status-tag {{ ret.status }}">
-                            {% if ret.status == 'requested' %}⏳ 待審核
-                            {% elif ret.status == 'approved' %}✅ 已核准
-                            {% elif ret.status == 'rejected' %}❌ 已拒絕
-                            {% elif ret.status == 'refunded' %}💰 已退款
+                            {% if ret.status == 'requested' %}待審核
+                            {% elif ret.status == 'approved' %}已核准
+                            {% elif ret.status == 'rejected' %}已拒絕
+                            {% elif ret.status == 'refunded' %}已退款
                             {% else %}{{ ret.status }}{% endif %}
                         </span>
                     </td>
-                    <td>
-                        <a href="{{ url_for('staff.staff_return.detail', id=ret.id) }}" class="btn btn-blue">🔍 查看詳情</a>
-                    </td>
+                            <td>
+                            <a href="{{ url_for('staff.staff_return.detail', id=ret.id) }}" class="btn btn-blue">查看詳情</a>
+                            </td>
                 </tr>
                 {% else %}
                 <tr>

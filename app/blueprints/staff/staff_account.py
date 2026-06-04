@@ -70,7 +70,21 @@ def staff_edit(id):
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
     
+    cursor.execute("SELECT * FROM staff WHERE id = %s", (id,))
+    staff = cursor.fetchone()
+    
+    if not staff:
+        cursor.close()
+        conn.close()
+        flash('找不到員工')
+        return redirect(url_for('staff.staff_account.staff_list'))
+
     if request.method == 'POST':
+        # Root 帳號保護：禁止編輯
+        if staff['email'] == 'root@root':
+            flash('Root 帳號資料受保護，無法編輯。')
+            return redirect(url_for('staff.staff_account.staff_list'))
+
         name = request.form.get('name')
         phone = request.form.get('phone')
         role_id = request.form.get('role_id')
@@ -98,6 +112,7 @@ def staff_edit(id):
                 """, (name, phone, role_id, is_active, datetime.now(), id))
             conn.commit()
             flash('員工帳號更新成功')
+                
         except Exception as e:
             conn.rollback()
             flash(f'更新失敗: {e}')
@@ -106,15 +121,9 @@ def staff_edit(id):
             conn.close()
         return redirect(url_for('staff.staff_account.staff_list'))
 
-    cursor.execute("SELECT * FROM staff WHERE id = %s", (id,))
-    staff = cursor.fetchone()
     cursor.execute("SELECT * FROM role")
     roles = cursor.fetchall()
     cursor.close()
     conn.close()
-    
-    if not staff:
-        flash('找不到員工')
-        return redirect(url_for('staff.staff_account.staff_list'))
         
     return render_template('staff/staff_edit.html', staff=staff, roles=roles)

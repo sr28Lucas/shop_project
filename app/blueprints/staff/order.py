@@ -488,3 +488,39 @@ def order_edit(id):
     conn.close()
 
     return render_template('staff/order_edit.html', order=order, items=items)
+
+@order_bp.route('/detail/<int:id>')
+@require_permission('orders')
+def order_detail(id):
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    cursor.execute("""
+        SELECT 
+            o.*,
+            c.name AS customer_name,
+            COALESCE(s.status, 'pending') AS shipment_status
+        FROM orders o
+        LEFT JOIN customer c ON o.customer_id = c.id
+        LEFT JOIN shipment s ON o.id = s.order_id
+        WHERE o.id = %s
+        LIMIT 1
+    """, (id,))
+    order = cursor.fetchone()
+
+    # 獲取訂單項目，並計算已退貨數量 (僅統計狀態為 'refunded' 的項目)
+    cursor.execute("""
+        SELECT oi.*, 
+               COALESCE(SUM(CASE WHEN rr.status = 'refunded' THEN ri.qty ELSE 0 END), 0) as returned_qty
+        FROM order_item oi
+        LEFT JOIN return_item ri ON oi.id = ri.order_item_id
+        LEFT JOIN return_request rr ON ri.return_request_id = rr.id
+        WHERE oi.order_id = %s
+        GROUP BY oi.id
+    """, (id,))
+    items = cursor.fetchall()
+
+    cursor.close()
+    conn.close()
+
+    return render_template('staff/order_detail.html', order=order, items=items)
