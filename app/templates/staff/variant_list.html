@@ -34,8 +34,16 @@
                 <span class="status-badge status-inactive" style="background: #fff1f0; color: #dc3545; padding: 3px 10px; border-radius: 12px; font-size: 0.9em; border: 1px solid #dc3545;">未上架</span>
                 {% endif %}
             </div>
-            <a href="{{ url_for('staff.product.variant_edit', product_id=product_id, variant_id=variant.id) }}" class="btn btn-edit">修改此顏色規格</a>
+            
+            <div style="display: flex; gap: 10px; align-items: center;">
+                <a href="{{ url_for('staff.product.variant_edit', product_id=product_id, variant_id=variant.id) }}" class="btn btn-edit">修改此顏色規格</a>
+                
+                <form action="{{ url_for('staff.product.variant_delete', product_id=product_id, variant_id=variant.id) }}" method="POST" style="margin: 0;" onsubmit="return confirm('確定要下架此款式與所有相關尺寸嗎？');">
+                    <button type="submit" class="btn btn-delete" style="background: #dc3545; color: white; padding: 6px 12px; border: none; border-radius: 4px; cursor: pointer;">刪除款式</button>
+                </form>
+            </div>
         </div>
+        
         <table class="product-table">
             <thead>
                 <tr>
@@ -56,7 +64,7 @@
                     <td>${{ "{:,.2f}".format(sku.price or 0) }}</td>
                     <td>{{ sku.stock or 0 }}</td>
                     <td>
-                        <form action="{{ url_for('staff.product.sku_delete', sku_id=sku.id) }}" method="POST" onsubmit="return confirm('確定刪除此尺寸？');">
+                        <form action="{{ url_for('staff.product.sku_delete', sku_id=sku.id) }}" method="POST" style="margin: 0;" onsubmit="return confirm('確定刪除此尺寸？');">
                             <button type="submit" class="btn btn-delete">刪除</button>
                         </form>
                     </td>
