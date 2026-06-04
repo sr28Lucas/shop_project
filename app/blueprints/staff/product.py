@@ -14,9 +14,7 @@ def product_list():
     category_id = request.args.get('category_id')
     is_active = request.args.get('is_active')
     
-    # 【修復問題1】: 預設只顯示未被軟刪除的商品 (is_active != 0)
-    # 這裡我們用 p.is_active != 0 而不是 p.is_active = 1，是因為有時候商品可能只是「下架(2)」，但不是被「刪除(0)」
-    # 為了簡化，只要不是 0 (被刪除) 就抓出來。
+    # 預設只顯示未被軟刪除的商品 (is_active != 0)
     query = """
     SELECT p.*, c.name as category_name
     FROM product p 
@@ -279,6 +277,7 @@ def variant_list(product_id):
     conn.close()
     return render_template("staff/variant_list.html", product_id=product_id, product_name=product['name'] if product else "未知商品", variants=variants)
 
+
 @product_bp.route('/<int:product_id>/variant/add', methods=['GET', 'POST'])
 @require_permission('product')
 def variant_add(product_id):
@@ -338,6 +337,7 @@ def variant_add(product_id):
             conn.close()
     return render_template('staff/variant_add.html', product_id=product_id)
 
+
 @product_bp.route('/<int:product_id>/variant/<int:variant_id>/edit', methods=['GET', 'POST'])
 @require_permission('product')
 def variant_edit(product_id, variant_id):
@@ -394,7 +394,7 @@ def variant_edit(product_id, variant_id):
                     """, (variant_id, sku_code, size, price, cost, stock, is_active, now, now))
                     submitted_sku_ids.append(cursor.lastrowid)
             
-            # 【修復問題2】: 移除 SKU 改為軟刪除
+            # 移除 SKU 改為軟刪除
             if submitted_sku_ids:
                 format_strings = ','.join(['%s'] * len(submitted_sku_ids))
                 cursor.execute(f"UPDATE sku SET is_active = 0 WHERE variant_id = %s AND id NOT IN ({format_strings})", [variant_id] + submitted_sku_ids)
@@ -441,6 +441,30 @@ def variant_edit(product_id, variant_id):
     return render_template("staff/variant_edit.html", variant=variant, skus=skus, product_id=product_id, image=image)
 
 
+# ====== 新增：單獨軟刪除 Variant (款式) 的路由 ======
+@product_bp.route('/<int:product_id>/variant/<int:variant_id>/delete', methods=['POST'])
+@require_permission('product')
+def variant_delete(product_id, variant_id):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    try:
+        # 軟刪除：先隱藏該款式下的所有尺寸 (SKU)
+        cursor.execute("UPDATE sku SET is_active = 0 WHERE variant_id = %s", (variant_id,))
+        # 再隱藏該款式 (Variant)
+        cursor.execute("UPDATE variant SET is_active = 0 WHERE id = %s AND product_id = %s", (variant_id, product_id))
+        
+        conn.commit()
+        flash("款式已成功刪除（下架）")
+    except Exception as e:
+        conn.rollback()
+        flash(f"刪除款式失敗: {str(e)}")
+    finally:
+        cursor.close()
+        conn.close()
+        
+    return redirect(url_for('staff.product.variant_list', product_id=product_id))
+
+
 @product_bp.route('/sku/delete/<int:sku_id>', methods=['POST'])
 @require_permission('product')
 def sku_delete(sku_id):
@@ -452,7 +476,7 @@ def sku_delete(sku_id):
     product_id = cursor.fetchone()['product_id']
     
     try:
-        # 【修復問題3】: 獨立刪除 SKU 改為軟刪除
+        # 獨立刪除 SKU 改為軟刪除
         cursor.execute("UPDATE sku SET is_active = 0 WHERE id = %s", (sku_id,))
         conn.commit()
     except Exception as e:
