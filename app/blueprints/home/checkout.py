@@ -304,7 +304,7 @@ def information():
 @checkout_bp.route('/payment', methods=['GET', 'POST'])
 def payment():
     if 'customer_id' not in session or 'checkout_info' not in session:
-        return redirect(url_for('checkout.information'))
+        return redirect(url_for('home.checkout.information'))
     
     cart_id = get_active_cart(session['customer_id'])
     
