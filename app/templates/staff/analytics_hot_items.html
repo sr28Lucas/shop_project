@@ -4,33 +4,92 @@
     <meta charset="UTF-8">
     <title>潛力商品數據分析</title>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f6f9; padding: 20px; }
-        .dashboard-container { background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); max-width: 1000px; margin: 0 auto; }
-        h1 { color: #333; margin-top: 0; }
-        .action-bar { margin-bottom: 20px; }
-        .btn { display: inline-block; padding: 10px 20px; background: #6c757d; color: white; text-decoration: none; border-radius: 5px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { padding: 15px; text-align: center; border-bottom: 1px solid #ddd; }
-        th { background-color: #f8f9fa; color: #495057; font-weight: bold; }
-        tr:hover { background-color: #f1f3f5; }
-        .rank-badge { background: #ffc107; color: #000; padding: 5px 10px; border-radius: 50%; font-weight: bold; }
+        body {
+            font-family: Arial, "Microsoft JhengHei", sans-serif;
+            background: #f5f6f8;
+            padding: 30px 60px;
+            color: #24384a;
+        }
+
+        h1 {
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 8px 14px;
+            border-radius: 4px;
+            background: #5f6b75;
+            color: white;
+            text-decoration: none;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn-blue {
+            background: #007bff;
+        }
+
+        .section {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 12px;
+        }
+
+        th, td {
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+            text-align: left;
+        }
+
+        th {
+            background: #f0f2f4;
+        }
+
+        .nav {
+            margin-bottom: 18px;
+        }
+
+        .nav a {
+            margin-right: 8px;
+        }
+        
+        .rank-badge {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            line-height: 24px;
+            text-align: center;
+            border-radius: 50%;
+            background: #e9ecef;
+            font-weight: bold;
+        }
         .rank-1 { background: #dc3545; color: white; }
         .rank-2 { background: #fd7e14; color: white; }
         .rank-3 { background: #20c997; color: white; }
-        .heat-bar { background: #e9ecef; border-radius: 10px; height: 10px; width: 100%; margin-top: 5px; overflow: hidden; }
-        .heat-fill { background: #0d6efd; height: 100%; }
     </style>
 </head>
 <body>
 
-<div class="dashboard-container">
-    <div class="action-bar">
-        <a href="{{ url_for('staff.product.product_list') }}" class="btn">← 返回商品管理</a>
-    </div>
+<h1>潛力爆款分析</h1>
 
-    <h1>📊 全站潛力爆款排行榜 (Top 10)</h1>
+<div class="nav">
+    <a href="{{ url_for('staff.dashboard') }}" class="btn">← 返回儀表板</a>
+    <a href="{{ url_for('staff.statistic.revenue') }}" class="btn btn-blue">營收統計</a>
+    <a href="{{ url_for('staff.statistic.sales') }}" class="btn btn-blue">銷售分析</a>
+</div>
+
+<div class="section">
+    <h2>全站潛力爆款排行榜 (Top 10)</h2>
     <p style="color: #666;">系統綜合分析了「願望清單收藏數」與「加入購物車數量」，找出了目前站內最具潛力的熱門單品。</p>
-
     <table>
         <thead>
             <tr>
@@ -50,20 +109,15 @@
                         {{ loop.index }}
                     </span>
                 </td>
-                <td style="text-align: left; font-weight: bold;">{{ item.name }}</td>
+                <td style="font-weight: bold;">{{ item.name }}</td>
                 <td>{{ item.category_name or '未分類' }}</td>
-                <td style="color: #e83e8c;">❤ {{ item.wishlist_count }} 次</td>
-                <td style="color: #0d6efd;">🛒 {{ item.cart_qty }} 件</td>
-                <td>
-                    <div style="font-weight: bold; font-size: 1.2em;">{{ item.wishlist_count + item.cart_qty }}</div>
-                    <div class="heat-bar">
-                        <div class="heat-fill" style="width: {{ (((item.wishlist_count + item.cart_qty) / (items[0].wishlist_count + items[0].cart_qty)) * 100) if (items[0].wishlist_count + items[0].cart_qty) > 0 else 0 }}%;"></div>
-                    </div>
-                </td>
+                <td style="color: #e83e8c;">{{ item.wishlist_count }}</td>
+                <td style="color: #0d6efd;">{{ item.cart_qty }}</td>
+                <td>{{ item.wishlist_count + item.cart_qty }}</td>
             </tr>
             {% else %}
             <tr>
-                <td colspan="6" style="padding: 30px; color: #999;">目前還沒有任何商品被加入購物車或願望清單喔！</td>
+                <td colspan="6" style="text-align:center;">目前還沒有任何商品被加入購物車或願望清單喔！</td>
             </tr>
             {% endfor %}
         </tbody>
