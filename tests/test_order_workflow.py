@@ -39,3 +39,24 @@ def test_order_status_update(client, auth_staff, test_order):
     assert order['status'] == 'shipped'
     cursor.close()
     conn.close()
+
+def test_invalid_order_status_transition(client, auth_staff, test_order):
+    """測試無效的訂單狀態轉換：嘗試對已完成的訂單進行出貨"""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("UPDATE orders SET status = 'completed' WHERE id = %s", (test_order['order_id'],))
+    conn.commit()
+    cursor.close()
+    conn.close()
+    
+    # 嘗試出貨，應該要失敗 (預期應導向或回傳錯誤訊息)
+    response = client.post(f'/staff/order/ship/{test_order["order_id"]}', follow_redirects=True)
+    assert response.status_code == 200 # 假設 UI 是用 flash 訊息提示
+    
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute("SELECT status FROM orders WHERE id = %s", (test_order['order_id'],))
+    order = cursor.fetchone()
+    assert order['status'] == 'completed' # 狀態應未改變
+    cursor.close()
+    conn.close()

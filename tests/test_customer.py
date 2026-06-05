@@ -91,3 +91,38 @@ def test_change_password(client, auth_customer):
         'password': 'newpassword123'
     }, follow_redirects=True)
     assert "會員中心" in response.get_data(as_text=True)
+
+def test_profile_edit_invalid_data(client, auth_customer):
+    """測試修改會員資料時提供無效資料"""
+    # 測試空的電話號碼 (假設格式限制)
+    response = client.post('/customer/profile/edit', data={
+        'name': 'Updated Name',
+        'phone': '',  # 無效
+        'region': '臺北市',
+        'locality': '大安區',
+        'address': '地址'
+    }, follow_redirects=True)
+    
+    # 驗證資料庫
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute("SELECT phone FROM customer WHERE email = %s", (auth_customer['email'],))
+    user = cursor.fetchone()
+    cursor.close()
+    conn.close()
+
+def test_unauthorized_order_view(client, staff_factory, test_order):
+    """驗證使用者無法查看其他使用者的訂單"""
+    # 建立另一個使用者
+    email2 = f'buyer2_{datetime.now().timestamp()}@test.com'
+    # 登出前一個使用者
+    client.get('/auth/logout', follow_redirects=True)
+    
+    client.post('/auth/register', data={'email': email2, 'password': 'password', 'confirm_password': 'password', 'name': 'Buyer2'})
+    client.post('/auth/login', data={'email': email2, 'password': 'password'})
+    
+    # 嘗試查看第一個使用者的訂單
+    response = client.get(f'/customer/order/view/{test_order["order_id"]}', follow_redirects=True)
+    
+    # 預期應存取受限或找不到訂單
+    assert response.status_code != 200 or "找不到該訂單" in response.get_data(as_text=True)

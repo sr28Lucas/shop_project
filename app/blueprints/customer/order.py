@@ -49,7 +49,7 @@ def order_view(id):
         cursor.close()
         conn.close()
         flash("找不到該訂單")
-        return redirect(url_for('customer_order.order_list'))
+        return redirect(url_for('customer.customer_order.order_list'))
         
     # 獲取訂單項目，並計算已申請退貨數量 (排除已拒絕的) 與已退款數量
     cursor.execute("""
