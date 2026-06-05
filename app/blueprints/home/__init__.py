@@ -84,6 +84,36 @@ def index():
     conn.close()
     return render_template('home/index.html', products=products, categories=categories, current_cat_id=cat_id, current_category_name=current_category_name)
 
+@home_bp.route('/hot_items')
+def hot_items():
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+    
+    # 獲取熱銷商品 (前10名，依據過去7天銷售量，同名次按ID序)
+    cursor.execute("""
+        SELECT 
+            p.id, p.name, 
+            MIN(s.price) as min_price, 
+            MAX(s.price) as max_price,
+            (SELECT filename FROM image WHERE product_id = p.id AND image_type = 'product' ORDER BY sort_order ASC LIMIT 1) as main_image,
+            SUM(oi.qty) as total_sold
+        FROM product p
+        JOIN order_item oi ON p.id = oi.product_id
+        JOIN orders o ON oi.order_id = o.id
+        LEFT JOIN variant v ON p.id = v.product_id
+        LEFT JOIN sku s ON v.id = s.variant_id
+        WHERE p.is_active = 1
+          AND o.created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)
+        GROUP BY p.id
+        ORDER BY total_sold DESC, p.id ASC
+        LIMIT 10
+    """)
+    items = cursor.fetchall()
+    
+    cursor.close()
+    conn.close()
+    return render_template('home/hot_items.html', items=items)
+
 @home_bp.route('/announcements')
 def announcements():
     conn = get_db_connection()
