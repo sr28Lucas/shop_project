@@ -57,7 +57,7 @@
                 <td>
                     <div style="font-weight: bold; font-size: 1.2em;">{{ item.wishlist_count + item.cart_qty }}</div>
                     <div class="heat-bar">
-                        <div class="heat-fill" style="width: {{ ((item.wishlist_count + item.cart_qty) / (items[0].wishlist_count + items[0].cart_qty)) * 100 }}%;"></div>
+                        <div class="heat-fill" style="width: {{ (((item.wishlist_count + item.cart_qty) / (items[0].wishlist_count + items[0].cart_qty)) * 100) if (items[0].wishlist_count + items[0].cart_qty) > 0 else 0 }}%;"></div>
                     </div>
                 </td>
             </tr>

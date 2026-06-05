@@ -187,7 +187,6 @@ header {
    4. 滿版 Banner 樣式
 ========================================= */
 .hero-banner-full {
-    background-image: linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.3)), url('https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?auto=format&fit=crop&w=1920&q=80');
     background-size: cover;
     background-position: center;
     width: 100%;
