@@ -11,7 +11,7 @@
     <div class="top-bar">
         <label>當前用戶 : {{user.name if user.name else "姓名讀取失敗"}}</label>
         <label>職位 : {{role.name if role.name else "職位讀取失敗"}}</label>
-        <a href="{{ url_for('auth.staff_logout') }}">
+        <a href="{{ url_for('auth.staff_logout') }}" onclick="return confirm('確定要登出管理系統嗎？');">
             <button type="button">登出</button>
         </a>
     </div>

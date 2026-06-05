@@ -38,7 +38,7 @@
                     <a href="{{ url_for('customer.center') }}" class="icon-link" title="會員中心">
                         <i class="fa-regular fa-user"></i>
                     </a>
-                    <a href="{{ url_for('auth.logout') }}" class="icon-link" title="登出" style="font-size: 16px;">
+                    <a href="{{ url_for('auth.logout') }}" onclick="return confirm('確定要登出嗎？');" class="icon-link" title="登出" style="font-size: 16px;">
                         <i class="fa-solid fa-arrow-right-from-bracket"></i>
                     </a>
                 {% else %}

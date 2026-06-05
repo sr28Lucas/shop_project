@@ -91,3 +91,14 @@ def test_logout(client):
     with client.session_transaction() as sess:
         assert 'staff_id' not in sess
         assert 'customer_id' not in sess
+
+def test_staff_logout(client):
+    """測試員工登出功能"""
+    # 先登入員工
+    client.post('/auth/staff_login', data={'email': 'root@root', 'password': 'root'})
+    
+    response = client.get('/auth/staff_logout', follow_redirects=True)
+    assert response.status_code == 200
+    
+    with client.session_transaction() as sess:
+        assert 'staff_id' not in sess

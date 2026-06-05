@@ -80,7 +80,7 @@
             </p>
         </div>
 
-        <a href="{{ url_for('auth.logout') }}" 
+        <a href="{{ url_for('auth.logout') }}" onclick="return confirm('確定要登出嗎？');"
            style="background: #6c757d; color: white; padding: 8px 20px; border-radius: 4px; text-decoration: none; font-weight: bold;">
             登出系統
         </a>
