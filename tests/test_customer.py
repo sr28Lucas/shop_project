@@ -37,9 +37,10 @@ def test_profile_edit(client, auth_customer):
 
 def test_order_list_view(client, auth_customer, test_product):
     """測試查看訂單列表與詳情"""
-    # 1. 先下一單 (模擬結帳)
+    # 1. 先下一單 (模擬結帳，修正：需先加入購物車，並包含 selected_skus)
     client.post('/checkout/add_to_cart', data={'sku_id': test_product['sku_id'], 'qty': 1})
     client.post('/checkout/information', data={
+        'selected_skus': [str(test_product['sku_id'])],
         'name': '收件人', 'phone': '0912345678', 'region': '臺北市', 'locality': '中正區', 'address': '測試地址 123 號'
     }, follow_redirects=True)
     client.post('/checkout/payment', data={'card_number': '1234567812345678'}, follow_redirects=True)

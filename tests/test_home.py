@@ -39,8 +39,9 @@ def test_full_checkout_flow(client, test_product):
     # 2. 加入購物車
     client.post('/checkout/add_to_cart', data={'sku_id': test_product['sku_id'], 'qty': 1})
     
-    # 3. 填寫配送資訊 (需確保 region 存在，conftest 已初始化)
+    # 3. 填寫配送資訊 (修正：需包含 selected_skus)
     response = client.post('/checkout/information', data={
+        'selected_skus': [str(test_product['sku_id'])],
         'name': '收件人',
         'phone': '0912345678',
         'region': '臺北市',

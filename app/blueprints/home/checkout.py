@@ -1,6 +1,7 @@
 from flask import Blueprint, session, request, redirect, render_template, url_for, flash 
 from app.db import get_db_connection
 from datetime import datetime
+from app.utils.validators import Validator
 
 checkout_bp = Blueprint('checkout', __name__)
 
@@ -256,6 +257,22 @@ def information():
     customer = cursor.fetchone()
     
     if request.method == 'POST':
+        selected_skus = request.form.getlist('selected_skus')
+        if selected_skus:
+            session['selected_sku_ids'] = [int(sid) for sid in selected_skus]
+
+            # 如果是從購物車「前往結帳」過來的，通常只會有 selected_skus，沒有姓名地址
+            # 檢查是否包含姓名，若無，則視為「切換至填寫資訊頁面」，不進行驗證
+            if not request.form.get('name'):
+                cursor.close()
+                conn.close()
+                return render_template('home/information.html', customer=customer)
+        
+        # 檢查是否有勾選商品
+        if 'selected_sku_ids' not in session or not session['selected_sku_ids']:
+            flash("請先選擇要結帳的商品")
+            return redirect(url_for('home.checkout.view_cart'))
+
         name = request.form.get('name', '').strip()
         phone = request.form.get('phone', '').strip()
         address = request.form.get('address', '').strip()
@@ -311,8 +328,13 @@ def payment():
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
     
-    # 獲取購物車項目，增加圖片獲取
-    cursor.execute("""
+    # 獲取購物車項目 (僅限勾選的)，增加圖片獲取
+    selected_ids = session.get('selected_sku_ids', [])
+    if not selected_ids:
+        return redirect(url_for('home.checkout.view_cart'))
+        
+    format_strings = ','.join(['%s'] * len(selected_ids))
+    cursor.execute(f"""
         SELECT ci.qty, s.price, s.size, v.color, p.name as product_name, ci.sku_id,
         COALESCE(
             (SELECT filename FROM image WHERE variant_id = v.id LIMIT 1),
@@ -322,8 +344,8 @@ def payment():
         JOIN sku s ON ci.sku_id = s.id
         JOIN variant v ON s.variant_id = v.id
         JOIN product p ON v.product_id = p.id
-        WHERE ci.cart_id = %s
-    """, (cart_id,))
+        WHERE ci.cart_id = %s AND ci.sku_id IN ({format_strings})
+    """, [cart_id] + selected_ids)
     cart_items = cursor.fetchall()
     
     subtotal = sum(item['qty'] * item['price'] for item in cart_items)
@@ -367,14 +389,18 @@ def payment():
 def place_order():
     if 'customer_id' not in session or 'checkout_info' not in session or 'payment_info' not in session:
         return redirect(url_for('home.checkout.information'))
-    
+
     cart_id = get_active_cart(session['customer_id'])
-    
+    selected_ids = session.get('selected_sku_ids', [])
+    if not selected_ids:
+        return redirect(url_for('home.checkout.view_cart'))
+
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
-    
-    # 獲取有效的購物車項目，增加圖片與成本獲取
-    cursor.execute("""
+
+    # 獲取有效的購物車項目 (僅限勾選的)，增加圖片與成本獲取
+    format_strings = ','.join(['%s'] * len(selected_ids))
+    cursor.execute(f"""
         SELECT ci.qty, s.id as sku_id, s.sku_code, s.price, s.cost, s.size, s.stock, v.color, v.id as variant_id, p.name as product_name, p.id as product_id,
         COALESCE(
             (SELECT filename FROM image WHERE variant_id = v.id LIMIT 1),
@@ -384,14 +410,14 @@ def place_order():
         JOIN sku s ON ci.sku_id = s.id
         JOIN variant v ON s.variant_id = v.id
         JOIN product p ON v.product_id = p.id
-        WHERE ci.cart_id = %s
-    """, (cart_id,))
+        WHERE ci.cart_id = %s AND ci.sku_id IN ({format_strings})
+    """, [cart_id] + selected_ids)
     cart_items = cursor.fetchall()
 
     if not cart_items:
         cursor.close()
         conn.close()
-        flash("您的購物車目前是空的，無法進行結帳。")
+        flash("您選擇的商品目前無法結帳。")
         return redirect(url_for('home.checkout.view_cart'))
     
     # 檢查庫存
@@ -431,15 +457,15 @@ def place_order():
     if request.method == 'POST':
         try:
             # 再次獲取購物車項目並鎖定庫存 (FOR UPDATE)
-            cursor.execute("""
+            cursor.execute(f"""
                 SELECT ci.qty, s.id as sku_id, s.stock, s.price, s.cost, p.name as product_name, v.color, s.size
                 FROM cart_item ci
                 JOIN sku s ON ci.sku_id = s.id
                 JOIN variant v ON s.variant_id = v.id
                 JOIN product p ON v.product_id = p.id
-                WHERE ci.cart_id = %s
+                WHERE ci.cart_id = %s AND ci.sku_id IN ({format_strings})
                 FOR UPDATE
-            """, (cart_id,))
+            """, [cart_id] + selected_ids)
             locked_items = cursor.fetchall()
             
             # 1. 最終在庫存鎖定狀態下檢查庫存
@@ -496,13 +522,19 @@ def place_order():
             
             cursor.execute("INSERT INTO shipment (order_id, status) VALUES (%s, 'pending')", (order_id,))
             
-            cursor.execute("DELETE FROM cart_item WHERE cart_id = %s", (cart_id,))
-            cursor.execute("DELETE FROM cart WHERE id = %s", (cart_id,))
+            # 僅刪除已結帳項目
+            cursor.execute(f"DELETE FROM cart_item WHERE cart_id = %s AND sku_id IN ({format_strings})", [cart_id] + selected_ids)
+            
+            # 檢查購物車是否還有剩餘商品，若無則刪除 cart
+            cursor.execute("SELECT 1 FROM cart_item WHERE cart_id = %s", (cart_id,))
+            if not cursor.fetchone():
+                cursor.execute("DELETE FROM cart WHERE id = %s", (cart_id,))
             
             conn.commit()
             
             session.pop('checkout_info')
             session.pop('payment_info')
+            session.pop('selected_sku_ids', None) # 清除勾選狀態
             
             return redirect(url_for('home.checkout.complete', order_id=order_id))
         except Exception as e:

@@ -21,41 +21,56 @@
     {% endwith %}
 
     {% if cart_items %}
-        <div class="cart-items">
-            {% for item in cart_items %}
-            <div class="cart-item">
-                <div class="item-img" style="width: 80px; height: 80px; flex-shrink: 0; margin-right: 15px;">
-                    <img src="{{ url_for('static', filename='upload/' + item.image) if item.image else url_for('static', filename='img/no-image.png') }}" alt="{{ item.product_name }}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 4px;">
-                </div>
-                <div class="item-info">
-                    <div class="item-name">
-                        <a href="{{ url_for('home.product_view', id=item.product_id) }}" style="text-decoration: none; color: inherit;">{{ item.product_name }}</a>
+        <div class="cart-actions-top" style="margin-bottom: 15px; padding: 0 15px;">
+            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 14px; color: #555;">
+                <input type="checkbox" id="select-all" checked style="width: 18px; height: 18px; cursor: pointer;">
+                全選所有商品
+            </label>
+        </div>
+
+        <form id="cart-form" action="{{ url_for('home.checkout.information') }}" method="POST">
+            <div class="cart-items">
+                {% for item in cart_items %}
+                <div class="cart-item">
+                    <div class="item-selector" style="margin-right: 15px;">
+                        <input type="checkbox" name="selected_skus" value="{{ item.sku_id }}" class="item-checkbox" checked style="width: 20px; height: 20px; cursor: pointer;">
                     </div>
-                    <div class="item-details">規格: {{ item.size }} / {{ item.color }}</div>
-                    {% if item.qty > item.stock %}
-                        <div class="item-stock-warning" style="color: #d9534f; font-size: 13px; font-weight: bold;">庫存不足 (剩餘 {{ item.stock }})</div>
-                    {% endif %}
-                    <div class="item-price">${{ "{:,.0f}".format(item.price) }}</div>
+                    <div class="item-img" style="width: 80px; height: 80px; flex-shrink: 0; margin-right: 15px;">
+                        <img src="{{ url_for('static', filename='upload/' + item.image) if item.image else url_for('static', filename='img/no-image.png') }}" alt="{{ item.product_name }}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 4px;">
+                    </div>
+                    <div class="item-info">
+                        <div class="item-name">
+                            <a href="{{ url_for('home.product_view', id=item.product_id) }}" style="text-decoration: none; color: inherit;">{{ item.product_name }}</a>
+                        </div>
+                        <div class="item-details">規格: {{ item.size }} / {{ item.color }}</div>
+                        {% if item.qty > item.stock %}
+                            <div class="item-stock-warning" style="color: #d9534f; font-size: 13px; font-weight: bold;">庫存不足 (剩餘 {{ item.stock }})</div>
+                        {% endif %}
+                        <div class="item-price">
+                            單價: $<span class="unit-price">{{ "{:,.0f}".format(item.price) }}</span>
+                            <span style="margin-left: 15px; color: #888;">小計: $<span class="row-total" id="row-total-{{ item.sku_id }}">{{ "{:,.0f}".format(item.price * item.qty) }}</span></span>
+                        </div>
+                    </div>
+                    <div class="item-actions">
+                        <div style="display:flex; gap:5px; align-items: center;">
+                            <input type="number" value="{{ item.qty }}" min="1" class="qty-input item-qty" id="qty-{{ item.sku_id }}" data-price="{{ item.price }}" style="width: 60px; padding: 5px; border: 1px solid #ddd; border-radius: 4px;">
+                            <button type="button" class="btn-small btn-update" onclick="updateCartQty({{ item.sku_id }})" style="background-color: #007bff; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;">更新</button>
+                            <button type="button" class="btn-small btn-remove" onclick="removeCartItem({{ item.sku_id }})">移除</button>
+                        </div>
+                    </div>
                 </div>
-                <div class="item-actions">
-                    <form action="{{ url_for('home.checkout.update_qty') }}" method="POST" style="display:flex; gap:5px;">
-                        <input type="hidden" name="sku_id" value="{{ item.sku_id }}">
-                        <input type="number" name="qty" value="{{ item.qty }}" min="1" class="qty-input">
-                        <button type="submit" class="btn-small btn-update">更新</button>
-                    </form>
-                    <form action="{{ url_for('home.checkout.remove_item') }}" method="POST">
-                        <input type="hidden" name="sku_id" value="{{ item.sku_id }}">
-                        <button type="submit" class="btn-small btn-remove">移除</button>
-                    </form>
-                </div>
+                {% endfor %}
             </div>
-            {% endfor %}
-        </div>
-        
-        <div class="cart-summary">
-            <div class="total-price">總計: ${{ "{:,.0f}".format(subtotal) }}</div>
-            <a href="{{ url_for('home.checkout.information') }}" class="btn-checkout">前往結帳</a>
-        </div>
+            
+            <div class="cart-summary">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <a href="{{ url_for('home.index') }}" style="color: #666; text-decoration: none; font-size: 14px;"><i class="fa-solid fa-chevron-left"></i> 繼續購物</a>
+                    <div class="selected-count" style="color: #666; font-size: 14px;">已選擇 <span id="checked-count">0</span> 項商品</div>
+                </div>
+                <div class="total-price">總計: $<span id="display-subtotal">{{ "{:,.0f}".format(subtotal) }}</span></div>
+                <button type="submit" id="checkout-btn" class="btn-checkout">前往結帳</button>
+            </div>
+        </form>
     {% else %}
         <p class="empty-cart">購物車目前是空的。</p>
     {% endif %}
@@ -66,19 +81,115 @@
         <div style="display: flex; gap: 20px; flex-wrap: wrap;">
             {% for prod in recommended_products %}
             <div style="width: calc(25% - 15px); border: 1px solid #ddd; border-radius: 8px; padding: 10px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); transition: transform 0.2s;">
-                <a href="{{ url_for('home.product_view', id=prod.id) }}" style="text-decoration: none; color: #333;">
-                    {% if prod.main_image %}
-                    <img src="{{ url_for('static', filename='uploads/' + prod.main_image) }}" style="width: 100%; height: 180px; object-fit: cover; border-radius: 4px;">
-                    {% else %}
-                    <div style="width: 100%; height: 180px; background: #f8f9fa; line-height: 180px; color: #aaa; border-radius: 4px;">無圖片</div>
-                    {% endif %}
-                    <h4 style="font-size: 1.1em; margin: 15px 0 5px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ prod.name }}</h4>
-                    <p style="color: #dc3545; font-weight: bold; margin: 0;">NT$ {{ "{:,.0f}".format(prod.min_price or 0) }} 起</p>
-                </a>
+            <a href="{{ url_for('home.product_view', id=prod.id) }}" style="text-decoration: none; color: #333;">
+            {% if prod.main_image %}
+            <img src="{{ url_for('static', filename='upload/' + prod.main_image) }}" style="width: 100%; height: 180px; object-fit: cover; border-radius: 4px;">
+            {% else %}
+            <div style="width: 100%; height: 180px; background: #f8f9fa; line-height: 180px; color: #aaa; border-radius: 4px;">無圖片</div>
+            {% endif %}
+            <h4 style="font-size: 1.1em; margin: 15px 0 5px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ prod.name }}</h4>
+            <p style="color: #dc3545; font-weight: bold; margin: 0;">NT$ {{ "{:,.0f}".format(prod.min_price or 0) }} 起</p>
+            </a>
             </div>
             {% endfor %}
-        </div>
-    </div>
-    {% endif %}
-    </div>
-{% endblock %}
+            </div>
+            </div>
+            {% endif %}
+            </div>
+            {% endblock %}
+
+            {% block scripts %}
+            <script>
+            document.addEventListener('DOMContentLoaded', function() {
+            const selectAll = document.getElementById('select-all');
+            const itemCheckboxes = document.querySelectorAll('.item-checkbox');
+            const displaySubtotal = document.getElementById('display-subtotal');
+            const checkedCount = document.getElementById('checked-count');
+            const checkoutBtn = document.getElementById('checkout-btn');
+
+            function calculateTotal() {
+            let total = 0;
+            let count = 0;
+            itemCheckboxes.forEach(cb => {
+            const item = cb.closest('.cart-item');
+            const qtyInput = item.querySelector('.item-qty');
+            const price = parseFloat(qtyInput.dataset.price);
+            const qty = parseInt(qtyInput.value);
+
+            // 動態更新每一列的小計
+            const rowTotalSpan = document.getElementById(`row-total-${cb.value}`);
+            if (rowTotalSpan) {
+            rowTotalSpan.textContent = (price * qty).toLocaleString();
+            }
+
+            if (cb.checked) {
+            total += price * qty;
+            count++;
+            }
+            });
+            displaySubtotal.textContent = total.toLocaleString();
+            checkedCount.textContent = count;
+            checkoutBtn.disabled = count === 0;
+            checkoutBtn.style.opacity = count === 0 ? '0.5' : '1';
+            }
+        if (selectAll) {
+            selectAll.addEventListener('change', function() {
+                itemCheckboxes.forEach(cb => {
+                    cb.checked = selectAll.checked;
+                });
+                calculateTotal();
+            });
+        }
+
+        itemCheckboxes.forEach(cb => {
+            cb.addEventListener('change', function() {
+                calculateTotal();
+                const allChecked = Array.from(itemCheckboxes).every(c => c.checked);
+                if (selectAll) selectAll.checked = allChecked;
+            });
+        });
+
+        calculateTotal();
+    });
+
+    function updateCartQty(skuId) {
+        const qtyInput = document.getElementById(`qty-${skuId}`);
+        const qty = qtyInput.value;
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = "{{ url_for('home.checkout.update_qty') }}";
+
+        const skuHiddenInput = document.createElement('input');
+        skuHiddenInput.type = 'hidden';
+        skuHiddenInput.name = 'sku_id';
+        skuHiddenInput.value = skuId;
+
+        const qtyHiddenInput = document.createElement('input');
+        qtyHiddenInput.type = 'hidden';
+        qtyHiddenInput.name = 'qty';
+        qtyHiddenInput.value = qty;
+
+        form.appendChild(skuHiddenInput);
+        form.appendChild(qtyHiddenInput);
+        document.body.appendChild(form);
+        form.submit();
+    }
+
+    function removeCartItem(skuId) {
+        if (!confirm('確定要移除此商品嗎？')) return;
+
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = "{{ url_for('home.checkout.remove_item') }}";
+
+        const skuInput = document.createElement('input');
+        skuInput.type = 'hidden';
+        skuInput.name = 'sku_id';
+        skuInput.value = skuId;
+
+        form.appendChild(skuInput);
+        document.body.appendChild(form);
+        form.submit();
+    }
+    </script>
+    {% endblock %}

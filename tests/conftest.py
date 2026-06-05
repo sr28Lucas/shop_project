@@ -52,6 +52,9 @@ def initialize_test_data(conn):
                         cursor.execute("INSERT INTO locality (region_id, name) VALUES (%s, %s)", 
                                        (region_id, district))
         
+        # 3. 建立預設分類
+        cursor.execute("INSERT INTO category (name, created_at, updated_at) VALUES (%s, %s, %s)", ("預設分類", now, now))
+        
         conn.commit()
     except Exception as e:
         conn.rollback()
@@ -156,9 +159,55 @@ def auth_client(client):
 
 @pytest.fixture
 def auth_staff(client):
-    """登入管理員"""
+    """登入管理員 (預設 root)"""
     client.post('/auth/staff_login', data={'email': 'root@root', 'password': 'root'})
     return {'email': 'root@root'}
+
+@pytest.fixture
+def staff_factory(client):
+    """動態建立具備特定權限的員工工廠"""
+    def _create_staff(role_name, permissions=None):
+        if permissions is None:
+            permissions = {}
+        
+        # 預設權限全為 0
+        perms = {
+            'member': 0, 'orders': 0, 'product': 0, 'inquiry': 0, 
+            'statistic': 0, 'staff': 0, 'announcement': 0, 
+            'return': 0, 'promo': 0
+        }
+        perms.update(permissions)
+        
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+        now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        
+        # 1. 建立角色
+        cursor.execute("""
+            INSERT INTO role (name, member, orders, product, inquiry, statistic, staff, announcement, `return`, promo, created_at, updated_at)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        """, (role_name, perms['member'], perms['orders'], perms['product'], perms['inquiry'], 
+              perms['statistic'], perms['staff'], perms['announcement'], perms['return'], perms['promo'], now, now))
+        role_id = cursor.lastrowid
+        
+        # 2. 建立員工
+        email = f"{role_name.lower()}@test.com"
+        password = "password"
+        from flask_bcrypt import Bcrypt
+        hashed_pw = Bcrypt().generate_password_hash(password).decode('utf-8')
+        
+        cursor.execute("""
+            INSERT INTO staff (email, password, name, role_id, created_at, updated_at)
+            VALUES (%s, %s, %s, %s, %s, %s)
+        """, (email, hashed_pw, f"Staff {role_name}", role_id, now, now))
+        
+        conn.commit()
+        cursor.close()
+        conn.close()
+        
+        return {'email': email, 'password': password, 'role_name': role_name}
+    
+    return _create_staff
 
 @pytest.fixture
 def test_order(client, test_product):
@@ -172,9 +221,10 @@ def test_order(client, test_product):
     client.post('/auth/register', data={'email': email, 'password': 'password', 'confirm_password': 'password', 'name': 'Buyer'})
     client.post('/auth/login', data={'email': email, 'password': 'password'})
     
-    # 下單
+    # 下單 (修正：需先加入購物車，並包含 selected_skus)
     client.post('/checkout/add_to_cart', data={'sku_id': test_product['sku_id'], 'qty': 1})
     client.post('/checkout/information', data={
+        'selected_skus': [str(test_product['sku_id'])],
         'name': '收件人', 'phone': '0912345678', 'region': '臺北市', 'locality': '中正區', 'address': '測試地址 123 號'
     }, follow_redirects=True)
     client.post('/checkout/payment', data={'card_number': '1234567812345678'}, follow_redirects=True)

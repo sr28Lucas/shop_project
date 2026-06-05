@@ -2,6 +2,7 @@ from flask import Blueprint, render_template, request, redirect, url_for, sessio
 from app.db import get_db_connection
 from app.extensions import bcrypt
 from datetime import datetime
+from app.utils.validators import Validator
 
 
 
@@ -15,20 +16,31 @@ def register():
         confirm_password = request.form.get('confirm_password')
         name = request.form.get('name', '').strip()
         
-        # 1. 基本驗證
+        # 1. 統一驗證
         if not email or not password or not name:
             flash("請填寫所有必填欄位。", "error")
             return redirect(url_for('auth.register'))
             
+        if not Validator.is_valid_email(email):
+            flash("電子郵件格式不正確或過長。", "error")
+            return redirect(url_for('auth.register'))
+
+        if not Validator.is_valid_name(name):
+            flash("姓名長度需在 1-30 字元之間。", "error")
+            return redirect(url_for('auth.register'))
+
         if password != confirm_password:
             flash("兩次輸入的密碼不一致，請重新確認！", "error")
             return redirect(url_for('auth.register'))
         
-        if len(password) < 6:
-            flash("密碼長度至少需 6 位。", "error")
+        if not Validator.is_valid_password(password):
+            flash("密碼長度至少需 4 位。", "error")
             return redirect(url_for('auth.register'))
 
-        phone = request.form.get('phone') or None
+        phone = request.form.get('phone', '').strip() or None
+        if phone and not Validator.is_valid_phone(phone):
+            flash("電話長度需在 8-20 碼之間。", "error")
+            return redirect(url_for('auth.register'))
         region_name = request.form.get('region') or None
         locality_name = request.form.get('locality') or None
         address = request.form.get('address') or None

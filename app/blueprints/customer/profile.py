@@ -2,6 +2,7 @@ from flask import Blueprint, render_template, request, redirect, url_for, sessio
 from app.db import get_db_connection
 from app.extensions import bcrypt
 from datetime import datetime
+from app.utils.validators import Validator
 
 profile_bp = Blueprint('profile', __name__)
 
@@ -20,14 +21,14 @@ def edit():
         region = request.form.get('region')
         locality = request.form.get('locality')
         
-        # 後端驗證
-        if len(name) < 1 or len(name) > 30:
+        # 統一驗證
+        if not Validator.is_valid_name(name):
             flash("姓名長度需在 1-30 字元之間。", "error")
             return redirect(url_for('customer.profile.edit'))
-        if phone and (len(phone) < 8 or len(phone) > 20):
+        if phone and not Validator.is_valid_phone(phone):
             flash("電話長度需在 8-20 碼之間。", "error")
             return redirect(url_for('customer.profile.edit'))
-        if address and (len(address) < 5 or len(address) > 100):
+        if address and not Validator.is_valid_address(address):
             flash("地址長度需在 5-100 字元之間。", "error")
             return redirect(url_for('customer.profile.edit'))
 
