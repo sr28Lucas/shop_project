@@ -14,7 +14,7 @@ class config:
     SQLALCHEMY_TRACK_MODIFICATIONS = False #某個看不懂但應該用不到的功能 開了似乎會吃效能
  
     SESSION_COOKIE_HTTPONLY = True
-    SESSION_COOKIE_SECURE = True
+    SESSION_COOKIE_SECURE = False
 
     UPLOAD_FOLDER = Path(__file__).resolve().parent / 'static' / 'upload'
     
