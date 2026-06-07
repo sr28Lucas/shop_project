@@ -182,16 +182,17 @@ def staff_factory(client):
         cursor = conn.cursor(dictionary=True)
         now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         
-        # 1. 建立角色
+        # 1. 建立角色 (使用時間戳記避免重複)
+        unique_role_name = f"{role_name}_{int(datetime.now().timestamp())}"
         cursor.execute("""
             INSERT INTO role (name, member, orders, product, inquiry, statistic, staff, announcement, `return`, promo, created_at, updated_at)
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-        """, (role_name, perms['member'], perms['orders'], perms['product'], perms['inquiry'], 
+        """, (unique_role_name, perms['member'], perms['orders'], perms['product'], perms['inquiry'], 
               perms['statistic'], perms['staff'], perms['announcement'], perms['return'], perms['promo'], now, now))
         role_id = cursor.lastrowid
         
-        # 2. 建立員工
-        email = f"{role_name.lower()}@test.com"
+        # 2. 建立員工 (使用時間戳記避免重複郵件)
+        email = f"{role_name.lower()}_{int(datetime.now().timestamp())}@test.com"
         password = "password"
         from flask_bcrypt import Bcrypt
         hashed_pw = Bcrypt().generate_password_hash(password).decode('utf-8')

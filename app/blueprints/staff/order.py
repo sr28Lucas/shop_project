@@ -207,6 +207,13 @@ def ship_order(id):
         if order['status'] != 'pending':
             flash('此訂單不是待出貨狀態')
             return redirect(url_for('staff.order.order_list'))
+        
+        # 檢查訂單是否有商品
+        cursor.execute("SELECT count(*) as count FROM order_item WHERE order_id = %s", (id,))
+        item_count = cursor.fetchone()['count']
+        if item_count == 0:
+            flash('此訂單沒有任何商品，無法出貨')
+            return redirect(url_for('staff.order.order_list'))
 
         cursor.execute("SELECT id FROM shipment WHERE order_id = %s LIMIT 1", (id,))
         shipment = cursor.fetchone()
@@ -450,6 +457,19 @@ def order_edit(id):
                     DELETE FROM order_item
                     WHERE id = %s AND order_id = %s
                 """, (item_id, id))
+
+                # 檢查訂單是否還有項目
+                cursor.execute("SELECT count(*) as count FROM order_item WHERE order_id = %s", (id,))
+                remaining_items = cursor.fetchone()['count']
+                
+                if remaining_items == 0:
+                    # 訂單已空，刪除訂單相關記錄並刪除訂單
+                    cursor.execute("DELETE FROM payment WHERE order_id = %s", (id,))
+                    cursor.execute("DELETE FROM shipment WHERE order_id = %s", (id,))
+                    cursor.execute("DELETE FROM orders WHERE id = %s", (id,))
+                    conn.commit()
+                    flash('訂單已清空並自動刪除')
+                    return redirect(url_for('staff.order.order_list'))
 
                 conn.commit()
                 flash('已移除訂單項目，庫存已恢復')

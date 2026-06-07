@@ -1,0 +1,42 @@
+{% extends "home/base.html" %}
+
+{% block title %}熱銷商品{% endblock %}
+
+{% block content %}
+<div class="shop-container">
+    <div class="main-content" style="width: 100%;">
+        <h2 style="margin-bottom: 25px;">
+            <i class="fa-solid fa-fire" style="color: #ff4d4f; margin-right: 10px;"></i>
+            過去七天熱銷商品 (TOP 10)
+        </h2>
+
+        <div class="product-grid">
+            {% for p in items %}
+                <a href="{{ url_for('home.product_view', id=p.id) }}" class="product-card">
+                    <div class="product-image">
+                        {% if p.main_image %}
+                            <img src="{{ url_for('static', filename='upload/' + p.main_image) }}" alt="{{ p.name }}">
+                        {% else %}
+                            <div class="empty-image-placeholder">暫無圖片</div>
+                        {% endif %}
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">{{ p.name }}</h3>
+                        <div class="product-price">
+                            {% if p.min_price == p.max_price %}
+                                ${{ "{:,.0f}".format(p.min_price) if p.min_price else '0' }}
+                            {% else %}
+                                ${{ "{:,.0f}".format(p.min_price) }} - ${{ "{:,.0f}".format(p.max_price) }}
+                            {% endif %}
+                        </div>
+                    </div>
+                </a>
+            {% else %}
+                <div class="empty-state">
+                    <p>目前暫無熱銷商品資料。</p>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}
