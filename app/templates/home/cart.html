@@ -36,7 +36,7 @@
                         <input type="checkbox" name="selected_skus" value="{{ item.sku_id }}" class="item-checkbox" checked style="width: 20px; height: 20px; cursor: pointer;">
                     </div>
                     <div class="item-img" style="width: 80px; height: 80px; flex-shrink: 0; margin-right: 15px;">
-                        <img src="{{ url_for('static', filename='upload/' + item.image) if item.image else url_for('static', filename='img/no-image.png') }}" alt="{{ item.product_name }}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 4px;">
+                        <img src="{{ url_for('static', filename='upload/' + item.image) if item.image else url_for('static', filename='img/no-image.png') }}" alt="{{ item.product_name }}" style="width: 100%; height: 100%; object-fit: contain; border-radius: 4px;">
                     </div>
                     <div class="item-info">
                         <div class="item-name">
@@ -83,7 +83,7 @@
             <div style="width: calc(25% - 15px); border: 1px solid #ddd; border-radius: 8px; padding: 10px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); transition: transform 0.2s;">
             <a href="{{ url_for('home.product_view', id=prod.id) }}" style="text-decoration: none; color: #333;">
             {% if prod.main_image %}
-            <img src="{{ url_for('static', filename='upload/' + prod.main_image) }}" style="width: 100%; height: 180px; object-fit: cover; border-radius: 4px;">
+            <img src="{{ url_for('static', filename='upload/' + prod.main_image) }}" style="width: 100%; height: 180px; object-fit: contain; border-radius: 4px;">
             {% else %}
             <div style="width: 100%; height: 180px; background: #f8f9fa; line-height: 180px; color: #aaa; border-radius: 4px;">無圖片</div>
             {% endif %}
