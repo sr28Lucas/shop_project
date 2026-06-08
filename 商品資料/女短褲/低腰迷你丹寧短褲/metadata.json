@@ -1,0 +1,116 @@
+{
+  "abbreviation": "LRMDS",
+  "variants": [
+    {
+      "color": "灰黑色",
+      "color_code": "BLK",
+      "image_file": "2efc4f525f73426368878c5de9dee4c7198a9424.avif",
+      "skus": [
+        {
+          "size": "XS",
+          "price": 1628,
+          "cost": 651,
+          "stock": 117
+        },
+        {
+          "size": "S",
+          "price": 1628,
+          "cost": 651,
+          "stock": 101
+        },
+        {
+          "size": "M",
+          "price": 1628,
+          "cost": 651,
+          "stock": 186
+        },
+        {
+          "size": "L",
+          "price": 1628,
+          "cost": 651,
+          "stock": 110
+        },
+        {
+          "size": "XL",
+          "price": 1628,
+          "cost": 651,
+          "stock": 77
+        }
+      ]
+    },
+    {
+      "color": "深藍色",
+      "color_code": "Navyblue",
+      "image_file": "47a0ecc4f45f2960faf392324d59d6f82804ac2e.avif",
+      "skus": [
+        {
+          "size": "XS",
+          "price": 1628,
+          "cost": 651,
+          "stock": 117
+        },
+        {
+          "size": "S",
+          "price": 1628,
+          "cost": 651,
+          "stock": 101
+        },
+        {
+          "size": "M",
+          "price": 1628,
+          "cost": 651,
+          "stock": 186
+        },
+        {
+          "size": "L",
+          "price": 1628,
+          "cost": 651,
+          "stock": 110
+        },
+        {
+          "size": "XL",
+          "price": 1628,
+          "cost": 651,
+          "stock": 77
+        }
+      ]
+    },
+    {
+      "color": "淺藍色",
+      "color_code": "Light blue",
+      "image_file": "d13b205322d34183af8709b9c4d2770b14acb75c.avif",
+      "skus": [
+        {
+          "size": "XS",
+          "price": 1628,
+          "cost": 651,
+          "stock": 117
+        },
+        {
+          "size": "S",
+          "price": 1628,
+          "cost": 651,
+          "stock": 101
+        },
+        {
+          "size": "M",
+          "price": 1628,
+          "cost": 651,
+          "stock": 186
+        },
+        {
+          "size": "L",
+          "price": 1628,
+          "cost": 651,
+          "stock": 110
+        },
+        {
+          "size": "XL",
+          "price": 1628,
+          "cost": 651,
+          "stock": 77
+        }
+      ]
+    }    
+  ]
+}

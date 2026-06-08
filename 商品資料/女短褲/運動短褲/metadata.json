@@ -1,0 +1,190 @@
+{
+  "abbreviation": "GAS",
+  "variants": [
+    {
+      "color": "深咖啡色",
+      "color_code": "brown",
+      "image_file": "7afc1ce64f33d8151d01111d16586eefeeafa829.avif",
+      "skus": [
+        {
+          "size": "XS",
+          "price": 1681,
+          "cost": 672,
+          "stock": 82
+        },
+        {
+          "size": "S",
+          "price": 1681,
+          "cost": 672,
+          "stock": 92
+        },
+        {
+          "size": "M",
+          "price": 1681,
+          "cost": 672,
+          "stock": 52
+        },
+        {
+          "size": "L",
+          "price": 1681,
+          "cost": 672,
+          "stock": 74
+        },
+        {
+          "size": "XL",
+          "price": 1681,
+          "cost": 672,
+          "stock": 50
+        }
+      ]
+    },
+    {
+      "color": "黑色",
+      "color_code": "BLK",
+      "image_file": "43d72c76984c237ad45669db20b27fdd30c8c3fe.avif",
+      "skus": [
+        {
+          "size": "XS",
+          "price": 1681,
+          "cost": 672,
+          "stock": 82
+        },
+        {
+          "size": "S",
+          "price": 1681,
+          "cost": 672,
+          "stock": 92
+        },
+        {
+          "size": "M",
+          "price": 1681,
+          "cost": 672,
+          "stock": 52
+        },
+        {
+          "size": "L",
+          "price": 1681,
+          "cost": 672,
+          "stock": 74
+        },
+        {
+          "size": "XL",
+          "price": 1681,
+          "cost": 672,
+          "stock": 50
+        }
+      ]
+    },
+    {
+      "color": "粉色",
+      "color_code": "PINK",
+      "image_file": "bb8e494bf3dec6b59fb8cc578d5ec8bf7aa09c92.avif",
+      "skus": [
+        {
+          "size": "XS",
+          "price": 1681,
+          "cost": 672,
+          "stock": 82
+        },
+        {
+          "size": "S",
+          "price": 1681,
+          "cost": 672,
+          "stock": 92
+        },
+        {
+          "size": "M",
+          "price": 1681,
+          "cost": 672,
+          "stock": 52
+        },
+        {
+          "size": "L",
+          "price": 1681,
+          "cost": 672,
+          "stock": 74
+        },
+        {
+          "size": "XL",
+          "price": 1681,
+          "cost": 672,
+          "stock": 50
+        }
+      ]
+    },
+    {
+      "color": "白色",
+      "color_code": "WHT",
+      "image_file": "d7a2fe017cf20104481a3fe623aed05a3720fe22.avif",
+      "skus": [
+        {
+          "size": "XS",
+          "price": 1681,
+          "cost": 672,
+          "stock": 82
+        },
+        {
+          "size": "S",
+          "price": 1681,
+          "cost": 672,
+          "stock": 92
+        },
+        {
+          "size": "M",
+          "price": 1681,
+          "cost": 672,
+          "stock": 52
+        },
+        {
+          "size": "L",
+          "price": 1681,
+          "cost": 672,
+          "stock": 74
+        },
+        {
+          "size": "XL",
+          "price": 1681,
+          "cost": 672,
+          "stock": 50
+        }
+      ]
+    },
+    {
+      "color": "奶油白",
+      "color_code": "CW",
+      "image_file": "d428936b1cc8a5294b9c37c4a7b0d6c2356aa01c.avif",
+      "skus": [
+        {
+          "size": "XS",
+          "price": 1681,
+          "cost": 672,
+          "stock": 82
+        },
+        {
+          "size": "S",
+          "price": 1681,
+          "cost": 672,
+          "stock": 92
+        },
+        {
+          "size": "M",
+          "price": 1681,
+          "cost": 672,
+          "stock": 52
+        },
+        {
+          "size": "L",
+          "price": 1681,
+          "cost": 672,
+          "stock": 74
+        },
+        {
+          "size": "XL",
+          "price": 1681,
+          "cost": 672,
+          "stock": 50
+        }
+      ]
+    }
+  ]
+}

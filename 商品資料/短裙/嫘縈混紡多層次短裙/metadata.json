@@ -1,0 +1,79 @@
+{
+  "abbreviation": "LYBMLSS",
+  "variants": [
+    {
+      "color": "黑色",
+      "color_code": "BLK",
+      "image_file": "d86070dd70c6de6035bb84e236dcbd5b82363b0b.avif",
+      "skus": [
+        {
+          "size": "XS",
+          "price": 1530,
+          "cost": 612,
+          "stock": 172
+        },
+        {
+          "size": "S",
+          "price": 1530,
+          "cost": 612,
+          "stock": 88
+        },
+        {
+          "size": "M",
+          "price": 1530,
+          "cost": 612,
+          "stock": 165
+        },
+        {
+          "size": "L",
+          "price": 1530,
+          "cost": 612,
+          "stock": 153
+        },
+        {
+          "size": "XL",
+          "price": 1530,
+          "cost": 612,
+          "stock": 168
+        }
+      ]
+    },
+    {
+      "color": "白色",
+      "color_code": "WHITE",
+      "image_file": "dde36a994cd43e318e112458bee46e4d1cc59a40.avif",
+      "skus": [
+        {
+          "size": "XS",
+          "price": 1530,
+          "cost": 612,
+          "stock": 172
+        },
+        {
+          "size": "S",
+          "price": 1530,
+          "cost": 612,
+          "stock": 88
+        },
+        {
+          "size": "M",
+          "price": 1530,
+          "cost": 612,
+          "stock": 165
+        },
+        {
+          "size": "L",
+          "price": 1530,
+          "cost": 612,
+          "stock": 153
+        },
+        {
+          "size": "XL",
+          "price": 1530,
+          "cost": 612,
+          "stock": 168
+        }
+      ]
+    }
+  ]
+}

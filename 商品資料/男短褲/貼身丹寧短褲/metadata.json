@@ -1,0 +1,153 @@
+{
+  "abbreviation": "FDS",
+  "variants": [
+    {
+      "color": "灰色",
+      "color_code": "GRAY",
+      "image_file": "7e0a62a1dabeb18d5f4a21beea626f6ce951427f.avif",
+      "skus": [
+        {
+          "size": "XS",
+          "price": 964,
+          "cost": 385,
+          "stock": 113
+        },
+        {
+          "size": "S",
+          "price": 964,
+          "cost": 385,
+          "stock": 197
+        },
+        {
+          "size": "M",
+          "price": 964,
+          "cost": 385,
+          "stock": 194
+        },
+        {
+          "size": "L",
+          "price": 964,
+          "cost": 385,
+          "stock": 61
+        },
+        {
+          "size": "XL",
+          "price": 964,
+          "cost": 385,
+          "stock": 81
+        }
+      ]
+    },
+    {
+      "color": "淺藍色",
+      "color_code": "LB",
+      "image_file": "38f2967b51761773435446c2265553af3b92a426.avif",
+      "skus": [
+        {
+          "size": "XS",
+          "price": 964,
+          "cost": 385,
+          "stock": 113
+        },
+        {
+          "size": "S",
+          "price": 964,
+          "cost": 385,
+          "stock": 197
+        },
+        {
+          "size": "M",
+          "price": 964,
+          "cost": 385,
+          "stock": 194
+        },
+        {
+          "size": "L",
+          "price": 964,
+          "cost": 385,
+          "stock": 61
+        },
+        {
+          "size": "XL",
+          "price": 964,
+          "cost": 385,
+          "stock": 81
+        }
+      ]
+    },
+    {
+      "color": "深藍色",
+      "color_code": "DB",
+      "image_file": "c699706c691c509be156ec75f69cb6eb6e66950a.avif",
+      "skus": [
+        {
+          "size": "XS",
+          "price": 964,
+          "cost": 385,
+          "stock": 113
+        },
+        {
+          "size": "S",
+          "price": 964,
+          "cost": 385,
+          "stock": 197
+        },
+        {
+          "size": "M",
+          "price": 964,
+          "cost": 385,
+          "stock": 194
+        },
+        {
+          "size": "L",
+          "price": 964,
+          "cost": 385,
+          "stock": 61
+        },
+        {
+          "size": "XL",
+          "price": 964,
+          "cost": 385,
+          "stock": 81
+        }
+      ]
+    },
+    {
+      "color": "黑色",
+      "color_code": "BLK",
+      "image_file": "ebd2b0b8059fe63e6f9948dc330ae883927b5211.avif",
+      "skus": [
+        {
+          "size": "XS",
+          "price": 964,
+          "cost": 385,
+          "stock": 113
+        },
+        {
+          "size": "S",
+          "price": 964,
+          "cost": 385,
+          "stock": 197
+        },
+        {
+          "size": "M",
+          "price": 964,
+          "cost": 385,
+          "stock": 194
+        },
+        {
+          "size": "L",
+          "price": 964,
+          "cost": 385,
+          "stock": 61
+        },
+        {
+          "size": "XL",
+          "price": 964,
+          "cost": 385,
+          "stock": 81
+        }
+      ]
+    }
+  ]
+}

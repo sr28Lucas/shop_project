@@ -1,0 +1,116 @@
+{
+  "abbreviation": "VNRV",
+  "variants": [
+    {
+      "color": "黑色",
+      "color_code": "BLK",
+      "image_file": "71c61cff80197861545639dde8bafba3fd68c3e9.avif",
+      "skus": [
+        {
+          "size": "XS",
+          "price": 1295,
+          "cost": 518,
+          "stock": 191
+        },
+        {
+          "size": "S",
+          "price": 1295,
+          "cost": 518,
+          "stock": 127
+        },
+        {
+          "size": "M",
+          "price": 1295,
+          "cost": 518,
+          "stock": 149
+        },
+        {
+          "size": "L",
+          "price": 1295,
+          "cost": 518,
+          "stock": 197
+        },
+        {
+          "size": "XL",
+          "price": 1295,
+          "cost": 518,
+          "stock": 179
+        }
+      ]
+    },
+        {
+      "color": "白色",
+      "color_code": "WHT",
+      "image_file": "40132e2669633dff323071078abf8a714455f169.avif",
+      "skus": [
+        {
+          "size": "XS",
+          "price": 1295,
+          "cost": 518,
+          "stock": 191
+        },
+        {
+          "size": "S",
+          "price": 1295,
+          "cost": 518,
+          "stock": 127
+        },
+        {
+          "size": "M",
+          "price": 1295,
+          "cost": 518,
+          "stock": 149
+        },
+        {
+          "size": "L",
+          "price": 1295,
+          "cost": 518,
+          "stock": 197
+        },
+        {
+          "size": "XL",
+          "price": 1295,
+          "cost": 518,
+          "stock": 179
+        }
+      ]
+    },
+        {
+      "color": "粉色",
+      "color_code": "PINK",
+      "image_file": "bb12e32da3688e0a502943360e591409570da65d.avif",
+      "skus": [
+        {
+          "size": "XS",
+          "price": 1295,
+          "cost": 518,
+          "stock": 191
+        },
+        {
+          "size": "S",
+          "price": 1295,
+          "cost": 518,
+          "stock": 127
+        },
+        {
+          "size": "M",
+          "price": 1295,
+          "cost": 518,
+          "stock": 149
+        },
+        {
+          "size": "L",
+          "price": 1295,
+          "cost": 518,
+          "stock": 197
+        },
+        {
+          "size": "XL",
+          "price": 1295,
+          "cost": 518,
+          "stock": 179
+        }
+      ]
+    }
+  ]
+}

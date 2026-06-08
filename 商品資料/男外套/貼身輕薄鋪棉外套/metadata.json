@@ -1,0 +1,42 @@
+{
+  "abbreviation": "LCFPJ",
+  "variants": [
+    {
+      "color": "深軍綠色",
+      "color_code": "BA",
+      "image_file": "Armygreen",
+      "skus": [
+        {
+          "size": "XS",
+          "price": 545,
+          "cost": 218,
+          "stock": 132
+        },
+        {
+          "size": "S",
+          "price": 545,
+          "cost": 218,
+          "stock": 170
+        },
+        {
+          "size": "M",
+          "price": 545,
+          "cost": 218,
+          "stock": 131
+        },
+        {
+          "size": "L",
+          "price": 545,
+          "cost": 218,
+          "stock": 184
+        },
+        {
+          "size": "XL",
+          "price": 545,
+          "cost": 218,
+          "stock": 55
+        }
+      ]
+    }
+  ]
+}

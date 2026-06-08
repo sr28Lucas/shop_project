@@ -1,0 +1,153 @@
+{
+  "abbreviation": "COO",
+  "variants": [
+    {
+      "color": "白色",
+      "color_code": "WHT",
+      "image_file": "4dedf88661e2215e3052fb1b800c4aa14aa48486.avif",
+      "skus": [
+        {
+          "size": "XS",
+          "price": 1919,
+          "cost": 767,
+          "stock": 90
+        },
+        {
+          "size": "S",
+          "price": 1919,
+          "cost": 767,
+          "stock": 61
+        },
+        {
+          "size": "M",
+          "price": 1919,
+          "cost": 767,
+          "stock": 135
+        },
+        {
+          "size": "L",
+          "price": 1919,
+          "cost": 767,
+          "stock": 121
+        },
+        {
+          "size": "XL",
+          "price": 1919,
+          "cost": 767,
+          "stock": 76
+        }
+      ]
+    },
+    {
+      "color": "黑色",
+      "color_code": "BLK",
+      "image_file": "930cd96759fad733c38227e31fb21676e7f3668b.avif",
+      "skus": [
+        {
+          "size": "XS",
+          "price": 1919,
+          "cost": 767,
+          "stock": 90
+        },
+        {
+          "size": "S",
+          "price": 1919,
+          "cost": 767,
+          "stock": 61
+        },
+        {
+          "size": "M",
+          "price": 1919,
+          "cost": 767,
+          "stock": 135
+        },
+        {
+          "size": "L",
+          "price": 1919,
+          "cost": 767,
+          "stock": 121
+        },
+        {
+          "size": "XL",
+          "price": 1919,
+          "cost": 767,
+          "stock": 76
+        }
+      ]
+    },
+    {
+      "color": "灰色",
+      "color_code": "GRAY",
+      "image_file": "3415ac2e5225e78ee6edc40fa3f96ab73824e9ff.avif",
+      "skus": [
+        {
+          "size": "XS",
+          "price": 1919,
+          "cost": 767,
+          "stock": 90
+        },
+        {
+          "size": "S",
+          "price": 1919,
+          "cost": 767,
+          "stock": 61
+        },
+        {
+          "size": "M",
+          "price": 1919,
+          "cost": 767,
+          "stock": 135
+        },
+        {
+          "size": "L",
+          "price": 1919,
+          "cost": 767,
+          "stock": 121
+        },
+        {
+          "size": "XL",
+          "price": 1919,
+          "cost": 767,
+          "stock": 76
+        }
+      ]
+    },
+    {
+      "color": "藍色",
+      "color_code": "BLUE",
+      "image_file": "b2c84aedc8e5cd46f1d33d608be3cbe097ce8606.avif",
+      "skus": [
+        {
+          "size": "XS",
+          "price": 1919,
+          "cost": 767,
+          "stock": 90
+        },
+        {
+          "size": "S",
+          "price": 1919,
+          "cost": 767,
+          "stock": 61
+        },
+        {
+          "size": "M",
+          "price": 1919,
+          "cost": 767,
+          "stock": 135
+        },
+        {
+          "size": "L",
+          "price": 1919,
+          "cost": 767,
+          "stock": 121
+        },
+        {
+          "size": "XL",
+          "price": 1919,
+          "cost": 767,
+          "stock": 76
+        }
+      ]
+    }    
+  ]
+}

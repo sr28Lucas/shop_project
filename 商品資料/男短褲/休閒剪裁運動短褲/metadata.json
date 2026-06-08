@@ -1,0 +1,79 @@
+{
+  "abbreviation": "CCAS",
+  "variants": [
+    {
+      "color": "黑色",
+      "color_code": "BLK",
+      "image_file": "a121c9ba68c20f11349b23c6abfa962bcea27905.avif",
+      "skus": [
+        {
+          "size": "XS",
+          "price": 873,
+          "cost": 349,
+          "stock": 116
+        },
+        {
+          "size": "S",
+          "price": 873,
+          "cost": 349,
+          "stock": 100
+        },
+        {
+          "size": "M",
+          "price": 873,
+          "cost": 349,
+          "stock": 108
+        },
+        {
+          "size": "L",
+          "price": 873,
+          "cost": 349,
+          "stock": 183
+        },
+        {
+          "size": "XL",
+          "price": 873,
+          "cost": 349,
+          "stock": 129
+        }
+      ]
+    },
+    {
+      "color": "白色",
+      "color_code": "WHT",
+      "image_file": "a121c9ba68c20f11349b23c6abfa962bcea27905.avif",
+      "skus": [
+        {
+          "size": "XS",
+          "price": 873,
+          "cost": 349,
+          "stock": 116
+        },
+        {
+          "size": "S",
+          "price": 873,
+          "cost": 349,
+          "stock": 100
+        },
+        {
+          "size": "M",
+          "price": 873,
+          "cost": 349,
+          "stock": 108
+        },
+        {
+          "size": "L",
+          "price": 873,
+          "cost": 349,
+          "stock": 183
+        },
+        {
+          "size": "XL",
+          "price": 873,
+          "cost": 349,
+          "stock": 129
+        }
+      ]
+    }
+  ]
+}

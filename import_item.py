@@ -1,176 +1,198 @@
 import os
 import shutil
 import mysql.connector
+import json
+import sys
 from datetime import datetime
 
-# 設定商品資料夾路徑
-PRODUCTS_FOLDER = '/home/jovyan/workspace/shop_project/商品資料'
-UPLOAD_FOLDER = '/home/jovyan/workspace/shop_project/app/static/upload'
+"""
+匯入腳本 Metadata 模式說明：
+在商品資料夾下放置 metadata.json，格式如下：
+{
+  "abbreviation": "TWJ",      # 品名簡寫 (用於 SKU Code)
+  "variants": [
+    {
+      "color": "米色",         # 顯示用中文名稱
+      "color_code": "BE",     # SKU Code 用的顏色簡寫 (英文)
+      "image_file": "123.jpg", # 對應 sku圖片/ 下的檔名
+      "skus": [
+        {"size": "S", "price": 990, "cost": 400, "stock": 50},
+        {"size": "M", "price": 990, "cost": 400, "stock": 50}
+      ]
+    }
+  ]
+}
+"""
 
-def import_products_and_images():
-    # 1. 建立資料庫連線
+# 確保可以匯入 app 模組
+sys.path.append(os.getcwd())
+from app.config import config
+
+# 設定商品資料夾路徑
+PRODUCTS_FOLDER = './商品資料'
+UPLOAD_FOLDER = str(config.UPLOAD_FOLDER)
+
+def get_db_conn():
     try:
-        conn = mysql.connector.connect(
-            host='127.0.0.1',
-            user='root',
-            password='',
-            database='shop_db'
-        )
-        cursor = conn.cursor()
+        conn = mysql.connector.connect(**config.DB_CONFIG)
+        return conn
     except Exception as e:
         print(f"資料庫連線失敗: {e}")
-        return
+        return None
 
-    # 2. 檢查資料夾是否存在
+def save_image(cursor, source_path, product_id, variant_id=None, image_type='product', sort_order=0):
+    """
+    依照 staff.product 邏輯儲存圖片：
+    1. 在資料庫建立記錄取得 ID
+    2. 根據 ID 重新命名檔案並移動到 upload/
+    3. 更新資料庫中的檔名
+    """
+    now = datetime.now()
+    ext = os.path.splitext(source_path)[1].lower()
+    
+    # 1. 插入初始記錄
+    sql = """
+        INSERT INTO image (product_id, variant_id, image_type, filename, sort_order, created_at, updated_at) 
+        VALUES (%s, %s, %s, %s, %s, %s, %s)
+    """
+    cursor.execute(sql, (product_id, variant_id, image_type, "", sort_order, now, now))
+    image_id = cursor.lastrowid
+    
+    # 2. 決定新檔名
+    if image_type == 'variant':
+        new_filename = f"v_{variant_id}_{image_id}{ext}"
+    else:
+        new_filename = f"{product_id}_{image_id}{ext}"
+        
+    dest_path = os.path.join(UPLOAD_FOLDER, new_filename)
+    
+    # 3. 複製檔案
+    shutil.copy2(source_path, dest_path)
+    
+    # 4. 更新資料庫
+    cursor.execute("UPDATE image SET filename = %s WHERE id = %s", (new_filename, image_id))
+    return new_filename
+
+def import_products():
+    conn = get_db_conn()
+    if not conn: return
+    cursor = conn.cursor()
+
     if not os.path.exists(PRODUCTS_FOLDER):
         print(f"錯誤：找不到商品資料夾 {PRODUCTS_FOLDER}")
         return
     
-    # 確保上傳資料夾存在
     if not os.path.exists(UPLOAD_FOLDER):
         os.makedirs(UPLOAD_FOLDER)
-        print(f"✓ 建立上傳資料夾: {UPLOAD_FOLDER}\n")
 
-    # 3. 準備 SQL 插入語法
-    sql_insert_category = """
-        INSERT INTO category (name, created_at, updated_at) 
-        VALUES (%s, %s, %s)
-    """
-
-    sql_insert_product = """
-        INSERT INTO product (category_id, name, description, is_active, created_at, updated_at) 
-        VALUES (%s, %s, %s, %s, %s, %s)
-    """
-
-    sql_insert_image = """
-        INSERT INTO image (product_id, filename, image_type, is_primary, created_at, updated_at) 
-        VALUES (%s, %s, %s, %s, %s, %s)
-    """
-
-    sql_select_category = "SELECT id FROM category WHERE name = %s"
-
-    success_count = 0
-    error_count = 0
     now = datetime.now()
     valid_extensions = ('.png', '.jpg', '.jpeg', '.gif', '.webp', '.avif')
 
-    print(f"開始匯入商品...\n")
+    print(f"🚀 開始匯入商品 (Metadata 模式)...\n")
 
-    # 遍歷分類資料夾
     for category_name in sorted(os.listdir(PRODUCTS_FOLDER)):
         category_path = os.path.join(PRODUCTS_FOLDER, category_name)
-        
-        if not os.path.isdir(category_path):
-            continue
+        if not os.path.isdir(category_path): continue
 
         print(f"🏷️  分類: {category_name}")
+        
+        # 取得或建立分類
+        cursor.execute("SELECT id FROM category WHERE name = %s", (category_name,))
+        cat = cursor.fetchone()
+        if cat:
+            category_id = cat[0]
+        else:
+            cursor.execute("INSERT INTO category (name, created_at, updated_at) VALUES (%s, %s, %s)", (category_name, now, now))
+            category_id = cursor.lastrowid
 
-        # 確認或新增分類
-        try:
-            cursor.execute(sql_select_category, (category_name,))
-            cat = cursor.fetchone()
-            if cat:
-                category_id = cat[0]
-                print(f"   ✓ 使用現有分類 ID: {category_id}")
-            else:
-                cursor.execute(sql_insert_category, (category_name, now, now))
-                category_id = cursor.lastrowid
-                conn.commit()
-                print(f"   ✓ 新增分類 ID: {category_id}")
-        except mysql.connector.Error as e:
-            conn.rollback()
-            print(f"   ❌ 分類錯誤: {e}")
-            error_count += 1
-            continue
-
-        # 在 upload 資料夾中建立分類子資料夾
-        category_upload_path = os.path.join(UPLOAD_FOLDER, category_name)
-        if not os.path.exists(category_upload_path):
-            os.makedirs(category_upload_path)
-
-        # 遍歷商品資料夾
         for product_name in sorted(os.listdir(category_path)):
             product_path = os.path.join(category_path, product_name)
-            
-            if not os.path.isdir(product_path):
-                continue
+            if not os.path.isdir(product_path): continue
 
             print(f"   📦 商品: {product_name}")
+            
+            # 讀取描述
+            description = "透過批次匯入的商品"
+            desc_file = os.path.join(product_path, '描述.txt')
+            if os.path.exists(desc_file):
+                with open(desc_file, 'r', encoding='utf-8') as f:
+                    content = f.read().splitlines()
+                    if len(content) >= 3:
+                        description = "\n".join(content[2:]).strip()
 
-            # 讀取描述檔案
-            description_file = os.path.join(product_path, '描述.txt')
-            description = "透過 Python 腳本批次匯入的商品"
-            if os.path.exists(description_file):
-                try:
-                    with open(description_file, 'r', encoding='utf-8') as f:
-                        lines = f.readlines()
-                        if len(lines) > 2:
-                            description = ''.join(lines[2:]).strip()
-                except Exception as e:
-                    print(f"      ⚠️  讀取描述檔失敗: {e}")
-
-            # 新增商品
+            # 建立商品
             try:
-                val_product = (category_id, product_name, description, 1, now, now)
-                cursor.execute(sql_insert_product, val_product)
+                cursor.execute("""
+                    INSERT INTO product (category_id, name, description, is_active, created_at, updated_at)
+                    VALUES (%s, %s, %s, 1, %s, %s)
+                """, (category_id, product_name, description, now, now))
                 product_id = cursor.lastrowid
-                conn.commit()
-                print(f"      ✓ 商品 ID: {product_id}")
-            except mysql.connector.Error as e:
-                conn.rollback()
-                print(f"      ❌ 新增商品失敗: {e}")
-                error_count += 1
-                continue
 
-            # 在 upload 資料夾中建立商品子資料夾
-            product_upload_path = os.path.join(category_upload_path, product_name)
-            if not os.path.exists(product_upload_path):
-                os.makedirs(product_upload_path)
+                # --- 匯入商品圖片 (主圖與輪播) ---
+                img_dir = os.path.join(product_path, '商品圖片')
+                if os.path.exists(img_dir):
+                    images = [f for f in sorted(os.listdir(img_dir)) if f.lower().endswith(valid_extensions)]
+                    for idx, img_name in enumerate(images):
+                        source = os.path.join(img_dir, img_name)
+                        new_name = save_image(cursor, source, product_id, image_type='product', sort_order=idx)
+                        # 第一張設為主圖
+                        if idx == 0:
+                            cursor.execute("UPDATE image SET is_primary = 1 WHERE filename = %s", (new_name,))
+                        print(f"      📷 匯入商品圖: {new_name}")
 
-            # 匯入商品圖片 (複製到 upload 資料夾並保持分類結構)
-            product_images_path = os.path.join(product_path, '商品圖片')
-            if os.path.exists(product_images_path):
-                image_files = [f for f in sorted(os.listdir(product_images_path)) 
-                              if f.lower().endswith(valid_extensions)]
+                # --- 匯入變體與 SKU (Metadata) ---
+                meta_file = os.path.join(product_path, 'metadata.json')
+                if os.path.exists(meta_file):
+                    with open(meta_file, 'r', encoding='utf-8') as f:
+                        meta = json.load(f)
+                    
+                    abbrev = meta.get('abbreviation', 'PROD')
+                    
+                    for v_data in meta.get('variants', []):
+                        color_zh = v_data.get('color')
+                        color_en = v_data.get('color_code', 'UNK')
+                        
+                        # 建立變體 (顯示用中文)
+                        cursor.execute("""
+                            INSERT INTO variant (product_id, color, is_active, created_at, updated_at)
+                            VALUES (%s, %s, 1, %s, %s)
+                        """, (product_id, color_zh, now, now))
+                        variant_id = cursor.lastrowid
+                        
+                        # 處理變體圖片
+                        v_img_filename = v_data.get('image_file')
+                        if v_img_filename:
+                            # 優先找 sku圖片 資料夾
+                            v_img_source = os.path.join(product_path, 'sku圖片', v_img_filename)
+                            if not os.path.exists(v_img_source):
+                                # 嘗試不區分大小寫的資料夾名稱
+                                v_img_source = os.path.join(product_path, 'SKU圖片', v_img_filename)
+                                
+                            if os.path.exists(v_img_source):
+                                new_v_name = save_image(cursor, v_img_source, product_id, variant_id, 'variant')
+                                print(f"      🎨 匯入變體圖: {new_v_name} ({color_zh})")
+                        
+                        # 建立 SKU
+                        for s_data in v_data.get('skus', []):
+                            size = s_data.get('size', 'F')
+                            # SKU Code: <品名簡寫><顏色英文><尺寸>
+                            sku_code = f"{abbrev}{color_en}{size}".upper()
+                            
+                            cursor.execute("""
+                                INSERT INTO sku (variant_id, sku_code, size, price, cost, stock, is_active, created_at, updated_at)
+                                VALUES (%s, %s, %s, %s, %s, %s, 1, %s, %s)
+                            """, (variant_id, sku_code, size, s_data['price'], s_data['cost'], s_data['stock'], now, now))
+                            print(f"         🏷️  建立 SKU: {sku_code}")
                 
-                for idx, image_file in enumerate(image_files):
-                    try:
-                        # 複製圖片到 upload/分類/商品/ 資料夾
-                        source_path = os.path.join(product_images_path, image_file)
-                        dest_path = os.path.join(product_upload_path, image_file)
-                        
-                        shutil.copy2(source_path, dest_path)
-                        
-                        # 儲存相對路徑 (從 upload 資料夾開始)
-                        # 例如: 男短袖上衣/貼身Polo衫/image.avif
-                        relative_path = os.path.join(category_name, product_name, image_file)
-                        
-                        # 新增圖片記錄到資料庫
-                        is_primary = 1 if idx == 0 else 0
-                        val_image = (product_id, relative_path, 'product', is_primary, now, now)
-                        cursor.execute(sql_insert_image, val_image)
-                        conn.commit()
-                        success_count += 1
-                        print(f"        📷 {relative_path}" + (" (主圖)" if is_primary else ""))
-                    except mysql.connector.Error as e:
-                        conn.rollback()
-                        print(f"        ❌ 圖片 {image_file}: {e}")
-                        error_count += 1
-                    except Exception as e:
-                        print(f"        ❌ 複製圖片失敗 {image_file}: {e}")
-                        error_count += 1
-            else:
-                print(f"      ⚠️  找不到商品圖片資料夾")
+                conn.commit()
+                print(f"   ✅ {product_name} 匯入成功\n")
+            except Exception as e:
+                conn.rollback()
+                print(f"   ❌ {product_name} 匯入失敗: {e}\n")
 
-    # 4. 關閉連線
     cursor.close()
     conn.close()
-
-    print(f"\n{'='*60}")
-    print(f"✅ 執行完畢！")
-    print(f"   📦 成功建立: {success_count} 個商品與圖片")
-    print(f"   ❌ 失敗: {error_count}")
-    print(f"{'='*60}")
+    print("✨ 全部匯入程序完成")
 
 if __name__ == "__main__":
-    import_products_and_images()
+    import_products()

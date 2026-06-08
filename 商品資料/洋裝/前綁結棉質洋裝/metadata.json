@@ -1,0 +1,42 @@
+{
+  "abbreviation": "FTCD",
+  "variants": [
+    {
+      "color": "白色",
+      "color_code": "WHT",
+      "image_file": "51769c1db7e3d89dfb89ee1157c01e7464ad7cab.avif",
+      "skus": [
+        {
+          "size": "XS",
+          "price": 725,
+          "cost": 290,
+          "stock": 137
+        },
+        {
+          "size": "S",
+          "price": 725,
+          "cost": 290,
+          "stock": 138
+        },
+        {
+          "size": "M",
+          "price": 725,
+          "cost": 290,
+          "stock": 92
+        },
+        {
+          "size": "L",
+          "price": 725,
+          "cost": 290,
+          "stock": 106
+        },
+        {
+          "size": "XL",
+          "price": 725,
+          "cost": 290,
+          "stock": 138
+        }
+      ]
+    }
+  ]
+}

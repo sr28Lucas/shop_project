@@ -1,0 +1,79 @@
+{
+  "abbreviation": "BJ",
+  "variants": [
+    {
+      "color": "酒紅色",
+      "color_code": "Claret",
+      "image_file": "1a2e584f2f237439d0f1395dc926e20b2eca10ae.avif",
+      "skus": [
+        {
+          "size": "XS",
+          "price": 1409,
+          "cost": 563,
+          "stock": 123
+        },
+        {
+          "size": "S",
+          "price": 1409,
+          "cost": 563,
+          "stock": 177
+        },
+        {
+          "size": "M",
+          "price": 1409,
+          "cost": 563,
+          "stock": 83
+        },
+        {
+          "size": "L",
+          "price": 1409,
+          "cost": 563,
+          "stock": 92
+        },
+        {
+          "size": "XL",
+          "price": 1409,
+          "cost": 563,
+          "stock": 121
+        }
+      ]
+    },
+    {
+      "color": "黑色",
+      "color_code": "BLK",
+      "image_file": "6baddff6285127d6fb10597f2fffdb69fbe2019d.avif",
+      "skus": [
+        {
+          "size": "XS",
+          "price": 1409,
+          "cost": 563,
+          "stock": 123
+        },
+        {
+          "size": "S",
+          "price": 1409,
+          "cost": 563,
+          "stock": 177
+        },
+        {
+          "size": "M",
+          "price": 1409,
+          "cost": 563,
+          "stock": 83
+        },
+        {
+          "size": "L",
+          "price": 1409,
+          "cost": 563,
+          "stock": 92
+        },
+        {
+          "size": "XL",
+          "price": 1409,
+          "cost": 563,
+          "stock": 121
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,153 @@
+{
+  "abbreviation": "WLJ",
+  "variants": [
+    {
+      "color": "灰色",
+      "color_code": "GRAY",
+      "image_file": "2cb0c457ce64b8a0774dddd529c1311bc70aa2ac.avif",
+      "skus": [
+        {
+          "size": "XS",
+          "price": 1023,
+          "cost": 409,
+          "stock": 84
+        },
+        {
+          "size": "S",
+          "price": 1023,
+          "cost": 409,
+          "stock": 88
+        },
+        {
+          "size": "M",
+          "price": 1023,
+          "cost": 409,
+          "stock": 170
+        },
+        {
+          "size": "L",
+          "price": 1023,
+          "cost": 409,
+          "stock": 104
+        },
+        {
+          "size": "XL",
+          "price": 1023,
+          "cost": 409,
+          "stock": 141
+        }
+      ]
+    },
+    {
+      "color": "深藍色",
+      "color_code": "DB",
+      "image_file": "6c8aa06285b62db1399d5a7ffffe8f5253e126d5.avif",
+      "skus": [
+        {
+          "size": "XS",
+          "price": 1023,
+          "cost": 409,
+          "stock": 84
+        },
+        {
+          "size": "S",
+          "price": 1023,
+          "cost": 409,
+          "stock": 88
+        },
+        {
+          "size": "M",
+          "price": 1023,
+          "cost": 409,
+          "stock": 170
+        },
+        {
+          "size": "L",
+          "price": 1023,
+          "cost": 409,
+          "stock": 104
+        },
+        {
+          "size": "XL",
+          "price": 1023,
+          "cost": 409,
+          "stock": 141
+        }
+      ]
+    },
+    {
+      "color": "淺藍色",
+      "color_code": "LB",
+      "image_file": "a55995c00a296ab971ffb8c46b9b2f24dd2eadd8.avif",
+      "skus": [
+        {
+          "size": "XS",
+          "price": 1023,
+          "cost": 409,
+          "stock": 84
+        },
+        {
+          "size": "S",
+          "price": 1023,
+          "cost": 409,
+          "stock": 88
+        },
+        {
+          "size": "M",
+          "price": 1023,
+          "cost": 409,
+          "stock": 170
+        },
+        {
+          "size": "L",
+          "price": 1023,
+          "cost": 409,
+          "stock": 104
+        },
+        {
+          "size": "XL",
+          "price": 1023,
+          "cost": 409,
+          "stock": 141
+        }
+      ]
+    },
+    {
+      "color": "白色",
+      "color_code": "WHT",
+      "image_file": "a228951b1d17dde551a968c8f19c06c866094367.avif",
+      "skus": [
+        {
+          "size": "XS",
+          "price": 1023,
+          "cost": 409,
+          "stock": 84
+        },
+        {
+          "size": "S",
+          "price": 1023,
+          "cost": 409,
+          "stock": 88
+        },
+        {
+          "size": "M",
+          "price": 1023,
+          "cost": 409,
+          "stock": 170
+        },
+        {
+          "size": "L",
+          "price": 1023,
+          "cost": 409,
+          "stock": 104
+        },
+        {
+          "size": "XL",
+          "price": 1023,
+          "cost": 409,
+          "stock": 141
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,153 @@
+{
+  "abbreviation": "MRCKS",
+  "variants": [
+    {
+      "color": "黑色",
+      "color_code": "BLK",
+      "image_file": "7d1a09ff2367bbd4d5611a623a5a5e9b4c45a379.avif",
+      "skus": [
+        {
+          "size": "XS",
+          "price": 638,
+          "cost": 255,
+          "stock": 70
+        },
+        {
+          "size": "S",
+          "price": 638,
+          "cost": 255,
+          "stock": 76
+        },
+        {
+          "size": "M",
+          "price": 638,
+          "cost": 255,
+          "stock": 116
+        },
+        {
+          "size": "L",
+          "price": 638,
+          "cost": 255,
+          "stock": 83
+        },
+        {
+          "size": "XL",
+          "price": 638,
+          "cost": 255,
+          "stock": 150
+        }
+      ]
+    },
+    {
+      "color": "白色",
+      "color_code": "WHT",
+      "image_file": "12e8c36b6a3d9d4ec532e5cbad693f5f42cc2c94.avif",
+      "skus": [
+        {
+          "size": "XS",
+          "price": 638,
+          "cost": 255,
+          "stock": 70
+        },
+        {
+          "size": "S",
+          "price": 638,
+          "cost": 255,
+          "stock": 76
+        },
+        {
+          "size": "M",
+          "price": 638,
+          "cost": 255,
+          "stock": 116
+        },
+        {
+          "size": "L",
+          "price": 638,
+          "cost": 255,
+          "stock": 83
+        },
+        {
+          "size": "XL",
+          "price": 638,
+          "cost": 255,
+          "stock": 150
+        }
+      ]
+    },
+    {
+      "color": "暗沙色",
+      "color_code": "CS",
+      "image_file": "320936b8b5e4743e8b77a03a58b2d9daa42295e5.avif",
+      "skus": [
+        {
+          "size": "XS",
+          "price": 638,
+          "cost": 255,
+          "stock": 70
+        },
+        {
+          "size": "S",
+          "price": 638,
+          "cost": 255,
+          "stock": 76
+        },
+        {
+          "size": "M",
+          "price": 638,
+          "cost": 255,
+          "stock": 116
+        },
+        {
+          "size": "L",
+          "price": 638,
+          "cost": 255,
+          "stock": 83
+        },
+        {
+          "size": "XL",
+          "price": 638,
+          "cost": 255,
+          "stock": 150
+        }
+      ]
+    },
+    {
+      "color": "棕色",
+      "color_code": "BWORN",
+      "image_file": "ad4de4fdab08291a0b3d75620434a8983d304873.avif",
+      "skus": [
+        {
+          "size": "XS",
+          "price": 638,
+          "cost": 255,
+          "stock": 70
+        },
+        {
+          "size": "S",
+          "price": 638,
+          "cost": 255,
+          "stock": 76
+        },
+        {
+          "size": "M",
+          "price": 638,
+          "cost": 255,
+          "stock": 116
+        },
+        {
+          "size": "L",
+          "price": 638,
+          "cost": 255,
+          "stock": 83
+        },
+        {
+          "size": "XL",
+          "price": 638,
+          "cost": 255,
+          "stock": 150
+        }
+      ]
+    }
+  ]
+}

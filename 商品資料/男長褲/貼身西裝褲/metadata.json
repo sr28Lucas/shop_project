@@ -1,0 +1,79 @@
+{
+  "abbreviation": "FSP",
+  "variants": [
+    {
+      "color": "黑色",
+      "color_code": "BLK",
+      "image_file": "911fe55ea83e2ca8767f68aec2b4d9c8778714e5.avif",
+      "skus": [
+        {
+          "size": "XS",
+          "price": 1652,
+          "cost": 660,
+          "stock": 82
+        },
+        {
+          "size": "S",
+          "price": 1652,
+          "cost": 660,
+          "stock": 198
+        },
+        {
+          "size": "M",
+          "price": 1652,
+          "cost": 660,
+          "stock": 61
+        },
+        {
+          "size": "L",
+          "price": 1652,
+          "cost": 660,
+          "stock": 134
+        },
+        {
+          "size": "XL",
+          "price": 1652,
+          "cost": 660,
+          "stock": 118
+        }
+      ]
+    },
+    {
+      "color": "深灰色",
+      "color_code": "DG",
+      "image_file": "4165d34dfbae6ab17c9c3e76b3dd45833d50ee12.avif",
+      "skus": [
+        {
+          "size": "XS",
+          "price": 1652,
+          "cost": 660,
+          "stock": 82
+        },
+        {
+          "size": "S",
+          "price": 1652,
+          "cost": 660,
+          "stock": 198
+        },
+        {
+          "size": "M",
+          "price": 1652,
+          "cost": 660,
+          "stock": 61
+        },
+        {
+          "size": "L",
+          "price": 1652,
+          "cost": 660,
+          "stock": 134
+        },
+        {
+          "size": "XL",
+          "price": 1652,
+          "cost": 660,
+          "stock": 118
+        }
+      ]
+    }
+  ]
+}

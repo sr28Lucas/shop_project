@@ -1,0 +1,79 @@
+{
+  "abbreviation": "HWJ",
+  "variants": [
+    {
+      "color": "灰色",
+      "color_code": "GRAY",
+      "image_file": "4550b9c15f21ffe73b259e3ceccc8545fdb2e747.avif",
+      "skus": [
+        {
+          "size": "XS",
+          "price": 1299,
+          "cost": 519,
+          "stock": 92
+        },
+        {
+          "size": "S",
+          "price": 1299,
+          "cost": 519,
+          "stock": 161
+        },
+        {
+          "size": "M",
+          "price": 1299,
+          "cost": 519,
+          "stock": 174
+        },
+        {
+          "size": "L",
+          "price": 1299,
+          "cost": 519,
+          "stock": 195
+        },
+        {
+          "size": "XL",
+          "price": 1299,
+          "cost": 519,
+          "stock": 116
+        }
+      ]
+    },
+    {
+      "color": "黑色",
+      "color_code": "BLK",
+      "image_file": "c54469337bad22a2d3221d1ab241fb60eaef7505.avif",
+      "skus": [
+        {
+          "size": "XS",
+          "price": 1299,
+          "cost": 519,
+          "stock": 92
+        },
+        {
+          "size": "S",
+          "price": 1299,
+          "cost": 519,
+          "stock": 161
+        },
+        {
+          "size": "M",
+          "price": 1299,
+          "cost": 519,
+          "stock": 174
+        },
+        {
+          "size": "L",
+          "price": 1299,
+          "cost": 519,
+          "stock": 195
+        },
+        {
+          "size": "XL",
+          "price": 1299,
+          "cost": 519,
+          "stock": 116
+        }
+      ]
+    }
+  ]
+}

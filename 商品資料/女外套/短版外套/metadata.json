@@ -1,0 +1,42 @@
+{
+  "abbreviation": "SJ",
+  "variants": [
+    {
+      "color": "駝色",
+      "color_code": "camel",
+      "image_file": "442dbc7dfea1a07a6b0859d931397e9e28932c34.avif",
+      "skus": [
+        {
+          "size": "XS",
+          "price": 1105,
+          "cost": 442,
+          "stock": 164
+        },
+        {
+          "size": "S",
+          "price": 1105,
+          "cost": 442,
+          "stock": 190
+        },
+        {
+          "size": "M",
+          "price": 1105,
+          "cost": 442,
+          "stock": 183
+        },
+        {
+          "size": "L",
+          "price": 1105,
+          "cost": 442,
+          "stock": 52
+        },
+        {
+          "size": "XL",
+          "price": 1105,
+          "cost": 442,
+          "stock": 75
+        }
+      ]
+    }
+  ]
+}

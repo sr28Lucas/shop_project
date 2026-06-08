@@ -1,0 +1,154 @@
+{
+  "abbreviation": "FPLOLS",
+  "variants": [
+    {
+      "color": "黑色",
+      "color_code": "BLK",
+      "image_file": "243c170c6dc6cfa62e14e0973bfcdd46f2e11bcd.avif",
+      "skus": [
+        {
+          "size": "XS",
+          "price": 1806,
+          "cost": 722,
+          "stock": 192
+        },
+        {
+          "size": "S",
+          "price": 1806,
+          "cost": 722,
+          "stock": 140
+        },
+        {
+          "size": "M",
+          "price": 1806,
+          "cost": 722,
+          "stock": 160
+        },
+        {
+          "size": "L",
+          "price": 1806,
+          "cost": 722,
+          "stock": 145
+        },
+        {
+          "size": "XL",
+          "price": 1806,
+          "cost": 722,
+          "stock": 94
+        }
+      ]
+    },
+    {
+      "color": "白色",
+      "color_code": "WHT",
+      "image_file": "697871e3e26bf1c01c02b7b997a3769b56179924.avif",
+      "skus": [
+        {
+          "size": "XS",
+          "price": 1806,
+          "cost": 722,
+          "stock": 192
+        },
+        {
+          "size": "S",
+          "price": 1806,
+          "cost": 722,
+          "stock": 140
+        },
+        {
+          "size": "M",
+          "price": 1806,
+          "cost": 722,
+          "stock": 160
+        },
+        {
+          "size": "L",
+          "price": 1806,
+          "cost": 722,
+          "stock": 145
+        },
+        {
+          "size": "XL",
+          "price": 1806,
+          "cost": 722,
+          "stock": 94
+        }
+      ]
+    },
+    {
+      "color": "灰色",
+      "color_code": "gray",
+      "image_file": "bfee15be612330d91d38005dd45e15d9d7d37e65.avif",
+      "skus": [
+        {
+          "size": "XS",
+          "price": 1806,
+          "cost": 722,
+          "stock": 192
+        },
+        {
+          "size": "S",
+          "price": 1806,
+          "cost": 722,
+          "stock": 140
+        },
+        {
+          "size": "M",
+          "price": 1806,
+          "cost": 722,
+          "stock": 160
+        },
+        {
+          "size": "L",
+          "price": 1806,
+          "cost": 722,
+          "stock": 145
+        },
+        {
+          "size": "XL",
+          "price": 1806,
+          "cost": 722,
+          "stock": 94
+        }
+      ]
+    },
+    {
+      "color": "棕色",
+      "color_code": "BROWN",
+      "image_file": "d57c5f55b7995d3529cd03926185264a94f2e116.avif",
+      "skus": [
+        {
+          "size": "XS",
+          "price": 1806,
+          "cost": 722,
+          "stock": 192
+        },
+        {
+          "size": "S",
+          "price": 1806,
+          "cost": 722,
+          "stock": 140
+        },
+        {
+          "size": "M",
+          "price": 1806,
+          "cost": 722,
+          "stock": 160
+        },
+        {
+          "size": "L",
+          "price": 1806,
+          "cost": 722,
+          "stock": 145
+        },
+        {
+          "size": "XL",
+          "price": 1806,
+          "cost": 722,
+          "stock": 94
+        }
+      ]
+    }
+    
+  ]
+}

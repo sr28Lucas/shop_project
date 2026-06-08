@@ -1,0 +1,42 @@
+{
+  "abbreviation": "ESOPED",
+  "variants": [
+    {
+      "color": "白色",
+      "color_code": "WHT",
+      "image_file": "6b77fed15cd68c65b57d0d5a577bbea9c7898612.avif",
+      "skus": [
+        {
+          "size": "XS",
+          "price": 1560,
+          "cost": 624,
+          "stock": 119
+        },
+        {
+          "size": "S",
+          "price": 1560,
+          "cost": 624,
+          "stock": 130
+        },
+        {
+          "size": "M",
+          "price": 1560,
+          "cost": 624,
+          "stock": 127
+        },
+        {
+          "size": "L",
+          "price": 1560,
+          "cost": 624,
+          "stock": 129
+        },
+        {
+          "size": "XL",
+          "price": 1560,
+          "cost": 624,
+          "stock": 169
+        }
+      ]
+    }
+  ]
+}

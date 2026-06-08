@@ -1,0 +1,79 @@
+{
+  "abbreviation": "twill",
+  "variants": [
+    {
+      "color": "蜜桃粉",
+      "color_code": "PBP",
+      "image_file": "63ed6968afa476fb28b4bcc223b6d1f083de021d.avif",
+      "skus": [
+        {
+          "size": "XS",
+          "price": 1814,
+          "cost": 725,
+          "stock": 73
+        },
+        {
+          "size": "S",
+          "price": 1814,
+          "cost": 725,
+          "stock": 139
+        },
+        {
+          "size": "M",
+          "price": 1814,
+          "cost": 725,
+          "stock": 86
+        },
+        {
+          "size": "L",
+          "price": 1814,
+          "cost": 725,
+          "stock": 97
+        },
+        {
+          "size": "XL",
+          "price": 1814,
+          "cost": 725,
+          "stock": 137
+        }
+      ]
+    },
+    {
+      "color": "黑色",
+      "color_code": "BLK",
+      "image_file": "abbab0f349f7582434f26ff9a3f626ab624b5ba7.avif",
+      "skus": [
+        {
+          "size": "XS",
+          "price": 1814,
+          "cost": 725,
+          "stock": 73
+        },
+        {
+          "size": "S",
+          "price": 1814,
+          "cost": 725,
+          "stock": 139
+        },
+        {
+          "size": "M",
+          "price": 1814,
+          "cost": 725,
+          "stock": 86
+        },
+        {
+          "size": "L",
+          "price": 1814,
+          "cost": 725,
+          "stock": 97
+        },
+        {
+          "size": "XL",
+          "price": 1814,
+          "cost": 725,
+          "stock": 137
+        }
+      ]
+    }
+  ]
+}

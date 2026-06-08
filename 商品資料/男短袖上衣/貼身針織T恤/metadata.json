@@ -1,0 +1,79 @@
+{
+  "abbreviation": "CFKTS",
+  "variants": [
+    {
+      "color": "白色",
+      "color_code": "WHITE",
+      "image_file": "407e0bbd05464524f900f8fb5e6c5fe853464042.avif",
+      "skus": [
+        {
+          "size": "XS",
+          "price": 922,
+          "cost": 368,
+          "stock": 94
+        },
+        {
+          "size": "S",
+          "price": 922,
+          "cost": 368,
+          "stock": 143
+        },
+        {
+          "size": "M",
+          "price": 922,
+          "cost": 368,
+          "stock": 197
+        },
+        {
+          "size": "L",
+          "price": 922,
+          "cost": 368,
+          "stock": 58
+        },
+        {
+          "size": "XL",
+          "price": 922,
+          "cost": 368,
+          "stock": 179
+        }
+      ]
+    },
+    {
+      "color": "黑色",
+      "color_code": "BLK",
+      "image_file": "821801083e808e14e6261956826353260d4844a9.avif",
+      "skus": [
+        {
+          "size": "XS",
+          "price": 922,
+          "cost": 368,
+          "stock": 94
+        },
+        {
+          "size": "S",
+          "price": 922,
+          "cost": 368,
+          "stock": 143
+        },
+        {
+          "size": "M",
+          "price": 922,
+          "cost": 368,
+          "stock": 197
+        },
+        {
+          "size": "L",
+          "price": 922,
+          "cost": 368,
+          "stock": 58
+        },
+        {
+          "size": "XL",
+          "price": 922,
+          "cost": 368,
+          "stock": 179
+        }
+      ]
+    }    
+  ]
+}

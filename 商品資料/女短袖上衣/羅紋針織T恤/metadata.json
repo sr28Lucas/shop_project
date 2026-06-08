@@ -1,0 +1,79 @@
+{
+  "abbreviation": "RKTS",
+  "variants": [
+    {
+      "color": "白色",
+      "color_code": "WHT",
+      "image_file": "993faf0132d22b58e3f5aba163f577c47292aeae.avif",
+      "skus": [
+        {
+          "size": "XS",
+          "price": 1281,
+          "cost": 512,
+          "stock": 130
+        },
+        {
+          "size": "S",
+          "price": 1281,
+          "cost": 512,
+          "stock": 142
+        },
+        {
+          "size": "M",
+          "price": 1281,
+          "cost": 512,
+          "stock": 55
+        },
+        {
+          "size": "L",
+          "price": 1281,
+          "cost": 512,
+          "stock": 165
+        },
+        {
+          "size": "XL",
+          "price": 1281,
+          "cost": 512,
+          "stock": 112
+        }
+      ]
+    },
+    {
+      "color": "灰色",
+      "color_code": "GRAY",
+      "image_file": "bb0357e7266a625aa0b943798c35c71b181d9d1d.avif",
+      "skus": [
+        {
+          "size": "XS",
+          "price": 1281,
+          "cost": 512,
+          "stock": 130
+        },
+        {
+          "size": "S",
+          "price": 1281,
+          "cost": 512,
+          "stock": 142
+        },
+        {
+          "size": "M",
+          "price": 1281,
+          "cost": 512,
+          "stock": 55
+        },
+        {
+          "size": "L",
+          "price": 1281,
+          "cost": 512,
+          "stock": 165
+        },
+        {
+          "size": "XL",
+          "price": 1281,
+          "cost": 512,
+          "stock": 112
+        }
+      ]
+    }
+  ]
+}

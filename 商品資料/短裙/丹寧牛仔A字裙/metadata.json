@@ -1,0 +1,116 @@
+{
+  "abbreviation": "DALS",
+  "variants": [
+    {
+      "color": "藍色",
+      "color_code": "BLUE",
+      "image_file": "9359ab17a73789a179862e282ba1dbbe5eebeaec.avif",
+      "skus": [
+        {
+          "size": "XS",
+          "price": 1072,
+          "cost": 428,
+          "stock": 78
+        },
+        {
+          "size": "S",
+          "price": 1072,
+          "cost": 428,
+          "stock": 127
+        },
+        {
+          "size": "M",
+          "price": 1072,
+          "cost": 428,
+          "stock": 67
+        },
+        {
+          "size": "L",
+          "price": 1072,
+          "cost": 428,
+          "stock": 159
+        },
+        {
+          "size": "XL",
+          "price": 1072,
+          "cost": 428,
+          "stock": 148
+        }
+      ]
+    },
+    {
+      "color": "淺藍色",
+      "color_code": "LB",
+      "image_file": "e358c2b98639d642ac15262e50d91beb3c52c438.avif",
+      "skus": [
+        {
+          "size": "XS",
+          "price": 1072,
+          "cost": 428,
+          "stock": 78
+        },
+        {
+          "size": "S",
+          "price": 1072,
+          "cost": 428,
+          "stock": 127
+        },
+        {
+          "size": "M",
+          "price": 1072,
+          "cost": 428,
+          "stock": 67
+        },
+        {
+          "size": "L",
+          "price": 1072,
+          "cost": 428,
+          "stock": 159
+        },
+        {
+          "size": "XL",
+          "price": 1072,
+          "cost": 428,
+          "stock": 148
+        }
+      ]
+    },
+    {
+      "color": "深藍色",
+      "color_code": "DB",
+      "image_file": "faff915f0d0bea4c8980db485cf2562a7da315b9.avif",
+      "skus": [
+        {
+          "size": "XS",
+          "price": 1072,
+          "cost": 428,
+          "stock": 78
+        },
+        {
+          "size": "S",
+          "price": 1072,
+          "cost": 428,
+          "stock": 127
+        },
+        {
+          "size": "M",
+          "price": 1072,
+          "cost": 428,
+          "stock": 67
+        },
+        {
+          "size": "L",
+          "price": 1072,
+          "cost": 428,
+          "stock": 159
+        },
+        {
+          "size": "XL",
+          "price": 1072,
+          "cost": 428,
+          "stock": 148
+        }
+      ]
+    }
+  ]
+}

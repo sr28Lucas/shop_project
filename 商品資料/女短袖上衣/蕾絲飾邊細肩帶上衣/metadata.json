@@ -1,0 +1,42 @@
+{
+  "abbreviation": "LTSST",
+  "variants": [
+    {
+      "color": "米白色",
+      "color_code": "BEIGE",
+      "image_file": "df680b9e59ad9e4104b389fc5149280e2d7bd0b7.avif",
+      "skus": [
+        {
+          "size": "XS",
+          "price": 1281,
+          "cost": 512,
+          "stock": 130
+        },
+        {
+          "size": "S",
+          "price": 1281,
+          "cost": 512,
+          "stock": 142
+        },
+        {
+          "size": "M",
+          "price": 1281,
+          "cost": 512,
+          "stock": 55
+        },
+        {
+          "size": "L",
+          "price": 1281,
+          "cost": 512,
+          "stock": 165
+        },
+        {
+          "size": "XL",
+          "price": 1281,
+          "cost": 512,
+          "stock": 112
+        }
+      ]
+    }
+  ]
+}

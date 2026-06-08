@@ -1,0 +1,79 @@
+{
+  "abbreviation": "DRY",
+  "variants": [
+    {
+      "color": "淺卡其綠",
+      "color_code": "LKG",
+      "image_file": "1e7f9318a5e9e75aa6a0f68bd9f14ad517370565.avif",
+      "skus": [
+        {
+          "size": "XS",
+          "price": 1814,
+          "cost": 725,
+          "stock": 73
+        },
+        {
+          "size": "S",
+          "price": 1814,
+          "cost": 725,
+          "stock": 139
+        },
+        {
+          "size": "M",
+          "price": 1814,
+          "cost": 725,
+          "stock": 86
+        },
+        {
+          "size": "L",
+          "price": 1814,
+          "cost": 725,
+          "stock": 97
+        },
+        {
+          "size": "XL",
+          "price": 1814,
+          "cost": 725,
+          "stock": 137
+        }
+      ]
+    },
+    {
+      "color": "黑色",
+      "color_code": "BLK",
+      "image_file": "7ab6d2a1e79310b735fb85bda7b89d3c6ab28ca9.avif",
+      "skus": [
+        {
+          "size": "XS",
+          "price": 1814,
+          "cost": 725,
+          "stock": 73
+        },
+        {
+          "size": "S",
+          "price": 1814,
+          "cost": 725,
+          "stock": 139
+        },
+        {
+          "size": "M",
+          "price": 1814,
+          "cost": 725,
+          "stock": 86
+        },
+        {
+          "size": "L",
+          "price": 1814,
+          "cost": 725,
+          "stock": 97
+        },
+        {
+          "size": "XL",
+          "price": 1814,
+          "cost": 725,
+          "stock": 137
+        }
+      ]
+    }
+  ]
+}

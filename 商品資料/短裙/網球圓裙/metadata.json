@@ -1,0 +1,79 @@
+{
+  "abbreviation": "TS",
+  "variants": [
+    {
+      "color": "棕色",
+      "color_code": "BROWN",
+      "image_file": "950404e169439d901ca670b1c409c8ee4ae65bfe.avif",
+      "skus": [
+        {
+          "size": "XS",
+          "price": 1556,
+          "cost": 622,
+          "stock": 75
+        },
+        {
+          "size": "S",
+          "price": 1556,
+          "cost": 622,
+          "stock": 140
+        },
+        {
+          "size": "M",
+          "price": 1556,
+          "cost": 622,
+          "stock": 94
+        },
+        {
+          "size": "L",
+          "price": 1556,
+          "cost": 622,
+          "stock": 175
+        },
+        {
+          "size": "XL",
+          "price": 1556,
+          "cost": 622,
+          "stock": 71
+        }
+      ]
+    },
+    {
+      "color": "黑色",
+      "color_code": "BLK",
+      "image_file": "c9b9b7b016730dd33f829fe4bb8648f143fd08b5.avif",
+      "skus": [
+        {
+          "size": "XS",
+          "price": 1556,
+          "cost": 622,
+          "stock": 75
+        },
+        {
+          "size": "S",
+          "price": 1556,
+          "cost": 622,
+          "stock": 140
+        },
+        {
+          "size": "M",
+          "price": 1556,
+          "cost": 622,
+          "stock": 94
+        },
+        {
+          "size": "L",
+          "price": 1556,
+          "cost": 622,
+          "stock": 175
+        },
+        {
+          "size": "XL",
+          "price": 1556,
+          "cost": 622,
+          "stock": 71
+        }
+      ]
+    }
+  ]
+}

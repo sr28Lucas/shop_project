@@ -1,0 +1,42 @@
+{
+  "abbreviation": "CCJP",
+  "variants": [
+    {
+      "color": "黑色",
+      "color_code": "BLK",
+      "image_file": "e949c99944541509336a1f23fdc539b505b3a062.avif",
+      "skus": [
+        {
+          "size": "XS",
+          "price": 1955,
+          "cost": 782,
+          "stock": 108
+        },
+        {
+          "size": "S",
+          "price": 1955,
+          "cost": 782,
+          "stock": 93
+        },
+        {
+          "size": "M",
+          "price": 1955,
+          "cost": 782,
+          "stock": 70
+        },
+        {
+          "size": "L",
+          "price": 1955,
+          "cost": 782,
+          "stock": 92
+        },
+        {
+          "size": "XL",
+          "price": 1955,
+          "cost": 782,
+          "stock": 126
+        }
+      ]
+    }
+  ]
+}

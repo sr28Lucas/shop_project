@@ -1,0 +1,79 @@
+{
+  "abbreviation": "WFPC",
+  "variants": [
+    {
+      "color": "黑色",
+      "color_code": "BLK",
+      "image_file": "304ffcc5a2a12d0cebe52102c76b1edaf087834c.avif",
+      "skus": [
+        {
+          "size": "XS",
+          "price": 1459,
+          "cost": 583,
+          "stock": 196
+        },
+        {
+          "size": "S",
+          "price": 1459,
+          "cost": 583,
+          "stock": 84
+        },
+        {
+          "size": "M",
+          "price": 1459,
+          "cost": 583,
+          "stock": 178
+        },
+        {
+          "size": "L",
+          "price": 1459,
+          "cost": 583,
+          "stock": 197
+        },
+        {
+          "size": "XL",
+          "price": 1459,
+          "cost": 583,
+          "stock": 154
+        }
+      ]
+    },
+    {
+      "color": "深藍色",
+      "color_code": "DB",
+      "image_file": "bba9b4f5e5975052744a12bfa01875d3d339a084.avif",
+      "skus": [
+        {
+          "size": "XS",
+          "price": 1459,
+          "cost": 583,
+          "stock": 196
+        },
+        {
+          "size": "S",
+          "price": 1459,
+          "cost": 583,
+          "stock": 84
+        },
+        {
+          "size": "M",
+          "price": 1459,
+          "cost": 583,
+          "stock": 178
+        },
+        {
+          "size": "L",
+          "price": 1459,
+          "cost": 583,
+          "stock": 197
+        },
+        {
+          "size": "XL",
+          "price": 1459,
+          "cost": 583,
+          "stock": 154
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,42 @@
+{
+  "abbreviation": "ALDWE",
+  "variants": [
+    {
+      "color": "米白色",
+      "color_code": "WHT",
+      "image_file": "781215039d4aae8949cf04892263c3d578df15fa.avif",
+      "skus": [
+        {
+          "size": "XS",
+          "price": 1044,
+          "cost": 417,
+          "stock": 117
+        },
+        {
+          "size": "S",
+          "price": 1044,
+          "cost": 417,
+          "stock": 100
+        },
+        {
+          "size": "M",
+          "price": 1044,
+          "cost": 417,
+          "stock": 141
+        },
+        {
+          "size": "L",
+          "price": 1044,
+          "cost": 417,
+          "stock": 77
+        },
+        {
+          "size": "XL",
+          "price": 1044,
+          "cost": 417,
+          "stock": 121
+        }
+      ]
+    }
+  ]
+}
