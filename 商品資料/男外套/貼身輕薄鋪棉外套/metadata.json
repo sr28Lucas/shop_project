@@ -3,8 +3,8 @@
   "variants": [
     {
       "color": "深軍綠色",
-      "color_code": "BA",
-      "image_file": "Armygreen",
+      "color_code": "Armygreen",
+      "image_file": "f0e34a13e578ea40562753a21b888a2c1c5b1efe.avif",
       "skus": [
         {
           "size": "XS",
