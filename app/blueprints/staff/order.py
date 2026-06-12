@@ -5,6 +5,7 @@ import json
 import os
 from app.config import config
 from .permission import require_permission
+from app.utils.validators import Validator
 
 order_bp = Blueprint('order', __name__)
 
@@ -23,12 +24,17 @@ def logistics_settings():
                 data = json.load(f)
 
             for city in data:
-                fee = request.form.get(f'fee_{city}')
-                if fee:
-                    data[city]['fee'] = float(fee)
+                fee_val = request.form.get(f'fee_{city}')
+                if fee_val:
+                    if not Validator.is_valid_number(fee_val, 10000):
+                        flash(f'更新失敗：{city} 的運費必須在 0 到 10,000 之間')
+                        return redirect(url_for('staff.order.logistics_settings'))
+                    
+                    fee = float(fee_val)
+                    data[city]['fee'] = fee
                     cursor.execute(
                         "UPDATE region SET fee = %s WHERE name = %s",
-                        (float(fee), city)
+                        (fee, city)
                     )
 
             conn.commit()

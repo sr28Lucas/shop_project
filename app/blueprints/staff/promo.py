@@ -12,6 +12,8 @@ def validate_discount(discount_type, discount_value):
     elif discount_type in ['subtotal_deduction', 'shipping_deduction']:
         if discount_value < 0:
             return "折抵金額不能為負數"
+        if discount_value > 1000000: # 增加一個合理的上限
+            return "折抵金額過大"
     elif discount_type == 'free_shipping':
         if discount_value != 0:
             return "免運費折扣值應設為 0"

@@ -29,23 +29,23 @@
         
         <div class="form-group">
             <label class="required">密碼</label>
-            <input type="password" name="password" minlength="6" maxlength="20" required>
+            <input type="password" name="password" minlength="4" maxlength="30" required>
         </div>
 
         <div class="form-group">
             <label class="required">確認密碼</label>
-            <input type="password" name="confirm_password" minlength="6" maxlength="20" required>
+            <input type="password" name="confirm_password" minlength="4" maxlength="30" required>
         </div>
 
         <div class="form-group">
             <label class="required">姓名</label>
-            <input type="text" name="name" maxlength="30" required>
+            <input type="text" name="name" maxlength="100" required>
         </div>
 
         <div style="display: flex; gap: 15px;">
             <div class="form-group" style="flex: 1;">
                 <label>電話</label>
-                <input type="text" name="phone" pattern="[0-9\-]{8,20}" maxlength="20" title="請輸入 8-20 碼數字或符號 -">
+                <input type="text" name="phone" maxlength="30">
             </div>
             <div class="form-group" style="flex: 1;">
                 <label>縣市</label>
@@ -64,7 +64,7 @@
             </div>
             <div class="form-group" style="flex: 1;">
                 <label>詳細地址</label>
-                <input type="text" name="address" maxlength="100">
+                <input type="text" name="address" maxlength="200">
             </div>
         </div>
         

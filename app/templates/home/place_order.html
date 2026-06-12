@@ -43,8 +43,11 @@
             <div class="summary-item"><span>優惠碼:</span> <span>{{ info.promo_code }}</span></div>
         {% endif %}
         <div class="summary-item"><span>折扣:</span> <span>-${{ "{:,.0f}".format(discount) }}</span></div>
+        {% if shipping_discount > 0 %}
+            <div class="summary-item"><span>運費折扣:</span> <span>-${{ "{:,.0f}".format(shipping_discount) }}</span></div>
+        {% endif %}
         <div class="summary-item"><span>運費:</span> <span>${{ "{:,.0f}".format(shipping_fee) }}</span></div>
-        <div class="summary-item" style="font-weight: bold; font-size: 18px;"><span>總計:</span> <span>${{ "{:,.0f}".format(total) }}</span></div>
+        <div class="summary-item total" style="font-weight: bold; font-size: 18px;"><span>總計:</span> <span>${{ "{:,.0f}".format(total) }}</span></div>
     </div>
 
     <form method="POST">

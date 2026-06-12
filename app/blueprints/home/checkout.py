@@ -25,25 +25,31 @@ def get_active_cart(customer_id):
 def calculate_order_totals(subtotal, shipping_fee, promo):
     """
     Helper to calculate discount and adjusted shipping fee based on promo.
-    Returns (discount_total, shipping_fee)
+    Returns (subtotal_discount, shipping_discount, final_shipping_fee)
     """
-    discount_total = 0
+    subtotal_discount = 0
+    shipping_discount = 0
+    
     if not promo:
-        return discount_total, shipping_fee
+        return subtotal_discount, shipping_discount, shipping_fee
     
     if subtotal < promo['min_order_amount']:
-        return discount_total, shipping_fee
+        return subtotal_discount, shipping_discount, shipping_fee
 
     if promo['discount_type'] == 'subtotal_discount':
-        discount_total = round(subtotal * (promo['discount_value'] / 100))
+        subtotal_discount = round(subtotal * (promo['discount_value'] / 100))
     elif promo['discount_type'] == 'subtotal_deduction':
-        discount_total = round(promo['discount_value'])
+        subtotal_discount = round(promo['discount_value'])
     elif promo['discount_type'] == 'shipping_deduction':
-        shipping_fee = max(0, shipping_fee - round(promo['discount_value']))
+        shipping_discount = min(shipping_fee, round(promo['discount_value']))
     elif promo['discount_type'] == 'free_shipping':
-        shipping_fee = 0
+        shipping_discount = shipping_fee
         
-    return discount_total, shipping_fee
+    # 確保折扣不超過小計
+    subtotal_discount = min(subtotal, subtotal_discount)
+    final_shipping_fee = max(0, shipping_fee - shipping_discount)
+        
+    return subtotal_discount, shipping_discount, final_shipping_fee
 
 def validate_promo_code(promo):
     if not promo:
@@ -147,6 +153,9 @@ def add_to_cart():
     if not sku_id or qty <= 0:
         return {'success': False, 'message': '請選擇有效的規格與數量'}, 400
         
+    if qty > 999:
+        return {'success': False, 'message': '單次加入數量不能超過 999'}, 400
+        
     cart_id = get_active_cart(session['customer_id'])
     
     conn = get_db_connection()
@@ -207,6 +216,10 @@ def update_qty():
 
     if qty <= 0:
         flash("數量必須大於 0")
+        return redirect(url_for('home.checkout.view_cart'))
+    
+    if qty > 999:
+        flash("數量不能超過 999")
         return redirect(url_for('home.checkout.view_cart'))
 
     cart_id = get_active_cart(session['customer_id'])
@@ -367,11 +380,22 @@ def payment():
             promo = None
             session['checkout_info'].pop('promo_code', None)
     
-    discount, shipping_fee = calculate_order_totals(subtotal, shipping_fee, promo)
+    discount, shipping_discount, shipping_fee = calculate_order_totals(subtotal, shipping_fee, promo)
     total = subtotal - discount + shipping_fee
     
     if request.method == 'POST':
-        session['payment_info'] = {'card_number': request.form['card_number']}
+        card_number = request.form.get('card_number')
+        if not Validator.is_valid_credit_card(card_number):
+            flash("無效的信用卡號，必須為 16 碼數字。")
+            return render_template('home/payment.html', 
+                                   cart_items=cart_items, 
+                                   subtotal=subtotal, 
+                                   discount=discount, 
+                                   shipping_discount=shipping_discount,
+                                   shipping_fee=shipping_fee, 
+                                   total=total)
+
+        session['payment_info'] = {'card_number': card_number}
         cursor.close()
         conn.close()
         return redirect(url_for('home.checkout.place_order'))
@@ -382,6 +406,7 @@ def payment():
                            cart_items=cart_items, 
                            subtotal=subtotal, 
                            discount=discount, 
+                           shipping_discount=shipping_discount,
                            shipping_fee=shipping_fee, 
                            total=total)
 
@@ -448,11 +473,15 @@ def place_order():
             session['checkout_info'].pop('promo_code', None)
         
     # 計算折扣與運費
-    discount_total, shipping_fee = calculate_order_totals(subtotal, shipping_fee, promo)
+    discount_total, shipping_discount, shipping_fee = calculate_order_totals(subtotal, shipping_fee, promo)
     promo_id = promo['id'] if promo else None
     
     # 計算最終總計 (total)
     total = subtotal - discount_total + shipping_fee
+
+    if total > 999999999:
+        flash("訂單總額超過系統限制。")
+        return redirect(url_for('home.checkout.view_cart'))
     
     if request.method == 'POST':
         try:
@@ -500,7 +529,7 @@ def place_order():
                                       session['checkout_info']['address'], now, now))
             order_id = cursor.lastrowid
             
-            # 計算折扣比例
+            # 計算折扣比例 (僅針對商品小計)
             discount_rate = discount_total / subtotal if subtotal > 0 else 0
             
             # 插入訂單明細，並扣除庫存
@@ -510,7 +539,7 @@ def place_order():
                 
                 # 計算單價
                 original_price = item['price']
-                unit_price = original_price * (1 - discount_rate)
+                unit_price = max(0, original_price * (1 - discount_rate))
                 
                 cursor.execute("""INSERT INTO order_item (order_id, product_id, variant_id, sku_id, product_name, variant_name, sku_code, size, color, qty, original_price, unit_price, unit_cost) 
                                   VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)""",
@@ -552,6 +581,7 @@ def place_order():
                            info=session['checkout_info'],
                            subtotal=subtotal, 
                            discount=discount_total, 
+                           shipping_discount=shipping_discount,
                            shipping_fee=shipping_fee, 
                            total=total)
 

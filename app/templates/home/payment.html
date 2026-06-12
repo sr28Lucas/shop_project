@@ -21,8 +21,12 @@
     <div style="margin-bottom: 20px;">
         <div class="summary-item"><span>小計:</span> <span>${{ "{:,.0f}".format(subtotal) }}</span></div>
         <div class="summary-item"><span>折扣:</span> <span>-${{ "{:,.0f}".format(discount) }}</span></div>
+        {% if shipping_discount > 0 %}
+        <div class="summary-item"><span>運費折扣:</span> <span>-${{ "{:,.0f}".format(shipping_discount) }}</span></div>
+        {% endif %}
         <div class="summary-item"><span>運費:</span> <span>${{ "{:,.0f}".format(shipping_fee) }}</span></div>
-        <div class="summary-item total-row"><span>總計:</span> <span>${{ "{:,.0f}".format(total) }}</span></div>
+        <div class="summary-item total"><span>總計:</span> <span>${{ "{:,.0f}".format(total) }}</span></div>
+
     </div>
 
     <form method="POST">

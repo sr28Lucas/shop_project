@@ -88,6 +88,10 @@ def change_password():
         new_password = request.form.get('new_password')
         confirm_password = request.form.get('confirm_password')
         
+        if not Validator.is_valid_password(new_password):
+            flash("新密碼長度至少需 4 位", "error")
+            return redirect(url_for('customer.profile.change_password'))
+
         if new_password != confirm_password:
             flash("新密碼與確認密碼不一致", "error")
             return redirect(url_for('customer.profile.change_password'))

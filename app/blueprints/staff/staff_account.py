@@ -3,6 +3,7 @@ from app.db import get_db_connection
 from datetime import datetime
 from app.extensions import bcrypt
 from .permission import require_permission
+from app.utils.validators import Validator
 
 staff_account_bp = Blueprint('staff_account', __name__)
 
@@ -30,13 +31,27 @@ def staff_add():
     cursor = conn.cursor(dictionary=True)
     
     if request.method == 'POST':
-        name = request.form.get('name')
-        email = request.form.get('email')
-        phone = request.form.get('phone')
+        name = request.form.get('name', '').strip()
+        email = request.form.get('email', '').strip()
+        phone = request.form.get('phone', '').strip()
         role_id = request.form.get('role_id')
         password = request.form.get('password')
         password_confirm = request.form.get('password_confirm')
         
+        # Validation
+        if not Validator.is_valid_email(email):
+            flash("電子郵件格式不正確或長度超出範圍 (3-100)。")
+            return redirect(url_for('staff.staff_account.staff_list'))
+        if not Validator.is_valid_name(name):
+            flash("姓名長度需在 1-100 字元之間。")
+            return redirect(url_for('staff.staff_account.staff_list'))
+        if not Validator.is_valid_phone(phone):
+            flash("電話格式或長度不正確。")
+            return redirect(url_for('staff.staff_account.staff_list'))
+        if not Validator.is_valid_password(password):
+            flash("密碼至少需 4 位。")
+            return redirect(url_for('staff.staff_account.staff_list'))
+
         if password != password_confirm:
             flash('密碼與確認密碼不一致')
             return redirect(url_for('staff.staff_account.staff_list'))

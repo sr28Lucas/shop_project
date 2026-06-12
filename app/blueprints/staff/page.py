@@ -2,6 +2,7 @@ from flask import Blueprint, session, request, redirect, render_template, url_fo
 from app.db import get_db_connection
 from datetime import datetime
 from .permission import require_permission
+from app.utils.validators import Validator
 
 page_bp = Blueprint('page', __name__) #建立藍圖
 
@@ -20,13 +21,21 @@ def announcement_list():
 @require_permission('announcement')
 def announcement_add():
     if request.method == 'POST':
-        title = request.form.get('title')
-        content = request.form.get('content')
+        title = request.form.get('title', '').strip()
+        content = request.form.get('content', '').strip()
         type = request.form.get('type')
         pin = 1 if request.form.get('pin') else 0
         is_active = 1 if request.form.get('is_active') else 0
         start_at = request.form.get('start_at') or None
         end_at = request.form.get('end_at') or None
+        
+        if not Validator.is_valid_length(title, 100, 1):
+            flash("公告標題長度需在 1-100 字元之間")
+            return redirect(url_for('staff.page.announcement_list'))
+        
+        if not Validator.is_valid_length(content, 2000):
+            flash("公告內容長度不能超過 2000 字元")
+            return redirect(url_for('staff.page.announcement_list'))
         
         conn = get_db_connection()
         cursor = conn.cursor()
@@ -49,13 +58,21 @@ def announcement_edit(id):
     cursor = conn.cursor(dictionary=True)
     
     if request.method == 'POST':
-        title = request.form.get('title')
-        content = request.form.get('content')
+        title = request.form.get('title', '').strip()
+        content = request.form.get('content', '').strip()
         type = request.form.get('type')
         pin = 1 if request.form.get('pin') else 0
         is_active = 1 if request.form.get('is_active') else 0
         start_at = request.form.get('start_at') or None
         end_at = request.form.get('end_at') or None
+        
+        if not Validator.is_valid_length(title, 100, 1):
+            flash("公告標題長度需在 1-100 字元之間")
+            return redirect(url_for('staff.page.announcement_list'))
+        
+        if not Validator.is_valid_length(content, 2000):
+            flash("公告內容長度不能超過 2000 字元")
+            return redirect(url_for('staff.page.announcement_list'))
         
         cursor.execute("""
             UPDATE announcement 

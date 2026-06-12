@@ -5,6 +5,7 @@ from datetime import datetime
 from app.config import config
 import os
 from .permission import require_permission
+from app.utils.validators import Validator
 
 product_bp = Blueprint('product', __name__)
 
@@ -48,13 +49,19 @@ def product_list():
 @require_permission('product')
 def product_add():
     if request.method == 'POST':
-        name = request.form['name']
+        name = request.form.get('name', '').strip()
         category_id = request.form.get('category_id')
-        description = request.form.get('description')
+        description = request.form.get('description', '').strip()
         files = request.files.getlist('images')
 
         if not category_id:
             return "商品必須選擇分類", 400
+        
+        if not Validator.is_valid_length(name, 100, 1):
+            return "商品名稱長度需在 1-100 字元之間", 400
+        
+        if not Validator.is_valid_length(description, 2000):
+            return "商品描述長度不能超過 2000 字元", 400
 
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
@@ -118,14 +125,24 @@ def product_edit(id):
     cursor = conn.cursor(dictionary=True)
 
     if request.method == 'POST':
-        name = request.form['name']
+        name = request.form.get('name', '').strip()
         category_id = request.form.get('category_id')
-        description = request.form.get('description')
+        description = request.form.get('description', '').strip()
         
         if not category_id:
             cursor.close()
             conn.close()
             return "商品必須選擇分類", 400
+        
+        if not Validator.is_valid_length(name, 100, 1):
+            cursor.close()
+            conn.close()
+            return "商品名稱長度需在 1-100 字元之間", 400
+        
+        if not Validator.is_valid_length(description, 2000):
+            cursor.close()
+            conn.close()
+            return "商品描述長度不能超過 2000 字元", 400
 
         image_order = request.form.get('image_order').split(',')
         deleted_ids = request.form.get('deleted_ids')
@@ -309,8 +326,10 @@ def variant_add(product_id):
                     return redirect(url_for('staff.product.variant_list', product_id=product_id))
                 seen_sku_codes.add(sku_code)
 
-                if price < 0 or cost < 0 or stock < 0:
-                    flash(f"新增失敗：價格、成本與庫存不能為負數！")
+                if not Validator.is_valid_number(price, 999999999) or \
+                   not Validator.is_valid_number(cost, 999999999) or \
+                   not Validator.is_valid_number(stock, 1000000):
+                    flash(f"新增失敗：價格/成本上限 9.9億，庫存上限 100萬，且不能為負數！")
                     return redirect(url_for('staff.product.variant_list', product_id=product_id))
 
             # === 原有：防呆檢查 sku_code 是否重複於資料庫 ===
@@ -405,8 +424,10 @@ def variant_edit(product_id, variant_id):
                     return redirect(url_for('staff.product.variant_edit', product_id=product_id, variant_id=variant_id))
                 seen_sku_codes.add(sku_code)
 
-                if price < 0 or cost < 0 or stock < 0:
-                    flash(f"修改失敗：價格、成本與庫存不能為負數！")
+                if not Validator.is_valid_number(price, 999999999) or \
+                   not Validator.is_valid_number(cost, 999999999) or \
+                   not Validator.is_valid_number(stock, 1000000):
+                    flash(f"修改失敗：價格/成本上限 9.9億，庫存上限 100萬，且不能為負數！")
                     return redirect(url_for('staff.product.variant_edit', product_id=product_id, variant_id=variant_id))
 
             # === 原有：防呆檢查 sku_code 是否重複於資料庫 ===

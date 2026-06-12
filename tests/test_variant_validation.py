@@ -60,8 +60,7 @@ def test_variant_add_negative_values(client, auth_staff, test_product_for_varian
     }, follow_redirects=True)
     
     assert response.status_code == 200
-    assert "新增失敗：價格、成本與庫存不能為負數" in response.get_data(as_text=True)
-
+    assert "新增失敗：價格/成本上限 9.9億，庫存上限 100萬，且不能為負數！" in response.get_data(as_text=True)
 def test_variant_edit_duplicate_sku_database(client, auth_staff, test_product_for_variant):
     """測試修改變體時，新增的 SKU 與資料庫中已有的 SKU 重複"""
     # 1. 先新增一個變體

@@ -145,6 +145,33 @@ def announcement_view(id):
         return "公告不存在", 404
     return render_template('home/announcement_view.html', announcement=announcement)
 
+def sort_sizes(skus):
+    """
+    自定義尺寸排序規則：
+    1. 標準尺寸順序：XS, S, M, L, XL, 2XL, 3XL, 4XL, 5XL
+    2. 數字尺寸 (例如 36, 38)
+    3. 其他字母或文字
+    """
+    size_order = {
+        'XXS': 1, 'XS': 2, 'S': 3, 'M': 4, 'L': 5, 'XL': 6, 
+        '2XL': 7, 'XXL': 7, '3XL': 8, 'XXXL': 8, '4XL': 9, '5XL': 10,
+        'F': 20, 'FREE': 20
+    }
+    
+    def get_sort_key(sku):
+        size = str(sku['size']).upper().strip()
+        if size in size_order:
+            return (0, size_order[size], size)
+        
+        # 嘗試轉換為數字
+        try:
+            # 處理像 "36" 或 "36.5"
+            return (1, float(size), size)
+        except ValueError:
+            return (2, 0, size)
+            
+    return sorted(skus, key=get_sort_key)
+
 @home_bp.route('/product/<int:id>')
 def product_view(id):
     conn = get_db_connection()
@@ -178,7 +205,6 @@ def product_view(id):
         SELECT s.*, v.color FROM sku s
         JOIN variant v ON s.variant_id = v.id
         WHERE v.product_id = %s AND s.is_active = 1
-        ORDER BY s.price ASC
     """, (id,))
     skus = cursor.fetchall()
 
@@ -186,8 +212,9 @@ def product_view(id):
     cursor.execute("SELECT * FROM variant WHERE product_id = %s AND is_active = 1", (id,))
     variants = cursor.fetchall()
     for v in variants:
-        # 將 SKU 關聯到對應的變體
-        v['skus'] = [s for s in skus if s['variant_id'] == v['id']]
+        # 將 SKU 關聯到對應的變體，並進行尺寸排序
+        v_skus = [s for s in skus if s['variant_id'] == v['id']]
+        v['skus'] = sort_sizes(v_skus)
         # 關聯圖片
         v['image'] = variant_images.get(v['id'])
 

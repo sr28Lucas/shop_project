@@ -1,6 +1,7 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session
 from app.db import get_db_connection
 from datetime import datetime
+from app.utils.validators import Validator
 
 support_bp = Blueprint('support', __name__)
 
@@ -50,9 +51,18 @@ def new_inquiry():
         purpose = request.form.get('purpose', '').strip()
         content = request.form.get('content', '').strip()
 
-        if not purpose:
-            flash('請選擇問題類型')
+        if not purpose or not content:
+            flash("請填寫所有欄位")
             return redirect(url_for('home.support.new_inquiry'))
+
+        if not Validator.is_valid_length(purpose, 100, 1):
+            flash("諮詢主題長度需在 1-100 字元之間")
+            return redirect(url_for('home.support.new_inquiry'))
+
+        if not Validator.is_valid_length(content, 2000, 1):
+            flash("諮詢內容長度需在 1-2000 字元之間")
+            return redirect(url_for('home.support.new_inquiry'))
+
 
         if not content:
             flash('請輸入問題內容')

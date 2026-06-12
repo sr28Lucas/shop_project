@@ -22,11 +22,11 @@ def register():
             return redirect(url_for('auth.register'))
             
         if not Validator.is_valid_email(email):
-            flash("電子郵件格式不正確或過長。", "error")
+            flash("電子郵件格式不正確或長度超出範圍 (3-100)。", "error")
             return redirect(url_for('auth.register'))
 
         if not Validator.is_valid_name(name):
-            flash("姓名長度需在 1-30 字元之間。", "error")
+            flash("姓名長度需在 1-100 字元之間。", "error")
             return redirect(url_for('auth.register'))
 
         if password != confirm_password:
@@ -39,7 +39,7 @@ def register():
 
         phone = request.form.get('phone', '').strip() or None
         if phone and not Validator.is_valid_phone(phone):
-            flash("電話長度需在 8-20 碼之間。", "error")
+            flash("電話長度需在 8-30 碼之間。", "error")
             return redirect(url_for('auth.register'))
         region_name = request.form.get('region') or None
         locality_name = request.form.get('locality') or None
@@ -112,6 +112,9 @@ def login():
         conn.close()
 
         if user:
+            if not user['is_active']:
+                flash("您的帳號已被停用，請聯絡管理員。", "error")
+                return redirect(url_for('auth.login'))
             if bcrypt.check_password_hash(user['password'], password):
                 session['customer_id'] = user['id']
                 return redirect(url_for('customer.center'))
@@ -149,11 +152,18 @@ def staff_login():
         cursor.close()
         conn.close()
 
-        if user and bcrypt.check_password_hash(user['password'], password):
-            session['staff_id'] = user['id']
-            return redirect(url_for('staff.dashboard'))
+        if user:
+            if not user['is_active']:
+                flash("您的員工帳號已被停用，請聯絡系統管理員。", "error")
+                return redirect(url_for('auth.staff_login'))
+            if bcrypt.check_password_hash(user['password'], password):
+                session['staff_id'] = user['id']
+                return redirect(url_for('staff.dashboard'))
+            else:
+                flash("密碼錯囉，再試一次？", "error")
+                return redirect(url_for('auth.staff_login'))
         else:
-            flash("密碼錯囉，再試一次？", "error")
+            flash("帳號不存在", "error")
             return redirect(url_for('auth.staff_login'))
             
     return render_template('staff_login.html')
