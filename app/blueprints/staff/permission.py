@@ -21,7 +21,16 @@ def get_staff_role():
             
         # 取得角色權限
         cursor.execute("SELECT * FROM role WHERE id = %s", (staff['role_id'],))
-        g.staff_role = cursor.fetchone()
+        role = cursor.fetchone()
+        
+        if not role:
+            cursor.close()
+            conn.close()
+            # 若找不到角色，則設為無權限的空 dict
+            g.staff_role = {}
+            return g.staff_role
+            
+        g.staff_role = role
         
         cursor.close()
         conn.close()

@@ -445,8 +445,15 @@ def place_order():
         flash("您選擇的商品目前無法結帳。")
         return redirect(url_for('home.checkout.view_cart'))
     
-    # 檢查庫存
+    # 檢查庫存與資料完整性
     for item in cart_items:
+        # 新增資料完整性檢查，防止因屬性缺失導致崩潰
+        if not item.get('product_name') or item.get('price') is None or item.get('stock') is None:
+            cursor.close()
+            conn.close()
+            flash("購物車中有商品資料異常，無法結帳。")
+            return redirect(url_for('home.checkout.view_cart'))
+            
         if item['qty'] > item['stock']:
             cursor.close()
             conn.close()

@@ -232,7 +232,7 @@ def sales():
         SELECT
             COUNT(*) AS sku_count,
             COALESCE(SUM(stock), 0) AS total_stock,
-            COUNT(CASE WHEN stock <= 5 THEN 1 END) AS low_stock_count,
+            COUNT(CASE WHEN stock <= 10 THEN 1 END) AS low_stock_count,
             COUNT(CASE WHEN stock = 0 THEN 1 END) AS out_of_stock_count
         FROM sku
         WHERE is_active = 1
@@ -251,7 +251,7 @@ def sales():
         JOIN variant v ON s.variant_id = v.id
         JOIN product p ON v.product_id = p.id
         WHERE s.is_active = 1
-          AND s.stock <= 5
+          AND s.stock <= 10
         ORDER BY s.stock ASC, p.id ASC
     """)
     low_stock_items = cursor.fetchall()

@@ -37,13 +37,18 @@ def promo_add():
         
     if request.method == 'POST':
         form_data = request.form.to_dict()
-        code = request.form['code']
-        description = request.form['description']
-        discount_type = request.form['discount_type']
+        code = request.form.get('code')
+        description = request.form.get('description')
+        discount_type = request.form.get('discount_type')
+        
+        # 強制欄位驗證
+        if not all([code, description, discount_type]):
+            flash("所有欄位均為必填")
+            return render_template('staff/promo_add.html', form_data=form_data)
         
         # Input Validation
         try:
-            discount_value = float(request.form['discount_value'])
+            discount_value = float(request.form.get('discount_value', 0))
             usage_limit = int(request.form.get('usage_limit', 0))
             min_order_amount = float(request.form.get('min_order_amount', 0))
         except ValueError:
