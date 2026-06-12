@@ -1,4 +1,4 @@
-from flask import Flask, session
+from flask import Flask, session, request, redirect, url_for, flash
 from .extensions import bcrypt
 from .config import config
 from app.db import get_db_connection
@@ -31,7 +31,45 @@ def create_app():
     app.register_blueprint(customer_bp, url_prefix='/customer') #會員中心 
     app.register_blueprint(home_bp, url_prefix='/') #主頁
 
-    # 5. 全域 context processor，在所有頁面顯示購物車數量
+    # 5. 全域帳號狀態檢查
+    @app.before_request
+    def check_account_status():
+        # 排除登入、註冊、靜態資源、登出路徑
+        if request.endpoint and (
+            request.endpoint.startswith('auth.') or 
+            request.endpoint.startswith('static')
+        ):
+            return
+
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+
+        # 檢查客戶
+        if 'customer_id' in session:
+            cursor.execute("SELECT is_active FROM customer WHERE id = %s", (session['customer_id'],))
+            user = cursor.fetchone()
+            if not user or not user['is_active']:
+                session.clear()
+                flash("您的帳號已被停用，請聯絡管理員。", "error")
+                cursor.close()
+                conn.close()
+                return redirect(url_for('auth.login'))
+
+        # 檢查員工
+        if 'staff_id' in session:
+            cursor.execute("SELECT is_active FROM staff WHERE id = %s", (session['staff_id'],))
+            user = cursor.fetchone()
+            if not user or not user['is_active']:
+                session.clear()
+                flash("您的員工帳號已被停用，請聯絡系統管理員。", "error")
+                cursor.close()
+                conn.close()
+                return redirect(url_for('auth.staff_login'))
+
+        cursor.close()
+        conn.close()
+
+    # 6. 全域 context processor，在所有頁面顯示購物車數量
     @app.context_processor
     def inject_cart_count():
         if 'customer_id' in session:
