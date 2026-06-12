@@ -2,3 +2,6 @@
 /.env
 __pycache__
 /app/static/upload/
+.ipynb_checkpoints
+venv
+.pytest_cache
