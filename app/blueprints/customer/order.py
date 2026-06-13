@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, session, redirect, url_for, flash
+from flask import Blueprint, render_template, session, redirect, url_for, flash, request
 from app.db import get_db_connection
 from functools import wraps
 
@@ -103,3 +103,35 @@ def cancel_order(id):
         conn.close()
         
     return redirect(url_for('customer.customer_order.order_list'))
+
+# === 👇 新增：完成訂單 (確認收貨) API 👇 ===
+@customer_order_bp.route('/complete/<int:id>', methods=['POST'])
+@login_required
+def complete_order(id):
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+    
+    try:
+        # 檢查訂單是否為 shipped 且屬於該用戶
+        cursor.execute("""
+            SELECT id FROM orders 
+            WHERE id = %s AND customer_id = %s AND status = 'shipped'
+        """, (id, session['customer_id']))
+        
+        if not cursor.fetchone():
+            flash("無法完成此訂單，可能狀態不符或權限不足")
+            return redirect(request.referrer)
+
+        # 更新狀態為 completed
+        cursor.execute("UPDATE orders SET status = 'completed', updated_at = NOW() WHERE id = %s", (id,))
+        conn.commit()
+        flash("訂單已完成！現在您可以為購買的商品填寫評價囉。")
+        
+    except Exception as e:
+        conn.rollback()
+        flash("系統錯誤，請稍後再試。")
+    finally:
+        cursor.close()
+        conn.close()
+
+    return redirect(request.referrer)

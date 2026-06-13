@@ -263,6 +263,24 @@ CREATE TABLE `return_item` (
   `updated_at` datetime
 );
 
+CREATE TABLE `review` (
+  `id` int PRIMARY KEY AUTO_INCREMENT,
+  `customer_id` int NOT NULL,
+  `product_id` int NOT NULL,
+  `order_item_id` int UNIQUE NOT NULL,
+  `overall_rating` decimal(3,2) NOT NULL,
+  `quality_rating` int NOT NULL,       
+  `comfort_rating` int NOT NULL,         
+  `value_rating` int NOT NULL,          
+  `fit_feedback` int NOT NULL,         
+  `comment` varchar(2000),       
+  `helpful_count` int NOT NULL DEFAULT 0,
+  `created_at` datetime,
+  FOREIGN KEY (`customer_id`) REFERENCES `customer` (`id`),
+  FOREIGN KEY (`product_id`) REFERENCES `product` (`id`),
+  FOREIGN KEY (`order_item_id`) REFERENCES `order_item` (`id`)
+);
+
 ALTER TABLE `wishlist` ADD FOREIGN KEY (`customer_id`) REFERENCES `customer` (`id`);
 
 ALTER TABLE `wishlist_item` ADD FOREIGN KEY (`wishlist_id`) REFERENCES `wishlist` (`id`);

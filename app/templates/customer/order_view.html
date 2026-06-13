@@ -9,8 +9,28 @@
 <body>
     <div style="max-width: 800px; margin: 0 auto; padding: 20px;">
         <h1>訂單詳情 #{{ order.id }}</h1>
+        
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                {% for message in messages %}
+                    <div style="background: #d4edda; color: #155724; padding: 10px; border-radius: 4px; margin-bottom: 20px; border: 1px solid #c3e6cb;">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
         <div class="action-bar" style="margin-bottom: 20px;">
             <a href="{{ url_for('customer.customer_order.order_list') }}" class="btn btn-outline">← 返回列表</a>
+            
+            {% if order.status == 'shipped' %}
+            <form action="{{ url_for('customer.customer_order.complete_order', id=order.id) }}" method="POST" style="display: inline-block; margin-left: 10px;">
+                <button type="submit" class="btn btn-success" style="background: #27ae60; color: white; padding: 8px 15px; border: none; border-radius: 4px; cursor: pointer;" onclick="return confirm('確定已收到商品並要完成訂單嗎？完成後即可填寫評價！')">
+                    完成訂單 (確認收貨)
+                </button>
+            </form>
+            {% endif %}
+
             {% set can_return = namespace(value=false) %}
             {% for item in items %}
                 {# 判斷是否有尚未申請退貨的餘額 #}
@@ -65,15 +85,57 @@
                 <tbody>
                     {% for item in items %}
                     <tr style="border-bottom: 1px solid #eee;">
-                        <td style="padding: 10px;">{{ item.product_name }}</td>
+                        <td style="padding: 10px;">
+                            {{ item.product_name }}
+                            {% if order.status == 'completed' %}
+                            <div style="margin-top: 5px;">
+                                <button onclick="document.getElementById('review-form-{{ item.id }}').style.display='table-row'" style="background: #fff; border: 1px solid #666; padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 0.85em;">撰寫評價</button>
+                            </div>
+                            {% endif %}
+                        </td>
                         <td style="padding: 10px;">{{ item.color }} / {{ item.size }}</td>
                         <td style="padding: 10px; text-align: center;">{{ item.qty }}</td>
                         <td style="padding: 10px; text-align: center;">{{ item.returned_qty }}</td>
                         <td style="padding: 10px; text-align: right;">${{ "{:,.0f}".format(item.unit_price) }}</td>
                     </tr>
+
+                    {% if order.status == 'completed' %}
+                    <tr id="review-form-{{ item.id }}" style="display: none; background: #fafafa;">
+                        <td colspan="5" style="padding: 20px;">
+                            <form action="{{ url_for('home.add_review') }}" method="POST">
+                                <input type="hidden" name="product_id" value="{{ item.product_id }}">
+                                <input type="hidden" name="order_item_id" value="{{ item.id }}">
+                                
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                                    <h4 style="margin: 0; color: #333;">為「{{ item.product_name }}」寫下評價</h4>
+                                    <button type="button" onclick="document.getElementById('review-form-{{ item.id }}').style.display='none'" style="background: none; border: none; font-size: 1.5em; cursor: pointer;">&times;</button>
+                                </div>
+                                
+                                <div style="display: flex; gap: 20px; margin-bottom: 15px; flex-wrap: wrap;">
+                                    <label>綜合星數: <input type="number" name="overall_rating" min="1" max="5" value="5" step="0.1" style="width: 60px; padding: 5px; border: 1px solid #ccc; border-radius: 4px;" required></label>
+                                    <label>質量: <input type="number" name="quality_rating" min="1" max="5" value="5" style="width: 50px; padding: 5px; border: 1px solid #ccc; border-radius: 4px;" required></label>
+                                    <label>舒適: <input type="number" name="comfort_rating" min="1" max="5" value="5" style="width: 50px; padding: 5px; border: 1px solid #ccc; border-radius: 4px;" required></label>
+                                    <label>價值: <input type="number" name="value_rating" min="1" max="5" value="5" style="width: 50px; padding: 5px; border: 1px solid #ccc; border-radius: 4px;" required></label>
+                                </div>
+                                
+                                <div style="margin-bottom: 15px;">
+                                    <strong style="margin-right: 15px;">尺碼回饋：</strong>
+                                    <label style="margin-right: 10px; cursor: pointer;"><input type="radio" name="fit_feedback" value="-1"> 偏小</label>
+                                    <label style="margin-right: 10px; cursor: pointer;"><input type="radio" name="fit_feedback" value="0" checked> 標準</label>
+                                    <label style="cursor: pointer;"><input type="radio" name="fit_feedback" value="1"> 偏大</label>
+                                </div>
+                                
+                                <textarea name="comment" rows="3" placeholder="分享您的購買與穿著體驗..." style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; margin-bottom: 15px; box-sizing: border-box;"></textarea>
+                                
+                                <button type="submit" style="background: #333; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer;">送出評價</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endif %}
+                    
                     {% else %}
                     <tr>
-                        <td colspan="4" style="text-align: center; padding: 20px;">無訂單項目</td>
+                        <td colspan="5" style="text-align: center; padding: 20px;">無訂單項目</td>
                     </tr>
                     {% endfor %}
                 </tbody>

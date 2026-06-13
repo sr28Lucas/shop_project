@@ -119,15 +119,30 @@ def view_cart():
     
     subtotal = sum(item['qty'] * item['price'] for item in cart_items)
 
-    # === 3. 新增：撈取「大家都在看」的推薦商品 ===
+   # === 3. 撈取「大家也都把這些放進購物車」的推薦商品 (綜合熱門度版) ===
     recommend_query = """
         SELECT 
-            p.id, p.name, 
-            (SELECT price FROM sku s JOIN variant v ON s.variant_id = v.id WHERE v.product_id = p.id AND s.is_active != 0 ORDER BY price ASC LIMIT 1) as min_price,
-            (SELECT filename FROM image i WHERE i.product_id = p.id AND i.image_type = 'product' ORDER BY sort_order ASC LIMIT 1) as main_image
+            p.id, p.name,
+            (SELECT MIN(price) FROM sku s JOIN variant v ON s.variant_id = v.id WHERE v.product_id = p.id AND s.is_active != 0) as min_price,
+            (SELECT filename FROM image i WHERE i.product_id = p.id AND i.image_type = 'product' ORDER BY sort_order ASC LIMIT 1) as main_image,
+            
+            /* 🌟 終極熱門度分數 = 歷史已經買過的數量 (order_item) + 現在還在別人購物車裡的數量 (cart_item) */
+            COALESCE((SELECT SUM(qty) FROM order_item WHERE product_id = p.id), 0) +
+            COALESCE((
+                SELECT SUM(ci.qty)
+                FROM cart_item ci
+                JOIN sku s ON ci.sku_id = s.id
+                JOIN variant v ON s.variant_id = v.id
+                WHERE v.product_id = p.id
+            ), 0) as popularity_score
+            
         FROM product p
         WHERE p.is_active != 0
-        ORDER BY (SELECT COUNT(*) FROM wishlist_item wi WHERE wi.product_id = p.id) DESC
+        
+        /* 🌟 防呆：只要有人買過，或是有人正放在購物車，分數就會大於 0 才推薦！ */
+        HAVING popularity_score > 0
+        
+        ORDER BY popularity_score DESC
         LIMIT 4;
     """
     cursor.execute(recommend_query)

@@ -4,6 +4,28 @@
 
 {% block head %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/home/product_view.css') }}">
+<style>
+    /* 評價系統 CSS */
+    .review-section { font-family: sans-serif; margin-top: 40px; color: #333; padding-top: 20px; border-top: 2px solid #eee;}
+    .review-header { display: flex; gap: 40px; margin-bottom: 30px; align-items: center; flex-wrap: wrap;}
+    .overall-score-box { text-align: center; }
+    .overall-score { font-size: 3.5em; font-weight: bold; line-height: 1;}
+    .stars { color: #f5c518; font-size: 1.2em; letter-spacing: 2px;}
+    .sub-scores { display: flex; flex-direction: column; gap: 8px; border-left: 2px solid #eee; padding-left: 30px; }
+    .sub-score-item { display: flex; justify-content: space-between; width: 140px; font-size: 1em;}
+    
+    .fit-section { margin-bottom: 30px; padding: 20px; background: #f8f9fa; border-radius: 8px;}
+    .fit-title { font-weight: bold; margin-bottom: 15px; font-size: 1em;}
+    .fit-bar-container { display: flex; align-items: center; justify-content: space-between; text-align: center; font-size: 0.9em; color: #666; }
+    .fit-item { flex: 1; display: flex; flex-direction: column; align-items: center; }
+    .progress-track { width: 90%; height: 6px; background: #ddd; border-radius: 3px; margin: 8px 0; overflow: hidden; position: relative; }
+    .progress-fill { height: 100%; background: #333; position: absolute; left: 0; }
+    
+    .review-card { border-bottom: 1px solid #eee; padding: 20px 0; }
+    .reviewer-info { font-size: 0.9em; color: #888; margin-bottom: 8px; display: flex; justify-content: space-between;}
+    .review-specs { font-size: 0.85em; color: #777; margin: 8px 0; background: #f1f1f1; display: inline-block; padding: 4px 10px; border-radius: 4px;}
+    .review-comment { font-size: 1em; line-height: 1.6; margin-top: 10px; color: #222;}
+</style>
 {% endblock %}
 
 {% block content %}
@@ -32,7 +54,6 @@
             <form id="add-to-cart-form">
                 <input type="hidden" name="sku_id" id="selected-sku-id">
 
-                <!-- 1. 選擇顏色 (Variants) -->
                 <div class="sku-selector">
                     <label class="sku-label">顏色</label>
                     <div class="sku-options" id="variant-options">
@@ -44,13 +65,11 @@
                     </div>
                 </div>
 
-                <!-- 2. 選擇大小 (SKUs) -->
                 <div class="sku-selector" id="size-selector" style="display: none;">
                     <label class="sku-label">尺寸</label>
                     <div class="sku-options" id="size-options"></div>
                 </div>
 
-                <!-- 3. 數量選擇 -->
                 <div class="sku-selector">
                     <label class="sku-label">數量</label>
                     <div class="quantity-selector">
@@ -73,7 +92,71 @@
                 <h3>商品描述</h3>
                 <p style="white-space: pre-wrap; line-height: 1.6; color: #666;">{{ product.description }}</p>
             </div>
-        </div>
+            
+            <div class="review-section">
+                <h3 style="font-size: 1.2em; margin-bottom: 20px;">顧客評論 ({{ stats.total_reviews if stats else 0 }})</h3>
+                
+                {% if stats and stats.total_reviews > 0 %}
+                <div class="review-header">
+                    <div class="overall-score-box">
+                        <div class="overall-score">{{ "{:.2f}".format(stats.avg_overall|float) }}</div>
+                        <div class="stars">
+                            {% for _ in range(stats.avg_overall|round|int) %}★{% endfor %}{% for _ in range(5 - stats.avg_overall|round|int) %}☆{% endfor %}
+                        </div>
+                    </div>
+                    <div class="sub-scores">
+                        <div class="sub-score-item"><span>質量</span> <strong>{{ "{:.2f}".format(stats.avg_quality|float) }}</strong></div>
+                        <div class="sub-score-item"><span>舒適</span> <strong>{{ "{:.2f}".format(stats.avg_comfort|float) }}</strong></div>
+                        <div class="sub-score-item"><span>價值</span> <strong>{{ "{:.2f}".format(stats.avg_value|float) }}</strong></div>
+                    </div>
+                </div>
+
+                <div class="fit-section">
+                    <div class="fit-title">整體適合：</div>
+                    <div class="fit-bar-container">
+                        <div class="fit-item">
+                            <span>偏小</span>
+                            <div class="progress-track"><div class="progress-fill" style="width: {{ stats.fit_small_pct }}%;"></div></div>
+                            <span>{{ stats.fit_small_pct }}%</span>
+                        </div>
+                        <div class="fit-item">
+                            <span style="font-weight: bold; color: #000;">尺碼標準</span>
+                            <div class="progress-track"><div class="progress-fill" style="width: {{ stats.fit_normal_pct }}%; background: #000;"></div></div>
+                            <span style="font-weight: bold; color: #000;">{{ stats.fit_normal_pct }}%</span>
+                        </div>
+                        <div class="fit-item">
+                            <span>偏大</span>
+                            <div class="progress-track"><div class="progress-fill" style="width: {{ stats.fit_large_pct }}%;"></div></div>
+                            <span>{{ stats.fit_large_pct }}%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="review-list">
+                    {% for review in reviews %}
+                    <div class="review-card">
+                        <div class="reviewer-info">
+                            <span>{{ review.anonymous_name }}</span>
+                            <span>{{ review.created_at.strftime('%d %b, %Y') }}</span>
+                        </div>
+                        <div class="stars">
+                            {% for _ in range(review.overall_rating|int) %}★{% endfor %}{% for _ in range(5 - review.overall_rating|int) %}☆{% endfor %}
+                        </div>
+                        <div class="review-specs">
+                            總體合體度: {% if review.fit_feedback == -1 %}偏小{% elif review.fit_feedback == 0 %}標準{% else %}偏大{% endif %} | 
+                            顏色: {{ review.color }} | 尺寸: {{ review.size }}
+                        </div>
+                        <div class="review-comment">
+                            {{ review.comment }}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p style="padding: 20px 0; color: #999;">目前還沒有評價，購買後即可成為第一個評價的人！</p>
+                {% endif %}
+            </div>
+            </div>
     </div>
 {% endblock %}
 

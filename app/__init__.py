@@ -94,4 +94,3 @@ def create_app():
 if __name__ == '__main__':
     c = config
     print(c.DB_CONFIG)
-

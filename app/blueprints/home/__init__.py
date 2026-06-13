@@ -1,5 +1,6 @@
-from flask import Blueprint, render_template, request, get_flashed_messages, session
+from flask import Blueprint, render_template, request, get_flashed_messages, session, redirect, url_for, flash
 from app.db import get_db_connection
+from datetime import datetime
 
 home_bp = Blueprint('home', __name__, template_folder='../../templates/home')
 
@@ -230,6 +231,110 @@ def product_view(id):
         if cursor.fetchone():
             is_in_wishlist = True
 
+    # === 🌟 旗艦版評價系統：一次算出所有聚合數據 ===
+    stats_query = """
+        SELECT 
+            COUNT(id) as total_reviews,
+            COALESCE(AVG(overall_rating), 0) as avg_overall,
+            COALESCE(AVG(quality_rating), 0) as avg_quality,
+            COALESCE(AVG(comfort_rating), 0) as avg_comfort,
+            COALESCE(AVG(value_rating), 0) as avg_value,
+            SUM(CASE WHEN fit_feedback = -1 THEN 1 ELSE 0 END) as fit_small_count,
+            SUM(CASE WHEN fit_feedback = 0 THEN 1 ELSE 0 END) as fit_normal_count,
+            SUM(CASE WHEN fit_feedback = 1 THEN 1 ELSE 0 END) as fit_large_count
+        FROM review 
+        WHERE product_id = %s
+    """
+    cursor.execute(stats_query, (id,))
+    stats = cursor.fetchone()
+    
+    total_reviews = stats['total_reviews']
+    if total_reviews > 0:
+        stats['fit_small_pct'] = round((stats['fit_small_count'] / total_reviews) * 100)
+        stats['fit_normal_pct'] = round((stats['fit_normal_count'] / total_reviews) * 100)
+        stats['fit_large_pct'] = round((stats['fit_large_count'] / total_reviews) * 100)
+    else:
+        stats['fit_small_pct'] = stats['fit_normal_pct'] = stats['fit_large_pct'] = 0
+
+    # === 🌟 撈取個別的文字留言與買家匿名化 ===
+    cursor.execute("""
+        SELECT 
+            r.*, 
+            CONCAT(SUBSTRING(c.name, 1, 1), '***', SUBSTRING(c.name, LENGTH(c.name), 1)) as anonymous_name,
+            oi.color, 
+            oi.size
+        FROM review r
+        JOIN customer c ON r.customer_id = c.id
+        JOIN order_item oi ON r.order_item_id = oi.id
+        WHERE r.product_id = %s
+        ORDER BY r.created_at DESC
+    """, (id,))
+    reviews = cursor.fetchall()
+
     cursor.close()
     conn.close()
-    return render_template('home/product_view.html', product=product, product_images=product_images, variants=variants, is_in_wishlist=is_in_wishlist)
+    
+    # 記得將 stats 與 reviews 傳遞給前端！
+    return render_template('home/product_view.html', product=product, product_images=product_images, variants=variants, is_in_wishlist=is_in_wishlist, stats=stats, reviews=reviews)
+
+
+# ==============================================================
+# 🌟 新增：接收客人提交評價的 API
+# ==============================================================
+@home_bp.route('/add_review', methods=['POST'])
+def add_review():
+    if 'customer_id' not in session:
+        flash("請先登入後再填寫評價")
+        return redirect(url_for('auth.login'))
+        
+    customer_id = session['customer_id']
+    product_id = request.form.get('product_id')
+    order_item_id = request.form.get('order_item_id')
+    
+    overall_rating = request.form.get('overall_rating')
+    quality_rating = request.form.get('quality_rating')
+    comfort_rating = request.form.get('comfort_rating')
+    value_rating = request.form.get('value_rating')
+    fit_feedback = request.form.get('fit_feedback') # -1, 0, 1
+    comment = request.form.get('comment')
+    
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+    
+    try:
+        # 驗證 1：確認這個 order_item 真的屬於這個客人，且買的是這個商品
+        cursor.execute("""
+            SELECT oi.id FROM order_item oi
+            JOIN orders o ON oi.order_id = o.id
+            WHERE oi.id = %s AND o.customer_id = %s AND oi.product_id = %s
+        """, (order_item_id, customer_id, product_id))
+        
+        if not cursor.fetchone():
+            flash("找不到購買紀錄，無法評價")
+            return redirect(request.referrer)
+            
+        # 驗證 2：確認沒有重複評價 (用 order_item_id 當唯一憑證)
+        cursor.execute("SELECT id FROM review WHERE order_item_id = %s", (order_item_id,))
+        if cursor.fetchone():
+            flash("這筆訂單的商品您已經評價過囉！")
+            return redirect(request.referrer)
+
+        # 寫入評價
+        now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        cursor.execute("""
+            INSERT INTO review (customer_id, product_id, order_item_id, overall_rating, quality_rating, comfort_rating, value_rating, fit_feedback, comment, created_at)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        """, (customer_id, product_id, order_item_id, overall_rating, quality_rating, comfort_rating, value_rating, fit_feedback, comment, now))
+        
+        conn.commit()
+        flash("感謝您的評價！")
+        
+    except Exception as e:
+        conn.rollback()
+        print(f"評價錯誤: {e}")
+        flash("評價失敗，請稍後再試。")
+    finally:
+        cursor.close()
+        conn.close()
+        
+    return redirect(request.referrer)
