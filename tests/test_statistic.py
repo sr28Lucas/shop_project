@@ -77,13 +77,39 @@ def test_statistic_calculations(client, auth_staff, test_product):
     assert "已退款訂單" in content
     assert ">1</div>" in content
 
-def test_return_deduction_in_statistics(client, auth_staff, test_product):
+def test_return_deduction_in_statistics(client, auth_staff):
     """驗證退貨會正確從營收統計中扣除"""
     
-    # 1. 建立訂單並完成
+    # 1. 建立獨立的測試環境
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+    now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    
+    # 建立唯一分類
+    cursor.execute("INSERT INTO category (name, created_at, updated_at) VALUES (%s, %s, %s)", (f"TestCat_{datetime.now().timestamp()}", now, now))
+    cat_id = cursor.lastrowid
+    
+    # 建立商品
+    cursor.execute("INSERT INTO product (category_id, name, is_active, created_at, updated_at) VALUES (%s, %s, %s, %s, %s)", 
+                   (cat_id, f'TestProd_{datetime.now().timestamp()}', 1, now, now))
+    p_id = cursor.lastrowid
+    
+    # 建立變體與SKU
+    cursor.execute("INSERT INTO variant (product_id, color, is_active, created_at, updated_at) VALUES (%s, %s, %s, %s, %s)", (p_id, 'Color', 1, now, now))
+    v_id = cursor.lastrowid
+    cursor.execute("INSERT INTO sku (variant_id, sku_code, size, price, cost, stock, is_active, created_at, updated_at) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)", 
+                   (v_id, 'SKU', 'M', 1000, 500, 10, 1, now, now))
+    sku_id = cursor.lastrowid
+    conn.commit()
+    cursor.close()
+    conn.close()
+    
+    test_product = {'sku_id': sku_id, 'product_id': p_id}
+    
+    # 2. 建立訂單並完成
     order_id = setup_order(client, test_product, status='completed')
     
-    # 2. 執行退貨流程
+    # 3. 執行退貨流程
     conn = get_db_connection()
     cursor = conn.cursor()
     # 取得 order_item_id
@@ -98,7 +124,11 @@ def test_return_deduction_in_statistics(client, auth_staff, test_product):
     cursor.close()
     conn.close()
     
-    # 3. 查詢統計，預期營收應為 0
-    response = client.get('/staff/statistic/revenue')
+    # 4. 查詢統計，預期該分類營收應為 0
+    today = datetime.now().strftime('%Y-%m-%d')
+    response = client.get(f'/staff/statistic/revenue?start_date={today}&end_date={today}')
     assert response.status_code == 200
-    assert "$0.00" in response.get_data(as_text=True)
+    content = response.get_data(as_text=True)
+    
+    # 驗證該分類營收為 0
+    assert "$0.00" in content

@@ -52,10 +52,12 @@ def order_view(id):
         return redirect(url_for('customer.customer_order.order_list'))
         
     # 獲取訂單項目，並計算已申請退貨數量 (排除已拒絕的) 與已退款數量
+    # 同時檢查是否已評論
     cursor.execute("""
         SELECT oi.*, 
                COALESCE(SUM(CASE WHEN rr.status IN ('requested', 'approved', 'refunded') THEN ri.qty ELSE 0 END), 0) as requested_qty,
-               COALESCE(SUM(CASE WHEN rr.status = 'refunded' THEN ri.qty ELSE 0 END), 0) as returned_qty
+               COALESCE(SUM(CASE WHEN rr.status = 'refunded' THEN ri.qty ELSE 0 END), 0) as returned_qty,
+               (SELECT COUNT(id) FROM review WHERE order_item_id = oi.id) as is_reviewed
         FROM order_item oi
         LEFT JOIN return_item ri ON oi.id = ri.order_item_id
         LEFT JOIN return_request rr ON ri.return_request_id = rr.id

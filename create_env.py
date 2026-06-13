@@ -4,7 +4,7 @@ env_content = """
 DEBUG=True
 SECRET_KEY=secret_key   # Flask Secret Key
 
-#db參數
+#db
 DATABASE_HOST = 127.0.0.1
 DATABASE_USER = root
 DATABASE_PASSWORD = 

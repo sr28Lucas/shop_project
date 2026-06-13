@@ -86,7 +86,7 @@ def db_setup():
     # 匯入結構
     conn = get_db_connection()
     cursor = conn.cursor()
-    sql_file = os.path.join(config.BASE_DIR, 'latest_資料庫系統_電商網站_20260603.sql')
+    sql_file = os.path.join(config.BASE_DIR, 'latest_資料庫系統_電商網站_20260612.sql')
     
     if os.path.exists(sql_file):
         with open(sql_file, 'r', encoding='utf-8') as f:
