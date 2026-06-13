@@ -60,7 +60,7 @@ C:\project\shop_project\
 ├── import_item.py          # 批次匯入商品腳本
 ├── setup.py                # 系統初始化腳本 (建立 root 帳號與地區)
 ├── run.py                  # 應用啟動進入點
-└── latest_資料庫系統_電商網站_20260603.sql # 資料庫架構與預設資料
+└── latest_資料庫系統_電商網站_20260612.sql # 資料庫架構與預設資料
 ```
 
 ---
@@ -98,7 +98,7 @@ DATABASE_USE = shop_db
 1.  **手動建立資料庫:** 在 MySQL 中建立名稱為 `shop_db` (或您在 .env 設定的名稱) 的資料庫。
 2.  **匯入 SQL 架構:**
     ```bash
-    mysql -u [使用者] -p [資料庫名稱] < latest_資料庫系統_電商網站_20260603.sql
+    mysql -u [使用者] -p [資料庫名稱] < latest_資料庫系統_電商網站_20260612.sql
     ```
 3.  **執行系統初始化:** (建立 root 管理員帳號與台灣運費資料)
     ```bash
