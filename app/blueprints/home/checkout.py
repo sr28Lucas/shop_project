@@ -51,7 +51,7 @@ def calculate_order_totals(subtotal, shipping_fee, promo):
         
     return subtotal_discount, shipping_discount, final_shipping_fee
 
-def validate_promo_code(promo):
+def validate_promo_code(promo, subtotal=None):
     if not promo:
         return False, "優惠碼不存在或已失效。"
     
@@ -66,6 +66,10 @@ def validate_promo_code(promo):
     # 使用次數檢查
     if promo['usage_limit'] and promo['used_count'] >= promo['usage_limit']:
         return False, "優惠碼使用次數已達上限。"
+
+    # 最低消費金額檢查
+    if subtotal is not None and subtotal < promo['min_order_amount']:
+        return False, f"未達優惠碼最低消費金額 (需滿 ${promo['min_order_amount']:,.0f})。"
         
     return True, None
 
@@ -289,8 +293,25 @@ def information():
         if selected_skus:
             session['selected_sku_ids'] = [int(sid) for sid in selected_skus]
 
+            # 檢查庫存 (如果是從購物車過來)
+            format_strings = ','.join(['%s'] * len(session['selected_sku_ids']))
+            cursor.execute(f"""
+                SELECT ci.qty, s.stock, p.name as product_name, v.color, s.size
+                FROM cart_item ci
+                JOIN sku s ON ci.sku_id = s.id
+                JOIN variant v ON s.variant_id = v.id
+                JOIN product p ON v.product_id = p.id
+                WHERE ci.sku_id IN ({format_strings}) AND ci.cart_id = %s
+            """, session['selected_sku_ids'] + [get_active_cart(session['customer_id'])])
+            items_to_check = cursor.fetchall()
+            for item in items_to_check:
+                if item['qty'] > item['stock']:
+                    flash(f"商品 {item['product_name']} ({item['color']}/{item['size']}) 庫存不足，目前剩餘 {item['stock']}。")
+                    cursor.close()
+                    conn.close()
+                    return redirect(url_for('home.checkout.view_cart'))
+
             # 如果是從購物車「前往結帳」過來的，通常只會有 selected_skus，沒有姓名地址
-            # 檢查是否包含姓名，若無，則視為「切換至填寫資訊頁面」，不進行驗證
             if not request.form.get('name'):
                 cursor.close()
                 conn.close()
@@ -317,10 +338,32 @@ def information():
         elif len(address) < 5 or len(address) > 100:
             error = "地址長度需在 5-100 字元之間。"
         
-        if not error and promo_code:
-            cursor.execute("SELECT id FROM promo_code WHERE code = %s AND is_active = 1", (promo_code,))
-            if not cursor.fetchone():
-                error = "無效的優惠碼，請重新輸入。"
+        if not error:
+            # 再次檢查庫存並計算小計
+            format_strings = ','.join(['%s'] * len(session['selected_sku_ids']))
+            cursor.execute(f"""
+                SELECT ci.qty, s.price, s.stock, p.name as product_name, v.color, s.size
+                FROM cart_item ci
+                JOIN sku s ON ci.sku_id = s.id
+                JOIN variant v ON s.variant_id = v.id
+                JOIN product p ON v.product_id = p.id
+                WHERE ci.sku_id IN ({format_strings}) AND ci.cart_id = %s
+            """, session['selected_sku_ids'] + [get_active_cart(session['customer_id'])])
+            items_data = cursor.fetchall()
+            
+            subtotal = 0
+            for item in items_data:
+                if item['qty'] > item['stock']:
+                    error = f"商品 {item['product_name']} ({item['color']}/{item['size']}) 庫存不足，目前剩餘 {item['stock']}。"
+                    break
+                subtotal += item['qty'] * item['price']
+
+            if not error and promo_code:
+                cursor.execute("SELECT * FROM promo_code WHERE code = %s AND is_active = 1", (promo_code,))
+                promo = cursor.fetchone()
+                is_valid, promo_error = validate_promo_code(promo, subtotal)
+                if not is_valid:
+                    error = promo_error
 
         if error:
             flash(error)
@@ -389,7 +432,7 @@ def payment():
     if promo_code:
         cursor.execute("SELECT * FROM promo_code WHERE code = %s AND is_active = 1", (promo_code,))
         promo = cursor.fetchone()
-        is_valid, error = validate_promo_code(promo)
+        is_valid, error = validate_promo_code(promo, subtotal)
         if not is_valid:
             flash(error)
             promo = None
@@ -487,7 +530,7 @@ def place_order():
     if promo_code:
         cursor.execute("SELECT * FROM promo_code WHERE code = %s AND is_active = 1", (promo_code,))
         promo = cursor.fetchone()
-        is_valid, error = validate_promo_code(promo)
+        is_valid, error = validate_promo_code(promo, subtotal)
         if not is_valid:
             # 如果優惠碼失效，在確認頁面提示並清除
             flash(error)
@@ -530,7 +573,7 @@ def place_order():
             if promo_id:
                 cursor.execute("SELECT * FROM promo_code WHERE id = %s FOR UPDATE", (promo_id,))
                 promo = cursor.fetchone()
-                is_valid, error = validate_promo_code(promo)
+                is_valid, error = validate_promo_code(promo, subtotal)
                 if not is_valid:
                     conn.rollback()
                     flash(error)
