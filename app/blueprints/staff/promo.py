@@ -24,7 +24,7 @@ def validate_discount(discount_type, discount_value):
 def promo_list():
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
-    cursor.execute("SELECT * FROM promo_code")
+    cursor.execute("SELECT * FROM promo_code WHERE is_deleted = 0")
     promos = cursor.fetchall()
     cursor.close()
     conn.close()
@@ -66,8 +66,8 @@ def promo_add():
         
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
-        # 移除 is_deleted
-        cursor.execute("SELECT id FROM promo_code WHERE code = %s", (code,))
+        # 檢查是否已存在 (且未被軟刪除)
+        cursor.execute("SELECT id FROM promo_code WHERE code = %s AND is_deleted = 0", (code,))
         if cursor.fetchone():
             flash("此代碼已存在")
             cursor.close()
@@ -77,8 +77,8 @@ def promo_add():
         start_at = request.form['start_at'] if request.form['start_at'] else None
         end_at = request.form['end_at'] if request.form['end_at'] else None
         now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        sql = """INSERT INTO promo_code (code, description, discount_type, discount_value, usage_limit, min_order_amount, start_at, end_at, created_at, updated_at)
-                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"""
+        sql = """INSERT INTO promo_code (code, description, discount_type, discount_value, usage_limit, min_order_amount, start_at, end_at, is_deleted, created_at, updated_at)
+                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s, 0, %s, %s)"""
         cursor.execute(sql, (code, description, discount_type, discount_value, usage_limit, min_order_amount, start_at, end_at, now, now))
         conn.commit()
         cursor.close()
@@ -140,8 +140,8 @@ def promo_edit(id):
 def promo_delete(id):
     conn = get_db_connection()
     cursor = conn.cursor()
-    # 移除軟刪除，改用物理刪除
-    cursor.execute("DELETE FROM promo_code WHERE id = %s", (id,))
+    # 改用軟刪除
+    cursor.execute("UPDATE promo_code SET is_deleted = 1 WHERE id = %s", (id,))
     conn.commit()
     cursor.close()
     conn.close()

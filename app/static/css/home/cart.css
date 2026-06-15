@@ -14,3 +14,28 @@ h1 { font-size: 24px; color: #333; margin-bottom: 20px; }
 .total-price { font-size: 20px; font-weight: bold; color: #d63384; margin-bottom: 15px; }
 .btn-checkout { padding: 12px 30px; background-color: #d63384; color: white; border: none; border-radius: 4px; font-size: 16px; font-weight: bold; cursor: pointer; text-decoration: none; display: inline-block; }
 .empty-cart { text-align: center; color: #888; margin-top: 50px; }
+
+/* =========================================
+   響應式設計
+========================================= */
+@media (max-width: 600px) {
+    .cart-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+
+    .item-actions {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .cart-summary {
+        text-align: center;
+    }
+
+    .btn-checkout {
+        width: 100%;
+        box-sizing: border-box;
+    }
+}

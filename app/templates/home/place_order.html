@@ -13,6 +13,13 @@
 
 {% block content %}
 <div class="checkout-container">
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <div style="background: #f8d7da; color: #721c24; padding: 10px; border-radius: 4px; margin-bottom: 15px; border: 1px solid #f5c6cb; font-size: 14px;">
+          {{ messages[0] }}
+        </div>
+      {% endif %}
+    {% endwith %}
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
         <h2>訂單總檢查</h2>
         <a href="{{ url_for('home.checkout.payment') }}" style="padding: 8px 15px; background: #6c757d; color: white; border-radius: 4px; text-decoration: none;">返回</a>

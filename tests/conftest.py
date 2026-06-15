@@ -86,7 +86,7 @@ def db_setup():
     # 匯入結構
     conn = get_db_connection()
     cursor = conn.cursor()
-    sql_file = os.path.join(config.BASE_DIR, 'latest_資料庫系統_電商網站_20260612.sql')
+    sql_file = os.path.join(config.BASE_DIR, 'latest_資料庫系統_電商網站_20260615.sql')
     
     if os.path.exists(sql_file):
         with open(sql_file, 'r', encoding='utf-8') as f:
@@ -255,27 +255,27 @@ def test_product(db_setup):
     now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     
     # 檢查分類是否存在
-    cursor.execute("SELECT id FROM category WHERE name = %s", ('測試分類',))
+    cursor.execute("SELECT id FROM category WHERE name = %s AND is_deleted = 0", ('測試分類',))
     cat = cursor.fetchone()
     if cat:
         cat_id = cat['id']
     else:
-        cursor.execute("INSERT INTO category (name, created_at, updated_at) VALUES (%s, %s, %s)", ('測試分類', now, now))
+        cursor.execute("INSERT INTO category (name, is_deleted, created_at, updated_at) VALUES (%s, 0, %s, %s)", ('測試分類', now, now))
         cat_id = cursor.lastrowid
     
     # 建立商品
-    cursor.execute("INSERT INTO product (category_id, name, is_active, created_at, updated_at) VALUES (%s, %s, %s, %s, %s)", 
+    cursor.execute("INSERT INTO product (category_id, name, is_active, is_deleted, created_at, updated_at) VALUES (%s, %s, %s, 0, %s, %s)", 
                    (cat_id, f'測試商品_{datetime.now().timestamp()}', 1, now, now))
     p_id = cursor.lastrowid
     
     # 建立變體
-    cursor.execute("INSERT INTO variant (product_id, color, is_active, created_at, updated_at) VALUES (%s, %s, %s, %s, %s)", 
+    cursor.execute("INSERT INTO variant (product_id, color, is_active, is_deleted, created_at, updated_at) VALUES (%s, %s, %s, 0, %s, %s)", 
                    (p_id, '藍色', 1, now, now))
     v_id = cursor.lastrowid
     
     # 建立 SKU
     sku_code = f'SKU-{datetime.now().timestamp()}'
-    cursor.execute("INSERT INTO sku (variant_id, sku_code, size, price, cost, stock, is_active, created_at, updated_at) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)", 
+    cursor.execute("INSERT INTO sku (variant_id, sku_code, size, price, cost, stock, is_active, is_deleted, created_at, updated_at) VALUES (%s, %s, %s, %s, %s, %s, %s, 0, %s, %s)", 
                    (v_id, sku_code, 'M', 1000, 500, 10, 1, now, now))
     sku_id = cursor.lastrowid
     

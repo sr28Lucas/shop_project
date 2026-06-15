@@ -42,7 +42,7 @@ def index():
         JOIN product p ON wi.product_id = p.id
         LEFT JOIN variant v ON p.id = v.product_id
         LEFT JOIN sku s ON v.id = s.variant_id
-        WHERE w.customer_id = %s AND p.is_active = 1
+        WHERE w.customer_id = %s AND p.is_active = 1 AND p.is_deleted = 0
         GROUP BY p.id
     """
     cursor.execute(sql, (customer_id,))

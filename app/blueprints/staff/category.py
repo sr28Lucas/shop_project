@@ -1,18 +1,14 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from app.db import get_db_connection
 from .permission import require_permission
+from app.models.category_model import CategoryModel
 
 category_bp = Blueprint('category', __name__)
 
 @category_bp.route('/')
 @require_permission('product')
 def category_list():
-    conn = get_db_connection()
-    cursor = conn.cursor(dictionary=True)
-    cursor.execute("SELECT * FROM category ORDER BY id DESC")
-    categories = cursor.fetchall()
-    cursor.close()
-    conn.close()
+    categories = CategoryModel.get_all()
     return render_template('staff/category_list.html', categories=categories)
 
 @category_bp.route('/add', methods=['POST'])
@@ -29,8 +25,8 @@ def category_add():
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
     
-    # 檢查重複名稱，移除 is_deleted
-    cursor.execute("SELECT id FROM category WHERE name = %s", (name,))
+    # 檢查重複名稱 (不包含已刪除的)
+    cursor.execute("SELECT id FROM category WHERE name = %s AND is_deleted = 0", (name,))
     if cursor.fetchone():
         cursor.close()
         conn.close()
@@ -62,8 +58,8 @@ def category_edit(id):
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
 
-    # 檢查重複名稱 (排除自己)，移除 is_deleted
-    cursor.execute("SELECT id FROM category WHERE name = %s AND id != %s", (name, id))
+    # 檢查重複名稱 (排除自己，不包含已刪除的)
+    cursor.execute("SELECT id FROM category WHERE name = %s AND id != %s AND is_deleted = 0", (name, id))
     if cursor.fetchone():
         cursor.close()
         conn.close()
@@ -87,17 +83,15 @@ def category_delete(id):
     conn = get_db_connection()
     cursor = conn.cursor()
     try:
-        # 檢查是否有產品屬於此分類
-        cursor.execute("SELECT COUNT(*) FROM product WHERE category_id = %s", (id,))
+        # 檢查是否有未刪除的產品屬於此分類
+        cursor.execute("SELECT COUNT(*) FROM product WHERE category_id = %s AND is_deleted = 0", (id,))
         count = cursor.fetchone()[0]
         if count > 0:
             flash("此分類下尚有商品，無法刪除")
         else:
-            cursor.execute("DELETE FROM category WHERE id = %s", (id,))
-            conn.commit()
+            CategoryModel.soft_delete(id)
             flash("分類已刪除")
     except Exception as e:
-        conn.rollback()
         flash(f"刪除失敗: {str(e)}")
     finally:
         cursor.close()
