@@ -334,3 +334,5 @@ ALTER TABLE `return_request` ADD FOREIGN KEY (`order_id`) REFERENCES `orders` (`
 ALTER TABLE `return_item` ADD FOREIGN KEY (`return_request_id`) REFERENCES `return_request` (`id`);
 
 ALTER TABLE `return_item` ADD FOREIGN KEY (`order_item_id`) REFERENCES `order_item` (`id`);
+
+ALTER TABLE customer ADD COLUMN is_verified TINYINT DEFAULT 0;

@@ -3,11 +3,33 @@ from app.db import get_db_connection
 from app.extensions import bcrypt
 from datetime import datetime
 from app.utils.validators import Validator
+from flask_mail import Mail, Message
+from itsdangerous import URLSafeTimedSerializer
+import os
+
+auth_bp = Blueprint('auth', __name__, template_folder='../templates/auth')
+
+# 初始化 Mail 與 Serializer
+mail = Mail()
+serializer = URLSafeTimedSerializer(os.getenv('SECRET_KEY', 'dev-key'))
+
+# --- 發送驗證信的輔助函式 ---
+def send_verification_email(email, token):
+    verify_url = url_for('auth.verify_email', token=token, _external=True)
+    msg = Message(
+        subject='[Shop Project] 會員信箱驗證',
+        recipients=[email],
+        html=f'''
+        <h2>歡迎加入我們的電商網站！</h2>
+        <p>請點擊以下連結來啟用您的帳號：</p>
+        <a href="{verify_url}" style="padding: 10px 20px; background-color: #007bff; color: white; text-decoration: none; border-radius: 5px;">驗證信箱並啟用帳號</a>
+        <p>此連結將在 1 小時後失效。</p>
+        '''
+    )
+    mail.send(msg)
 
 
-
-auth_bp = Blueprint('auth', __name__, template_folder = '../templates/auth')
-
+# --- 註冊功能 ---
 @auth_bp.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
@@ -41,6 +63,7 @@ def register():
         if phone and not Validator.is_valid_phone(phone):
             flash("電話長度需在 8-30 碼之間。", "error")
             return redirect(url_for('auth.register'))
+            
         region_name = request.form.get('region') or None
         locality_name = request.form.get('locality') or None
         address = request.form.get('address') or None
@@ -76,12 +99,17 @@ def register():
             hashed_pw = bcrypt.generate_password_hash(password).decode('utf-8')
             now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             
-            sql = """INSERT INTO customer (email, password, name, phone, region_id, locality_id, address, created_at, updated_at) 
-                     VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)"""
-            cursor.execute(sql, (email, hashed_pw, name, phone, region_id, locality_id, address, now, now))
+            # 【修改點】將 is_active 預設為 0 (False)，等信箱驗證後再改成 1
+            sql = """INSERT INTO customer (email, password, name, phone, region_id, locality_id, address, is_active, created_at, updated_at) 
+                     VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"""
+            cursor.execute(sql, (email, hashed_pw, name, phone, region_id, locality_id, address, 0, now, now))
             conn.commit()
             
-            flash("申辦成功！請重新登入。", "success")
+            # 【修改點】註冊成功後，發送驗證信
+            token = serializer.dumps(email, salt='email-verify')
+            send_verification_email(email, token)
+            
+            flash("申辦成功！驗證信已發送至您的信箱，請點擊連結啟用帳號。", "success")
             return redirect(url_for('auth.login'))
             
         except Exception as e:
@@ -95,6 +123,39 @@ def register():
             
     return render_template('register.html')
 
+
+# --- 處理信箱驗證的路由 ---
+@auth_bp.route('/verify/<token>')
+def verify_email(token):
+    try:
+        # 嘗試解碼 token，設定 3600 秒 (1小時) 內有效
+        email = serializer.loads(token, salt='email-verify', max_age=3600)
+    except:
+        flash("驗證連結無效或已過期，請重新註冊或聯絡客服。", "error")
+        return redirect(url_for('auth.login'))
+    
+    conn = None
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+        
+        # 【修改點】將使用者的 is_active 狀態改為 1 (啟用)
+        cursor.execute("UPDATE customer SET is_active=1 WHERE email=%s", (email,))
+        conn.commit()
+        
+        flash("郵箱驗證成功！您的帳號已啟用，請登入。", "success")
+    except Exception as e:
+        if conn: conn.rollback()
+        flash("驗證過程中發生錯誤，請稍後再試。", "error")
+    finally:
+        if conn:
+            cursor.close()
+            conn.close()
+            
+    return redirect(url_for('auth.login'))
+
+
+# --- 會員登入 ---
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
     if 'customer_id' in session:
@@ -112,9 +173,11 @@ def login():
         conn.close()
 
         if user:
+            # 這裡剛好會擋住還沒收信驗證的帳號（因為他們的 is_active 是 0）
             if not user['is_active']:
-                flash("您的帳號已被停用，請聯絡管理員。", "error")
+                flash("您的帳號尚未驗證或已被停用，請至信箱點擊驗證連結。", "error")
                 return redirect(url_for('auth.login'))
+                
             if bcrypt.check_password_hash(user['password'], password):
                 session['customer_id'] = user['id']
                 return redirect(url_for('customer.center'))
@@ -128,14 +191,14 @@ def login():
     return render_template('login.html')
 
 
-
-
+# --- 會員登出 ---
 @auth_bp.route('/logout', methods=['GET','POST'])
 def logout():
     session.clear()
     return redirect(url_for('auth.login'))
 
-#管理員登入
+
+# --- 管理員登入 ---
 @auth_bp.route('/staff_login', methods=['GET', 'POST'])
 def staff_login():
     if 'staff_id' in session:
@@ -168,7 +231,8 @@ def staff_login():
             
     return render_template('staff_login.html')
 
-#管理員登出
+
+# --- 管理員登出 ---
 @auth_bp.route('/staff_logout', methods=['GET','POST'])
 def staff_logout():
     session.clear()

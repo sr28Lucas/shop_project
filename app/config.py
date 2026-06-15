@@ -15,6 +15,8 @@ class config:
  
     SESSION_COOKIE_HTTPONLY = True
     SESSION_COOKIE_SECURE = False
+    
+    
 
     UPLOAD_FOLDER = Path(__file__).resolve().parent / 'static' / 'upload'
     
@@ -27,5 +29,13 @@ class config:
         'database': os.getenv('DATABASE_USE') or '',
         'charset': os.getenv('DATABASE_CHARSET') or ''
     }
+    
+    # Email 配置
+    MAIL_SERVER = 'smtp.gmail.com'  # 或其他郵件服務商
+    MAIL_PORT = 587
+    MAIL_USE_TLS = True
+    MAIL_USERNAME = 'alansu20051010@gmail.com'
+    MAIL_PASSWORD = '0000'  # 使用應用密碼，不是帳密
+    MAIL_DEFAULT_SENDER = 'alansu20051010@gmail.com'
 
 
