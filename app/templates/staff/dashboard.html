@@ -1,160 +1,342 @@
 <!DOCTYPE html>
-<html lang="zh-TW">
+<html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
-    <title>儀錶板</title>
-    <link rel="stylesheet" href="{{url_for('static', filename='css/staff/common.css')}}">
-    <link rel="stylesheet" href="{{url_for('static', filename='css/staff/dashboard.css')}}">
+    <title>後台儀錶板</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/staff_sidebar.css') }}">
 </head>
 <body>
-    <div class="top-bar">
-        <label>當前用戶 : {{user.name if user.name else "姓名讀取失敗"}}</label>
-        <label>職位 : {{role.name if role.name else "職位讀取失敗"}}</label>
-        <a href="{{ url_for('auth.staff_logout') }}" onclick="return confirm('確定要登出管理系統嗎？');">
-            <button type="button">登出</button>
-        </a>
-    </div>
 
-    {% with messages = get_flashed_messages() %}
-        {% if messages %}
-            {% for message in messages %}
-                <div style="background: #f8d7da; color: #721c24; padding: 15px; border: 1px solid #f5c6cb; border-radius: 4px; margin: 20px;">
-                    {{ message }}
+<div class="admin-wrapper">
+
+    <!-- 左側選單 -->
+    <aside class="sidebar">
+        <div class="sidebar-logo">
+            VIVIP<span>Admin</span>
+        </div>
+
+        <nav class="sidebar-menu">
+
+            <details class="menu-section" open>
+                <summary>儀錶板</summary>
+                <a class="menu-link" href="#" onclick="showHome(event)">首頁</a>
+            </details>
+
+            <details class="menu-section" open>
+                <summary>頁面管理</summary>
+
+                {% if role and role.product %}
+                    <a class="menu-link iframe-link"
+                       href="{{ url_for('staff.category.category_list') }}"
+                       target="contentFrame"
+                       data-title="分類管理">分類管理</a>
+                {% else %}
+                    <span class="menu-link disabled">分類管理（無權限）</span>
+                {% endif %}
+
+                {% if role and role.announcement %}
+                    <a class="menu-link iframe-link"
+                       href="{{ url_for('staff.page.announcement_list') }}"
+                       target="contentFrame"
+                       data-title="公告管理">公告管理</a>
+                {% else %}
+                    <span class="menu-link disabled">公告管理（無權限）</span>
+                {% endif %}
+            </details>
+
+            <details class="menu-section" open>
+                <summary>商品管理</summary>
+
+                {% if role and role.product %}
+                    <a class="menu-link iframe-link"
+                       href="{{ url_for('staff.product.product_list') }}"
+                       target="contentFrame"
+                       data-title="產品管理">修改商品</a>
+                {% else %}
+                    <span class="menu-link disabled">修改商品（無權限）</span>
+                {% endif %}
+
+                {% if role and role.promo %}
+                    <a class="menu-link iframe-link"
+                       href="{{ url_for('staff.promo.promo_list') }}"
+                       target="contentFrame"
+                       data-title="折扣碼管理">折扣碼管理</a>
+                {% else %}
+                    <span class="menu-link disabled">折扣碼管理（無權限）</span>
+                {% endif %}
+            </details>
+
+            <details class="menu-section" open>
+                <summary>訂單管理</summary>
+
+                {% if role and role.orders %}
+                    <a class="menu-link iframe-link"
+                       href="{{ url_for('staff.order.order_list') }}"
+                       target="contentFrame"
+                       data-title="出貨管理">出貨管理</a>
+
+                    <a class="menu-link iframe-link"
+                       href="{{ url_for('staff.order.order_history') }}"
+                       target="contentFrame"
+                       data-title="訂單紀錄">訂單紀錄</a>
+
+                    <a class="menu-link iframe-link"
+                       href="{{ url_for('staff.order.logistics_settings') }}"
+                       target="contentFrame"
+                       data-title="運費管理">運費管理</a>
+                {% else %}
+                    <span class="menu-link disabled">出貨管理（無權限）</span>
+                    <span class="menu-link disabled">訂單紀錄（無權限）</span>
+                    <span class="menu-link disabled">運費管理（無權限）</span>
+                {% endif %}
+            </details>
+
+            <details class="menu-section">
+                <summary>會員管理</summary>
+
+                {% if role and role.member %}
+                    <a class="menu-link iframe-link"
+                       href="{{ url_for('staff.member.member_list') }}"
+                       target="contentFrame"
+                       data-title="會員瀏覽">會員瀏覽</a>
+                {% else %}
+                    <span class="menu-link disabled">會員瀏覽（無權限）</span>
+                {% endif %}
+            </details>
+
+            <details class="menu-section">
+                <summary>客服管理</summary>
+
+                {% if role and role.inquiry %}
+                    <a class="menu-link iframe-link"
+                       href="{{ url_for('staff.inquiry.active_list') }}"
+                       target="contentFrame"
+                       data-title="活躍會話">活躍會話</a>
+
+                    <a class="menu-link iframe-link"
+                       href="{{ url_for('staff.inquiry.history_list') }}"
+                       target="contentFrame"
+                       data-title="客服歷史">客服歷史</a>
+                {% else %}
+                    <span class="menu-link disabled">活躍會話（無權限）</span>
+                    <span class="menu-link disabled">客服歷史（無權限）</span>
+                {% endif %}
+
+                {% if role and role.return %}
+                    <a class="menu-link iframe-link"
+                       href="{{ url_for('staff.staff_return.list_requests') }}"
+                       target="contentFrame"
+                       data-title="退貨管理">退貨管理</a>
+                {% else %}
+                    <span class="menu-link disabled">退貨管理（無權限）</span>
+                {% endif %}
+            </details>
+
+            <details class="menu-section">
+                <summary>數據統計</summary>
+
+                {% if role and role.statistic %}
+                    <a class="menu-link iframe-link"
+                       href="{{ url_for('staff.statistic.revenue') }}"
+                       target="contentFrame"
+                       data-title="營收統計">營收統計</a>
+
+                    <a class="menu-link iframe-link"
+                       href="{{ url_for('staff.statistic.sales') }}"
+                       target="contentFrame"
+                       data-title="銷售分析">銷售分析</a>
+                {% else %}
+                    <span class="menu-link disabled">營收統計（無權限）</span>
+                    <span class="menu-link disabled">銷售分析（無權限）</span>
+                {% endif %}
+            </details>
+
+            <details class="menu-section">
+                <summary>員工管理</summary>
+
+                {% if role and role.staff %}
+                    <a class="menu-link iframe-link"
+                       href="{{ url_for('staff.staff_account.staff_list') }}"
+                       target="contentFrame"
+                       data-title="員工帳號管理">員工帳號管理</a>
+
+                    <a class="menu-link iframe-link"
+                       href="{{ url_for('staff.role.role_list') }}"
+                       target="contentFrame"
+                       data-title="角色權限管理">角色權限管理</a>
+                {% else %}
+                    <span class="menu-link disabled">員工帳號管理（無權限）</span>
+                    <span class="menu-link disabled">角色權限管理（無權限）</span>
+                {% endif %}
+            </details>
+
+            <details class="menu-section">
+                <summary>帳戶設定</summary>
+
+                <a class="menu-link iframe-link"
+                   href="{{ url_for('staff.staff_profile.edit_profile') }}"
+                   target="contentFrame"
+                   data-title="編輯個人資料">編輯個人資料</a>
+
+                <a class="menu-link iframe-link"
+                   href="{{ url_for('staff.staff_profile.change_password') }}"
+                   target="contentFrame"
+                   data-title="修改密碼">修改密碼</a>
+            </details>
+
+        </nav>
+    </aside>
+
+    <!-- 右側主區域 -->
+    <main class="main">
+
+        <!-- 上方導覽列 -->
+        <header class="topbar">
+            <div class="topbar-title" id="pageTitle">
+                後台管理系統
+            </div>
+
+            <div class="topbar-user">
+                <span>當前用戶：{{ user.name if user and user.name else "root" }}</span>
+                <span>職位：{{ role.name if role and role.name else "root" }}</span>
+                <a class="logout-btn" href="{{ url_for('auth.staff_logout') }}">登出</a>
+            </div>
+        </header>
+
+        <!-- 右邊內容區 -->
+        <section class="content iframe-content">
+
+            <!-- 預設首頁內容 -->
+            <div id="homePanel">
+                <div class="page-title">
+                    <h1>儀錶板</h1>
+                    <p>請從左側選單選擇要管理的功能，功能頁面會顯示在右側。</p>
                 </div>
-            {% endfor %}
-        {% endif %}
-    {% endwith %}
 
-    <h2>儀錶板</h2>
-    <div class="menu">
-        <div class="card" style="width: 250px;">
-            <div class="card-header" style="width: 250px; box-sizing: border-box;">頁面管理</div>
-            <ul class="card-body">
-                {% if role.product %}
-                <li><a href="{{ url_for('staff.category.category_list') }}">分類管理</a></li>
-                {% else %}
-                <li>分類管理 (無權限)</li>
-                {% endif %}
-                {% if role.announcement %}
-                <li><a href="{{ url_for('staff.page.announcement_list') }}">公告管理</a></li>
-                {% else %}
-                <li>公告管理 (無權限)</li>
-                {% endif %}
-            </ul>
-        </div>
+                <div class="dashboard-grid">
+                    <div class="stat-card">
+                        <h3>頁面管理</h3>
+                        <p>管理分類、公告與前台顯示內容。</p>
+                    </div>
 
-        <div class="card" style="width: 250px;">
-            <div class="card-header" style="width: 250px; box-sizing: border-box;">商品管理</div>
-            <ul class="card-body">
-                {% if role.product %}
-                <li><a href="{{ url_for('staff.product.product_list') }}">修改商品</a></li>
-                {% else %}
-                <li>修改商品 (無權限)</li>
-                {% endif %}
-                {% if role.promo %}
-                <li><a href="{{ url_for('staff.promo.promo_list') }}">折扣碼管理</a></li>
-                {% else %}
-                <li>折扣碼管理 (無權限)</li>
-                {% endif %}
-            </ul>
-        </div>
+                    <div class="stat-card">
+                        <h3>商品管理</h3>
+                        <p>管理商品、SKU、規格與折扣碼。</p>
+                    </div>
 
-        <div class="card" style="width: 250px;">
-            <div class="card-header" style="width: 250px; box-sizing: border-box;">訂單管理</div>
-            <ul class="card-body">
-                {% if role.orders %}
-                <li><a href="{{ url_for('staff.order.order_list') }}">出貨管理</a></li>
-                <li><a href="{{ url_for('staff.order.order_history') }}">訂單紀錄</a></li>
-                <li><a href="{{ url_for('staff.order.logistics_settings') }}">運費管理</a></li>
-                {% else %}
-                <li>出貨管理 (無權限)</li>
-                <li>訂單紀錄 (無權限)</li>
-                <li>運費管理 (無權限)</li>
-                {% endif %}
-            </ul>
-        </div>
+                    <div class="stat-card">
+                        <h3>訂單管理</h3>
+                        <p>處理出貨、訂單紀錄與運費設定。</p>
+                    </div>
 
-        <div class="card" style="width: 250px;">
-            <div class="card-header" style="width: 250px; box-sizing: border-box;">會員管理</div>
-            <ul class="card-body">
-                {% if role.member %}
-                <li><a href="{{ url_for('staff.member.member_list') }}">會員瀏覽</a></li>
-                {% else %}
-                <li>會員瀏覽 (無權限)</li>
-                {% endif %}
-            </ul>
-        </div>
-    </div>
-    <div class='card-gap'></div>
-    <div class="menu">
-        <div class="card" style="width: 250px;">
-     <div class="card-header" style="width: 250px; box-sizing: border-box;">客服管理</div>
-        <ul class="card-body">
-            {% if role.inquiry %}
-              <li><a href="{{ url_for('staff.inquiry.active_list') }}">活躍會話</a></li>
-             <li><a href="{{ url_for('staff.inquiry.history_list') }}">客服歷史</a></li>
-            {% else %}
-            <li>活躍會話 (無權限)</li>
-            <li>客服歷史 (無權限)</li>
-            {% endif %}
-            {% if role.return %}
-        <li><a href="{{ url_for('staff.staff_return.list_requests') }}">退貨管理</a></li>
-            {% else %}
-            <li>退貨管理 (無權限)</li>
-            {% endif %}
-     </ul>
-    </div>
+                    <div class="stat-card">
+                        <h3>會員管理</h3>
+                        <p>查看會員資料、消費紀錄與帳號狀態。</p>
+                    </div>
+                </div>
 
-    <div class="card" style="width: 250px;">
-         <div class="card-header" style="width: 250px; box-sizing: border-box;">數據統計</div>
-         <ul class="card-body">
-            {% if role.statistic %}
-             <li><a href="{{ url_for('staff.statistic.revenue') }}">營收統計</a></li>
-            <li><a href="{{ url_for('staff.statistic.sales') }}">銷售分析</a></li>
-            <li><a href="{{ url_for('staff.product.hot_items_analytics') }}">潛力爆款分析</a></li>
-            {% else %}
-            <li>營收統計 (無權限)</li>
-            <li>銷售分析 (無權限)</li>
-            <li>潛力爆款分析 (無權限)</li>
-            {% endif %}
-       </ul>
-    </div>
+                <div class="quick-panel">
+                    <h2>快速操作</h2>
 
-        <div class="card" style="width: 250px;">
-            <div class="card-header" style="width: 250px; box-sizing: border-box;">員工管理</div>
-            <ul class="card-body">
-                {% if role.staff %}
-                <li><a href="{{ url_for('staff.staff_account.staff_list') }}">員工帳號管理</a></li>
-                <li><a href="{{ url_for('staff.role.role_list') }}">角色權限管理</a></li>
-                {% else %}
-                <li>員工帳號管理 (無權限)</li>
-                <li>角色權限管理 (無權限)</li>
-                {% endif %}
-            </ul>
-        </div>
+                    <div class="quick-actions">
+                        {% if role and role.product %}
+                            <a class="iframe-link"
+                               href="{{ url_for('staff.product.product_list') }}"
+                               target="contentFrame"
+                               data-title="產品管理">商品管理</a>
 
-        <div class="card" style="width: 250px;">
-            <div class="card-header" style="width: 250px; box-sizing: border-box;">帳戶設定</div>
-            <ul class="card-body">
-                <li><a href="{{ url_for('staff.staff_profile.edit_profile') }}">編輯個人資料</a></li>
-                <li><a href="{{ url_for('staff.staff_profile.change_password') }}">修改密碼</a></li>
-            </ul>
-        </div>
+                            <a class="iframe-link"
+                               href="{{ url_for('staff.category.category_list') }}"
+                               target="contentFrame"
+                               data-title="分類管理">分類管理</a>
+                        {% endif %}
 
-        <div class="card" style="width: 250px;">
-            <div class="card-header" style="width: 250px; box-sizing: border-box;">系統管理</div>
-            <ul class="card-body">
-                {% if role.name == 'root' %}
-                <li><a href="{{ url_for('staff.db_viewer.db_list') }}">資料庫檢視器</a></li>
-                {% else %}
-                <li>資料庫檢視器 (無權限)</li>
-                {% endif %}
-            </ul>
-        </div>
+                        {% if role and role.orders %}
+                            <a class="iframe-link"
+                               href="{{ url_for('staff.order.order_list') }}"
+                               target="contentFrame"
+                               data-title="出貨管理">出貨管理</a>
 
-    </div>
+                            <a class="iframe-link"
+                               href="{{ url_for('staff.order.order_history') }}"
+                               target="contentFrame"
+                               data-title="訂單紀錄">訂單紀錄</a>
+                        {% endif %}
 
+                        {% if role and role.statistic %}
+                            <a class="iframe-link"
+                               href="{{ url_for('staff.statistic.revenue') }}"
+                               target="contentFrame"
+                               data-title="營收統計">營收統計</a>
+
+                            <a class="iframe-link"
+                               href="{{ url_for('staff.statistic.sales') }}"
+                               target="contentFrame"
+                               data-title="銷售分析">銷售分析</a>
+                        {% endif %}
+
+                        {% if role and role.staff %}
+                            <a class="iframe-link"
+                               href="{{ url_for('staff.staff_account.staff_list') }}"
+                               target="contentFrame"
+                               data-title="員工帳號管理">員工帳號管理</a>
+
+                            <a class="iframe-link"
+                               href="{{ url_for('staff.role.role_list') }}"
+                               target="contentFrame"
+                               data-title="角色權限管理">角色權限管理</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- 所有分頁會顯示在這裡 -->
+            <iframe
+                id="contentFrame"
+                name="contentFrame"
+                class="content-frame"
+                src=""
+                frameborder="0">
+            </iframe>
+
+        </section>
+    </main>
+
+</div>
+
+<script>
+    const links = document.querySelectorAll(".iframe-link");
+    const homePanel = document.getElementById("homePanel");
+    const frame = document.getElementById("contentFrame");
+    const pageTitle = document.getElementById("pageTitle");
+
+    links.forEach(link => {
+        link.addEventListener("click", function () {
+            homePanel.style.display = "none";
+            frame.style.display = "block";
+
+            const title = this.getAttribute("data-title");
+            if (title) {
+                pageTitle.innerText = title;
+            }
+
+            links.forEach(item => item.classList.remove("active"));
+            this.classList.add("active");
+        });
+    });
+
+    function showHome(event) {
+        event.preventDefault();
+        frame.style.display = "none";
+        frame.src = "";
+        homePanel.style.display = "block";
+        pageTitle.innerText = "後台管理系統";
+
+        links.forEach(item => item.classList.remove("active"));
+    }
+</script>
 
 </body>
 </html>
