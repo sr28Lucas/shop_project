@@ -14,7 +14,7 @@
     <!-- 左側選單 -->
     <aside class="sidebar">
         <div class="sidebar-logo">
-            VIVIP<span>Admin</span>
+            VIVID<span>Admin</span>
         </div>
 
         <nav class="sidebar-menu">
@@ -169,6 +169,19 @@
                 {% else %}
                     <span class="menu-link disabled">員工帳號管理（無權限）</span>
                     <span class="menu-link disabled">角色權限管理（無權限）</span>
+                {% endif %}
+            </details>
+
+            <details class="menu-section">
+                <summary>系統管理</summary>
+
+                {% if role and role.name == 'root' %}
+                    <a class="menu-link iframe-link"
+                       href="{{ url_for('staff.db_viewer.db_list') }}"
+                       target="contentFrame"
+                       data-title="資料庫管理">資料庫管理</a>
+                {% else %}
+                    <span class="menu-link disabled">資料庫管理（無權限）</span>
                 {% endif %}
             </details>
 
