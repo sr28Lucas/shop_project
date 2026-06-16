@@ -6,6 +6,8 @@ from app.config import config
 import os
 from .permission import require_permission
 from app.utils.validators import Validator
+from app.models.product_model import ProductModel
+from app.models.category_model import CategoryModel
 
 product_bp = Blueprint('product', __name__)
 
@@ -15,17 +17,16 @@ def product_list():
     category_id = request.args.get('category_id')
     is_active = request.args.get('is_active')
     
-    # 預設只顯示未被軟刪除的商品 (is_active != 0)
+    # 使用 ProductModel 或調整查詢以包含 is_deleted=0
     query = """
     SELECT p.*, c.name as category_name
     FROM product p 
     LEFT JOIN category c ON p.category_id = c.id
-    WHERE p.is_active != 0 
+    WHERE p.is_deleted = 0 
     """
 
     params = []
     
-    # 處理額外的篩選條件
     if category_id:
         query += " AND p.category_id = %s"
         params.append(category_id)
@@ -38,8 +39,7 @@ def product_list():
     cursor.execute(query, params)
     products = cursor.fetchall()
     
-    cursor.execute("SELECT * FROM category")
-    categories = cursor.fetchall()
+    categories = CategoryModel.get_all()
     conn.close()
 
     return render_template('staff/product_list.html', products=products, categories=categories)
@@ -66,7 +66,7 @@ def product_add():
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
 
-        cursor.execute("SELECT id FROM product WHERE name = %s AND is_active != 0", (name,))
+        cursor.execute("SELECT id FROM product WHERE name = %s AND is_deleted = 0", (name,))
         if cursor.fetchone():
             cursor.close()
             conn.close()
@@ -77,8 +77,8 @@ def product_add():
 
         try:
             cursor.execute("""
-                INSERT INTO product (category_id, name, description, is_active, created_at, updated_at)
-                VALUES (%s, %s, %s, 1, NOW(), NOW())
+                INSERT INTO product (category_id, name, description, is_active, is_deleted, created_at, updated_at)
+                VALUES (%s, %s, %s, 1, 0, NOW(), NOW())
             """, (category_id, name, description))
             
             product_id = cursor.lastrowid
@@ -110,11 +110,7 @@ def product_add():
             cursor.close()
             conn.close()
 
-    conn = get_db_connection()
-    cursor = conn.cursor(dictionary=True)
-    cursor.execute("SELECT id, name FROM category")
-    categories = cursor.fetchall()
-    conn.close()
+    categories = CategoryModel.get_all()
     return render_template('staff/product_add.html', categories = categories)
 
 
@@ -148,7 +144,7 @@ def product_edit(id):
         deleted_ids = request.form.get('deleted_ids')
         new_files = request.files.getlist('images')
 
-        cursor.execute("SELECT id FROM product WHERE name = %s AND id != %s AND is_active != 0", (name, id))
+        cursor.execute("SELECT id FROM product WHERE name = %s AND id != %s AND is_deleted = 0", (name, id))
         if cursor.fetchone():
             cursor.close()
             conn.close()
@@ -208,14 +204,13 @@ def product_edit(id):
             cursor.close()
             conn.close()
 
-    cursor.execute("SELECT * FROM product WHERE id = %s", (id,))
+    cursor.execute("SELECT * FROM product WHERE id = %s AND is_deleted = 0", (id,))
     product = cursor.fetchone()
     
     cursor.execute("SELECT * FROM image WHERE product_id = %s ORDER BY sort_order", (id,))
     images = cursor.fetchall()
     
-    cursor.execute("SELECT id, name FROM category")
-    categories = cursor.fetchall()
+    categories = CategoryModel.get_all()
     
     conn.close()
     return render_template('staff/product_edit.html', product=product, images=images, categories=categories)
@@ -231,13 +226,19 @@ def bulk_update_status():
         flash("請先勾選商品")
         return redirect(url_for('staff.product.product_list'))
         
-    is_active = 1 if action == 'on' else 2 # 2 可能代表下架，但不是0(刪除)
+    if action == 'on':
+        is_active = 1
+    elif action == 'off':
+        is_active = 0
+    else:
+        flash("無效的操作")
+        return redirect(url_for('staff.product.product_list'))
     
     conn = get_db_connection()
     cursor = conn.cursor()
     try:
         format_strings = ','.join(['%s'] * len(product_ids))
-        cursor.execute(f"UPDATE product SET is_active = %s, updated_at = NOW() WHERE id IN ({format_strings})", [is_active] + product_ids)
+        cursor.execute(f"UPDATE product SET is_active = %s, updated_at = NOW() WHERE id IN ({format_strings}) AND is_deleted = 0", [is_active] + product_ids)
         conn.commit()
         flash(f"已成功更新 {cursor.rowcount} 個商品狀態")
     except Exception as e:
@@ -253,19 +254,20 @@ def bulk_update_status():
 @product_bp.route('/delete/<int:id>', methods=['POST'])
 @require_permission('product')
 def product_delete(id):
-    conn = get_db_connection()
-    cursor = conn.cursor()
+    # 使用 ProductModel 的軟刪除方法
     try:
-        cursor.execute("UPDATE sku SET is_active = 0 WHERE variant_id IN (SELECT id FROM variant WHERE product_id = %s)", (id,))
-        cursor.execute("UPDATE variant SET is_active = 0 WHERE product_id = %s", (id,))
-        cursor.execute("UPDATE product SET is_active = 0 WHERE id = %s", (id,))
+        ProductModel.soft_delete(id)
+        # 可選：對關聯的 variant/sku 也進行軟刪除 (此處維持原邏輯，但改為軟刪除)
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("UPDATE sku SET is_deleted = 1 WHERE variant_id IN (SELECT id FROM variant WHERE product_id = %s)", (id,))
+        cursor.execute("UPDATE variant SET is_deleted = 1 WHERE product_id = %s", (id,))
         conn.commit()
-    except Exception as e:
-        conn.rollback()
-        print(f"Error deleting product: {e}")
-    finally:
         cursor.close()
         conn.close()
+        flash("商品已刪除")
+    except Exception as e:
+        flash(f"刪除失敗: {str(e)}")
     return redirect(url_for('staff.product.product_list'))
 
 
@@ -274,17 +276,17 @@ def product_delete(id):
 def variant_list(product_id):
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
-    cursor.execute("SELECT name FROM product WHERE id = %s", (product_id,))
+    cursor.execute("SELECT name FROM product WHERE id = %s AND is_deleted = 0", (product_id,))
     product = cursor.fetchone()
     
-    # 過濾已被刪除的變體與SKU
-    cursor.execute("SELECT * FROM variant WHERE product_id = %s AND is_active != 0", (product_id,))
+    # 過濾已被軟刪除的變體與SKU
+    cursor.execute("SELECT * FROM variant WHERE product_id = %s AND is_deleted = 0", (product_id,))
     variants = cursor.fetchall()
     cursor.execute("""
         SELECT s.*, v.color 
         FROM sku s
         JOIN variant v ON s.variant_id = v.id
-        WHERE v.product_id = %s AND s.is_active != 0
+        WHERE v.product_id = %s AND s.is_deleted = 0
     """, (product_id,))
     skus = cursor.fetchall()
     
@@ -300,7 +302,7 @@ def variant_list(product_id):
 def variant_add(product_id):
     if request.method == 'POST':
         color = request.form.get('color')
-        is_active = 1 if request.form.get('variant_is_active') else 2 # 2 代表隱藏下架
+        is_active = 1 if request.form.get('variant_is_active') else 0 # 0 代表隱藏下架
         variant_image_file = request.files.get('variant_image')
         
         sku_codes = request.form.getlist("sku_code[]")
@@ -332,15 +334,15 @@ def variant_add(product_id):
                     flash(f"新增失敗：價格/成本上限 9.9億，庫存上限 100萬，且不能為負數！")
                     return redirect(url_for('staff.product.variant_list', product_id=product_id))
 
-            # === 原有：防呆檢查 sku_code 是否重複於資料庫 ===
+            # === 防呆檢查 sku_code 是否重複於資料庫 (排除已刪除) ===
             for sku_code in sku_codes:
-                cursor.execute("SELECT id FROM sku WHERE sku_code = %s AND is_active != 0", (sku_code,))
+                cursor.execute("SELECT id FROM sku WHERE sku_code = %s AND is_deleted = 0", (sku_code,))
                 if cursor.fetchone():
                     flash(f"新增失敗：貨號 '{sku_code}' 已經存在且正在使用中！")
                     return redirect(url_for('staff.product.variant_list', product_id=product_id))
             # ========================================
 
-            cursor.execute("INSERT INTO variant (product_id, color, is_active, created_at, updated_at) VALUES (%s, %s, %s, NOW(), NOW())", (product_id, color, is_active))
+            cursor.execute("INSERT INTO variant (product_id, color, is_active, is_deleted, created_at, updated_at) VALUES (%s, %s, %s, 0, NOW(), NOW())", (product_id, color, is_active))
             variant_id = cursor.lastrowid
             
             if variant_image_file:
@@ -363,11 +365,11 @@ def variant_add(product_id):
                 price = float(prices[i])
                 cost = float(costs[i])
                 stock = int(stocks[i])
-                is_sku_active = 1 if str(i) in active_indices else 2
+                is_sku_active = 1 if str(i) in active_indices else 0
                 
                 cursor.execute("""
-                    INSERT INTO sku (variant_id, sku_code, size, price, cost, stock, is_active, created_at, updated_at)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    INSERT INTO sku (variant_id, sku_code, size, price, cost, stock, is_active, is_deleted, created_at, updated_at)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, 0, %s, %s)
                 """, (variant_id, sku_code, size, price, cost, stock, is_sku_active, now, now))
                 
             conn.commit()
@@ -398,7 +400,7 @@ def variant_edit(product_id, variant_id):
 
     if request.method == "POST":
         color = request.form.get("color")
-        variant_is_active = 1 if request.form.get("variant_is_active") else 2
+        variant_is_active = 1 if request.form.get("variant_is_active") else 0
         sku_ids = request.form.getlist("sku_id[]")
         sku_codes = request.form.getlist("sku_code[]")
         sizes = request.form.getlist("size[]")
@@ -406,6 +408,7 @@ def variant_edit(product_id, variant_id):
         costs = request.form.getlist("cost[]")
         stocks = request.form.getlist("stock[]")
         active_indices = request.form.getlist("is_active[]")
+        print(f"DEBUG: active_indices from form: {active_indices}")
         
         variant_image_file = request.files.get('variant_image')
         delete_image = request.form.get('delete_image') == '1'
@@ -437,9 +440,9 @@ def variant_edit(product_id, variant_id):
                 
                 # 如果是修改舊的 SKU，排除自己；如果是新的 SKU，直接查
                 if s_id:
-                    cursor.execute("SELECT id FROM sku WHERE sku_code = %s AND is_active != 0 AND id != %s", (sku_code, s_id))
+                    cursor.execute("SELECT id FROM sku WHERE sku_code = %s AND is_deleted = 0 AND id != %s", (sku_code, s_id))
                 else:
-                    cursor.execute("SELECT id FROM sku WHERE sku_code = %s AND is_active != 0", (sku_code,))
+                    cursor.execute("SELECT id FROM sku WHERE sku_code = %s AND is_deleted = 0", (sku_code,))
                     
                 if cursor.fetchone():
                     flash(f"修改失敗：貨號 '{sku_code}' 已經存在且正在使用中！")
@@ -458,7 +461,8 @@ def variant_edit(product_id, variant_id):
                 price = float(prices[i])
                 cost = float(costs[i])
                 stock = int(stocks[i])
-                is_active = 1 if str(i) in active_indices else 2
+                # 標準化：選取了即為啟用(1)，否則為停用(0)
+                is_active = 1 if str(i) in active_indices else 0
                 
                 if s_id: 
                     cursor.execute("""
@@ -468,17 +472,17 @@ def variant_edit(product_id, variant_id):
                     submitted_sku_ids.append(s_id)
                 else: 
                     cursor.execute("""
-                        INSERT INTO sku (variant_id, sku_code, size, price, cost, stock, is_active, created_at, updated_at)
-                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                        INSERT INTO sku (variant_id, sku_code, size, price, cost, stock, is_active, is_deleted, created_at, updated_at)
+                        VALUES (%s, %s, %s, %s, %s, %s, %s, 0, %s, %s)
                     """, (variant_id, sku_code, size, price, cost, stock, is_active, now, now))
                     submitted_sku_ids.append(cursor.lastrowid)
             
-            # 移除 SKU 改為軟刪除
+            # 移除 SKU 改為軟刪除 (標記為停用)
             if submitted_sku_ids:
                 format_strings = ','.join(['%s'] * len(submitted_sku_ids))
-                cursor.execute(f"UPDATE sku SET is_active = 0 WHERE variant_id = %s AND id NOT IN ({format_strings})", [variant_id] + submitted_sku_ids)
+                cursor.execute(f"UPDATE sku SET is_deleted = 1, is_active = 0 WHERE variant_id = %s AND id NOT IN ({format_strings})", [variant_id] + submitted_sku_ids)
             else:
-                cursor.execute("UPDATE sku SET is_active = 0 WHERE variant_id = %s", (variant_id,))
+                cursor.execute("UPDATE sku SET is_deleted = 1, is_active = 0 WHERE variant_id = %s", (variant_id,))
 
             if delete_image or variant_image_file:
                 cursor.execute("SELECT id, filename FROM image WHERE variant_id = %s", (variant_id,))
@@ -511,7 +515,7 @@ def variant_edit(product_id, variant_id):
             cursor.close()
             conn.close()
         
-    cursor.execute("SELECT * FROM sku WHERE variant_id = %s AND is_active != 0", (variant_id,))
+    cursor.execute("SELECT * FROM sku WHERE variant_id = %s AND is_deleted = 0", (variant_id,))
     skus = cursor.fetchall()
     cursor.execute("SELECT * FROM image WHERE variant_id = %s LIMIT 1", (variant_id,))
     image = cursor.fetchone()
@@ -519,20 +523,28 @@ def variant_edit(product_id, variant_id):
     conn.close()
     return render_template("staff/variant_edit.html", variant=variant, skus=skus, product_id=product_id, image=image)
 
-
 @product_bp.route('/<int:product_id>/variant/<int:variant_id>/delete', methods=['POST'])
 @require_permission('product')
 def variant_delete(product_id, variant_id):
     conn = get_db_connection()
     cursor = conn.cursor()
     try:
-        # 軟刪除：先隱藏該款式下的所有尺寸 (SKU)
-        cursor.execute("UPDATE sku SET is_active = 0 WHERE variant_id = %s", (variant_id,))
-        # 再隱藏該款式 (Variant)
-        cursor.execute("UPDATE variant SET is_active = 0 WHERE id = %s AND product_id = %s", (variant_id, product_id))
+        # 使用多個獨立 cursor 避免 unread result
+        cursor1 = conn.cursor()
+        cursor1.execute("UPDATE sku SET is_deleted = 1, is_active = 0 WHERE variant_id = %s", (variant_id,))
+        cursor1.close()
+        
+        cursor2 = conn.cursor()
+        cursor2.execute("UPDATE variant SET is_deleted = 1, is_active = 0 WHERE id = %s AND product_id = %s", (variant_id, product_id))
+        rowcount = cursor2.rowcount
+        cursor2.close()
         
         conn.commit()
-        flash("款式已成功刪除（下架）")
+        
+        if rowcount == 0:
+            flash("刪除失敗：找不到對應記錄")
+        else:
+            flash("款式已成功軟刪除")
     except Exception as e:
         conn.rollback()
         flash(f"刪除款式失敗: {str(e)}")
@@ -549,13 +561,18 @@ def sku_delete(sku_id):
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
     cursor.execute("SELECT variant_id FROM sku WHERE id = %s", (sku_id,))
-    variant_id = cursor.fetchone()['variant_id']
+    result = cursor.fetchone()
+    if not result:
+        cursor.close()
+        conn.close()
+        return redirect(url_for('staff.product.product_list'))
+    variant_id = result['variant_id']
     cursor.execute("SELECT product_id FROM variant WHERE id = %s", (variant_id,))
     product_id = cursor.fetchone()['product_id']
     
     try:
         # 獨立刪除 SKU 改為軟刪除
-        cursor.execute("UPDATE sku SET is_active = 0 WHERE id = %s", (sku_id,))
+        cursor.execute("UPDATE sku SET is_deleted = 1, is_active = 0 WHERE id = %s", (sku_id,))
         conn.commit()
     except Exception as e:
         conn.rollback()
@@ -589,7 +606,7 @@ def hot_items_analytics():
             ), 0) as cart_qty
         FROM product p
         LEFT JOIN category c ON p.category_id = c.id
-        WHERE p.is_active != 0
+        WHERE p.is_deleted = 0
         ORDER BY (wishlist_count + cart_qty) DESC
         LIMIT 10;
     """

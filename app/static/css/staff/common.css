@@ -124,3 +124,30 @@ h1, h2, h3 {
 .mb-20 { margin-bottom: 20px; }
 .text-right { text-align: right; }
 .flex-between { display: flex; justify-content: space-between; align-items: center; }
+
+/* =========================================
+   響應式設計
+========================================= */
+@media (max-width: 768px) {
+    body {
+        padding: 10px;
+    }
+
+    .card {
+        padding: 15px;
+    }
+
+    .styled-table-wrapper {
+        overflow-x: auto;
+    }
+
+    .styled-table {
+        min-width: 600px;
+    }
+
+    .flex-between {
+        flex-direction: column;
+        gap: 10px;
+        align-items: flex-start;
+    }
+}

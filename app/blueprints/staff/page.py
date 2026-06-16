@@ -11,7 +11,7 @@ page_bp = Blueprint('page', __name__) #建立藍圖
 def announcement_list():
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
-    cursor.execute("SELECT * FROM announcement ORDER BY pin DESC, created_at DESC")
+    cursor.execute("SELECT * FROM announcement WHERE is_deleted = 0 ORDER BY pin DESC, created_at DESC")
     announcements = cursor.fetchall()
     cursor.close()
     conn.close()
@@ -40,8 +40,8 @@ def announcement_add():
         conn = get_db_connection()
         cursor = conn.cursor()
         cursor.execute("""
-            INSERT INTO announcement (title, content, type, pin, is_active, start_at, end_at, created_at, updated_at)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, NOW(), NOW())
+            INSERT INTO announcement (title, content, type, pin, is_active, is_deleted, start_at, end_at, created_at, updated_at)
+            VALUES (%s, %s, %s, %s, %s, 0, %s, %s, NOW(), NOW())
         """, (title, content, type, pin, is_active, start_at, end_at))
         conn.commit()
         cursor.close()
@@ -96,7 +96,7 @@ def announcement_edit(id):
 def announcement_delete(id):
     conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute("DELETE FROM announcement WHERE id = %s", (id,))
+    cursor.execute("UPDATE announcement SET is_deleted = 1 WHERE id = %s", (id,))
     conn.commit()
     cursor.close()
     conn.close()

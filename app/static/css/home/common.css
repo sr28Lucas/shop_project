@@ -434,3 +434,76 @@ footer {
     margin-top: 60px;
     font-size: 14px;
 }
+
+/* =========================================
+   10. 響應式設計 (Mobile Adaptation)
+========================================= */
+@media (max-width: 992px) {
+    .header-top {
+        flex-direction: column;
+        gap: 15px;
+        padding: 10px 20px;
+    }
+
+    .header-nav-inline {
+        order: 2;
+    }
+
+    .header-nav-inline ul {
+        gap: 20px;
+    }
+
+    .header-icons {
+        order: 1;
+        width: 100%;
+        justify-content: center;
+    }
+
+    .minimal-search {
+        margin-right: 0;
+    }
+}
+
+@media (max-width: 768px) {
+    .shop-container {
+        flex-direction: column;
+    }
+
+    .sidebar {
+        flex: none;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .banner-content h1 {
+        font-size: 2rem;
+    }
+
+    .banner-content p {
+        font-size: 1rem;
+    }
+
+    .product-grid {
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+        gap: 15px;
+    }
+
+    .product-image {
+        height: 180px;
+    }
+}
+
+@media (max-width: 480px) {
+    .header-nav-inline ul {
+        gap: 15px;
+        font-size: 13px;
+    }
+
+    .logo-placeholder {
+        font-size: 24px;
+    }
+
+    .minimal-search input:focus {
+        width: 140px;
+    }
+}

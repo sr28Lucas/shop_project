@@ -42,11 +42,11 @@ def index():
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
     
-    # 獲取所有分類
-    cursor.execute("SELECT id, name FROM category ORDER BY id ASC")
+    # 獲取所有未被軟刪除的分類
+    cursor.execute("SELECT id, name FROM category WHERE is_deleted = 0 ORDER BY id ASC")
     categories = cursor.fetchall()
     
-    # 獲取商品、最低/最高價格及首圖
+    # 獲取商品、最低/最高價格及首圖 (忽略被軟刪除的商品)
     sql = """
         SELECT 
             p.id, p.name, 
@@ -56,8 +56,8 @@ def index():
         FROM product p
         LEFT JOIN variant v ON p.id = v.product_id
         LEFT JOIN sku s ON v.id = s.variant_id
-        WHERE p.is_active = 1
-          AND (s.is_active = 1 OR s.is_active IS NULL) 
+        WHERE p.is_active = 1 AND p.is_deleted = 0
+          AND (s.is_active = 1 OR s.is_active IS NULL) AND (s.is_deleted = 0 OR s.is_deleted IS NULL)
     """
     params = []
     if query:
@@ -120,10 +120,10 @@ def announcements():
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
     
-    # 獲取有效公告：active=1 且 在開始與結束時間內 (或未設定時間)
+    # 獲取有效公告：active=1 且 在開始與結束時間內 (或未設定時間)，且未被軟刪除
     cursor.execute("""
         SELECT * FROM announcement 
-        WHERE is_active = 1 
+        WHERE is_active = 1 AND is_deleted = 0
           AND (start_at IS NULL OR start_at <= NOW())
           AND (end_at IS NULL OR end_at >= NOW())
         ORDER BY pin DESC, created_at DESC
@@ -178,13 +178,13 @@ def product_view(id):
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
     
-    # 獲取商品基本資料與分類名稱，並嘗試獲取第一張主圖作為預設
+    # 獲取商品基本資料與分類名稱，並嘗試獲取第一張主圖作為預設 (檢查 is_deleted)
     cursor.execute("""
         SELECT p.*, c.name as category_name,
         (SELECT filename FROM image WHERE product_id = p.id AND image_type = 'product' ORDER BY sort_order ASC LIMIT 1) as main_image
         FROM product p 
         LEFT JOIN category c ON p.category_id = c.id 
-        WHERE p.id = %s AND p.is_active = 1
+        WHERE p.id = %s AND p.is_active = 1 AND p.is_deleted = 0
     """, (id,))
     product = cursor.fetchone()
     
@@ -201,17 +201,18 @@ def product_view(id):
     # 建立 variant_id 到 filename 的對應 (假設每個 variant 只有一張圖，或取第一張)
     variant_images = {img['variant_id']: img['filename'] for img in all_images if img['variant_id']}
 
-    # 獲取所有 SKU
+    # 獲取所有未刪除且啟用的 SKU
     cursor.execute("""
         SELECT s.*, v.color FROM sku s
         JOIN variant v ON s.variant_id = v.id
-        WHERE v.product_id = %s AND s.is_active = 1
+        WHERE v.product_id = %s AND s.is_active = 1 AND s.is_deleted = 0
     """, (id,))
     skus = cursor.fetchall()
 
-    # 獲取所有變體 (Colors)
-    cursor.execute("SELECT * FROM variant WHERE product_id = %s AND is_active = 1", (id,))
+    # 獲取所有未刪除且啟用的變體 (Colors)
+    cursor.execute("SELECT * FROM variant WHERE product_id = %s AND is_active = 1 AND is_deleted = 0", (id,))
     variants = cursor.fetchall()
+
     for v in variants:
         # 將 SKU 關聯到對應的變體，並進行尺寸排序
         v_skus = [s for s in skus if s['variant_id'] == v['id']]
