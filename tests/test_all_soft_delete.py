@@ -32,7 +32,7 @@ def test_announcement_soft_delete():
     """驗證公告軟刪除"""
     conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute("INSERT INTO announcement (title, content, is_deleted, created_at, updated_at) VALUES ('測試公告', '內容', 0, NOW(), NOW())")
+    cursor.execute("INSERT INTO announcement (title, content, type, is_deleted, created_at, updated_at) VALUES ('測試公告', '內容', 'general', 0, NOW(), NOW())")
     ann_id = cursor.lastrowid
     conn.commit()
     

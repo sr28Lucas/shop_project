@@ -4,28 +4,6 @@
 
 {% block head %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/home/product_view.css') }}">
-<style>
-    /* 評價系統 CSS */
-    .review-section { font-family: sans-serif; margin-top: 40px; color: #333; padding-top: 20px; border-top: 2px solid #eee;}
-    .review-header { display: flex; gap: 40px; margin-bottom: 30px; align-items: center; flex-wrap: wrap;}
-    .overall-score-box { text-align: center; }
-    .overall-score { font-size: 3.5em; font-weight: bold; line-height: 1;}
-    .stars { color: #f5c518; font-size: 1.2em; letter-spacing: 2px;}
-    .sub-scores { display: flex; flex-direction: column; gap: 8px; border-left: 2px solid #eee; padding-left: 30px; }
-    .sub-score-item { display: flex; justify-content: space-between; width: 140px; font-size: 1em;}
-    
-    .fit-section { margin-bottom: 30px; padding: 20px; background: #f8f9fa; border-radius: 8px;}
-    .fit-title { font-weight: bold; margin-bottom: 15px; font-size: 1em;}
-    .fit-bar-container { display: flex; align-items: center; justify-content: space-between; text-align: center; font-size: 0.9em; color: #666; }
-    .fit-item { flex: 1; display: flex; flex-direction: column; align-items: center; }
-    .progress-track { width: 90%; height: 6px; background: #ddd; border-radius: 3px; margin: 8px 0; overflow: hidden; position: relative; }
-    .progress-fill { height: 100%; background: #333; position: absolute; left: 0; }
-    
-    .review-card { border-bottom: 1px solid #eee; padding: 20px 0; }
-    .reviewer-info { font-size: 0.9em; color: #888; margin-bottom: 8px; display: flex; justify-content: space-between;}
-    .review-specs { font-size: 0.85em; color: #777; margin: 8px 0; background: #f1f1f1; display: inline-block; padding: 4px 10px; border-radius: 4px;}
-    .review-comment { font-size: 1em; line-height: 1.6; margin-top: 10px; color: #222;}
-</style>
 {% endblock %}
 
 {% block content %}
