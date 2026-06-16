@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <title>資料庫檢視器 - 後臺系統</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; display: flex; height: 100vh; margin: 0; background-color: #f8f9fa; }
+        .sidebar { width: 280px; background: #ffffff; border-right: 1px solid #dee2e6; padding: 20px; overflow-y: auto; }
+        .main { flex: 1; padding: 30px; overflow-y: auto; }
+        h1 { color: #343a40; margin-bottom: 20px; }
+        .table-item { display: block; padding: 12px; text-decoration: none; color: #495057; border-radius: 5px; margin-bottom: 5px; transition: background 0.2s; }
+        .table-item:hover { background: #e9ecef; }
+        .table-item.active { background: #007bff; color: white; }
+        
+        .search-box { margin-bottom: 20px; background: #fff; padding: 15px; border-radius: 5px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); display: flex; gap: 10px; align-items: center; }
+        input[type="text"] { padding: 8px; width: 300px; border: 1px solid #ced4da; border-radius: 4px; }
+        
+        .btn { padding: 8px 15px; border: none; border-radius: 4px; cursor: pointer; text-decoration: none; display: inline-block; font-size: 14px; transition: background 0.2s; }
+        .btn-primary { background: #007bff; color: white; }
+        .btn-primary:hover { background: #0069d9; }
+        .btn-secondary { background: #6c757d; color: white; }
+        .btn-secondary:hover { background: #5a6268; }
+        .btn-danger { background: #dc3545; color: white; }
+        .btn-danger:hover { background: #c82333; }
+        
+        table { border-collapse: collapse; width: 100%; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        th, td { border: 1px solid #dee2e6; padding: 12px; text-align: left; }
+        th { background: #f1f3f5; color: #495057; font-weight: 600; }
+        tr:nth-child(even) { background-color: #f8f9fa; }
+        tr:hover { background-color: #e9ecef; }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <h3>資料表清單</h3>
+        {% for table in tables %}
+        <a href="{{ url_for('staff.db_viewer.db_view', table=table) }}" class="table-item {{ 'active' if table == active_table }}">{{ table }}</a>
+        {% endfor %}
+    </div>
+    
+    <div class="main">
+        <a href="{{ url_for('staff.dashboard') }}" class="btn btn-secondary" style="margin-bottom: 20px;">← 返回儀表板</a>
+        <h1>{{ active_table if active_table else '請選擇資料表' }}</h1>
+        
+        {% if active_table %}
+        <div class="search-box">
+            <form method="GET" action="{{ url_for('staff.db_viewer.db_view', table=active_table) }}" style="display: flex; gap: 10px;">
+                <input type="text" name="search" placeholder="搜尋資料..." value="{{ search }}">
+                <button type="submit" class="btn btn-primary">搜尋</button>
+                <a href="{{ url_for('staff.db_viewer.db_view', table=active_table) }}" class="btn btn-danger">清除搜尋</a>
+            </form>
+        </div>
+        
+        <table>
+            <thead>
+                <tr>
+                    {% for col in columns %}
+                    <th>{{ col }}</th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in rows %}
+                <tr>
+                    {% for col in columns %}
+                    <td>{{ row[col] }}</td>
+                    {% endfor %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% endif %}
+    </div>
+</body>
+</html>

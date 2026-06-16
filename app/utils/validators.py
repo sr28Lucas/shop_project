@@ -5,8 +5,8 @@ class Validator:
     def is_valid_email(email):
         if not email or not (3 <= len(email) <= 100):
             return False
-        # 作業環境放寬：只要有 @ 且符合基礎格式即可
-        email_regex = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]'
+        # 加強郵件格式檢查
+        email_regex = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+$'
         return re.match(email_regex, email) is not None
 
     @staticmethod
@@ -23,7 +23,8 @@ class Validator:
 
     @staticmethod
     def is_valid_address(address):
-        if not address:
+        # 地址不輸入 (空) 或長度在 5-200 之間
+        if not address or len(address) == 0:
             return True
         return 5 <= len(address) <= 200
 

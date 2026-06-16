@@ -61,8 +61,6 @@ h2 {
 }
 
 .card {
-    flex: 1 1 260px;
-    min-width: 260px;
     background: white;
     border: none;
     border-radius: 12px; /* 圓角加大 */

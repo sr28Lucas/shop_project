@@ -58,3 +58,19 @@ def require_permission(permission_name):
             return f(*args, **kwargs)
         return decorated_function
     return decorator
+
+def require_role(role_name):
+    """
+    用於路由的裝飾器檢查，檢查 staff 是否具有特定角色名稱
+    """
+    def decorator(f):
+        from functools import wraps
+        @wraps(f)
+        def decorated_function(*args, **kwargs):
+            role = get_staff_role()
+            if not role or role.get('name') != role_name:
+                flash(f'此功能僅限 {role_name} 角色使用')
+                return redirect(url_for('staff.dashboard'))
+            return f(*args, **kwargs)
+        return decorated_function
+    return decorator
