@@ -4,6 +4,85 @@
 
 {% block head %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/home/product_view.css') }}">
+<style>
+    /* 評價系統 CSS */
+    .review-section { font-family: sans-serif; margin-top: 40px; color: #333; padding-top: 20px; border-top: 2px solid #eee;}
+    .review-header { display: flex; gap: 40px; margin-bottom: 30px; align-items: center; flex-wrap: wrap;}
+    .overall-score-box { text-align: center; }
+    .overall-score { font-size: 3.5em; font-weight: bold; line-height: 1;}
+    .stars { color: #f5c518; font-size: 1.2em; letter-spacing: 2px;}
+    .sub-scores { display: flex; flex-direction: column; gap: 8px; border-left: 2px solid #eee; padding-left: 30px; }
+    .sub-score-item { display: flex; justify-content: space-between; width: 140px; font-size: 1em;}
+    
+    .fit-section { margin-bottom: 30px; padding: 20px; background: #f8f9fa; border-radius: 8px;}
+    .fit-title { font-weight: bold; margin-bottom: 15px; font-size: 1em;}
+    .fit-bar-container { display: flex; align-items: center; justify-content: space-between; text-align: center; font-size: 0.9em; color: #666; }
+    .fit-item { flex: 1; display: flex; flex-direction: column; align-items: center; }
+    .progress-track { width: 90%; height: 6px; background: #ddd; border-radius: 3px; margin: 8px 0; overflow: hidden; position: relative; }
+    .progress-fill { height: 100%; background: #333; position: absolute; left: 0; }
+    
+    .review-card { border-bottom: 1px solid #eee; padding: 20px 0; }
+    .reviewer-info { font-size: 0.9em; color: #888; margin-bottom: 8px; display: flex; justify-content: space-between;}
+    .review-specs { font-size: 0.85em; color: #777; margin: 8px 0; background: #f1f1f1; display: inline-block; padding: 4px 10px; border-radius: 4px;}
+    .review-comment { font-size: 1em; line-height: 1.6; margin-top: 10px; color: #222;}
+
+    /* =========================================
+       蝦皮風格：商品縮圖外層與按鈕內嵌 CSS (確保權重最高)
+    ========================================= */
+    .thumbnail-container {
+        position: relative;
+        width: 100%;
+        max-width: 450px;
+        margin-top: 10px;
+    }
+
+    .thumbnail-list {
+        display: flex !important;          
+        overflow-x: auto !important;       
+        flex-wrap: nowrap !important;      
+        gap: 10px !important;              
+        scroll-behavior: smooth;
+        padding-bottom: 0 !important;
+        -ms-overflow-style: none !important;  /* IE/Edge 隱藏捲軸 */
+        scrollbar-width: none !important;     /* Firefox 隱藏捲軸 */
+    }
+    .thumbnail-list::-webkit-scrollbar {
+        display: none !important;             /* Chrome/Safari 隱藏捲軸 */
+    }
+
+    .thumbnail-list .thumbnail {
+        flex-shrink: 0 !important;         
+        width: 80px !important;            
+        height: 80px !important;           
+        cursor: pointer;
+        border: 2px solid transparent; 
+        border-radius: 4px;
+        overflow: hidden;
+    }
+    .thumbnail-list .thumbnail.active { border-color: #d63384 !important; }
+    .thumbnail-list .thumbnail img { width: 100% !important; height: 100% !important; object-fit: cover !important; }
+
+    .slide-btn {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        background-color: rgba(0, 0, 0, 0.4);
+        color: white;
+        border: none;
+        width: 24px;
+        height: 40px;
+        cursor: pointer;
+        z-index: 10;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+        transition: background-color 0.3s;
+    }
+    .slide-btn:hover { background-color: rgba(0, 0, 0, 0.8); }
+    .left-btn { left: 0; border-top-right-radius: 4px; border-bottom-right-radius: 4px; }
+    .right-btn { right: 0; border-top-left-radius: 4px; border-bottom-left-radius: 4px; }
+</style>
 {% endblock %}
 
 {% block content %}
@@ -12,12 +91,19 @@
             <div class="main-image">
                 <img id="mainImg" src="{{ url_for('static', filename='upload/' + product.main_image) if product.main_image else '' }}" alt="{{ product.name }}">
             </div>
-            <div class="thumbnail-list">
-                {% for img in product_images %}
-                    <div class="thumbnail {{ 'active' if img.filename == product.main_image }}" onclick="changeMainImage('{{ url_for('static', filename='upload/' + img.filename) }}', this)">
-                        <img src="{{ url_for('static', filename='upload/' + img.filename) }}" alt="{{ product.name }}">
-                    </div>
-                {% endfor %}
+            
+            <div class="thumbnail-container">
+                <button class="slide-btn left-btn" onclick="slideThumbnails(-1)" type="button">❮</button>
+                
+                <div class="thumbnail-list" id="thumbList">
+                    {% for img in product_images %}
+                        <div class="thumbnail {{ 'active' if img.filename == product.main_image }}" onclick="changeMainImage('{{ url_for('static', filename='upload/' + img.filename) }}', this)">
+                            <img src="{{ url_for('static', filename='upload/' + img.filename) }}" alt="{{ product.name }}">
+                        </div>
+                    {% endfor %}
+                </div>
+                
+                <button class="slide-btn right-btn" onclick="slideThumbnails(1)" type="button">❯</button>
             </div>
         </div>
         
@@ -153,6 +239,12 @@
         },
         {% endfor %}
     };
+
+    function slideThumbnails(direction) {
+        const list = document.getElementById('thumbList');
+        const scrollAmount = 100; // 移動的距離
+        list.scrollBy({ left: direction * scrollAmount, behavior: 'smooth' });
+    }
 
     function changeMainImage(url, el) {
         document.getElementById('mainImg').src = url;
