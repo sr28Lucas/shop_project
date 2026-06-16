@@ -10,14 +10,14 @@
 <div class="auth-container">
     <h2>會員登入</h2>
 
-    {% with messages = get_flashed_messages(with_categories=true) %}
+   {# {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
         {% for category, message in messages %}
           <div class="flash-message flash-error">{{ message }}</div>
         {% endfor %}
       {% endif %}
     {% endwith %}
-
+#}
     <form class="auth-form" method="POST" action="{{ url_for('auth.login') }}">
         <div class="form-group">
             <label>帳號 (Email)</label>

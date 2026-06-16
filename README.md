@@ -98,7 +98,7 @@ DATABASE_USE = shop_db
 1.  **手動建立資料庫:** 在 MySQL 中建立名稱為 `shop_db` (或您在 .env 設定的名稱) 的資料庫。
 2.  **匯入 SQL 架構:**
     ```bash
-    mysql -u [使用者] -p [資料庫名稱] < latest_資料庫系統_電商網站_20260612.sql
+    mysql -u root -p shop_db < latest_資料庫系統_電商網站_20260615.sql
     ```
 3.  **執行系統初始化:** (建立 root 管理員帳號與台灣運費資料)
     ```bash

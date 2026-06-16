@@ -11,7 +11,7 @@
 <div class="auth-container">
     <h2>會員申辦</h2>
 
-    {% with messages = get_flashed_messages(with_categories=true) %}
+  {#  {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
         {% for category, message in messages %}
           <div class="flash-message {% if category == 'success' %}flash-success{% else %}flash-error{% endif %}">
@@ -20,7 +20,7 @@
         {% endfor %}
       {% endif %}
     {% endwith %}
-
+#}
     <form class="auth-form" method="POST" action="{{ url_for('auth.register') }}">
         <div class="form-group">
             <label class="required">Email</label>

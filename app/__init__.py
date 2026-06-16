@@ -10,9 +10,26 @@ def create_app():
     # 2. 載入設定 (從 config.py 讀取不同環境的設定)
     app.config.from_object(config) # 自動將config中全大寫的屬性導入
 
+    # ==========================================
+    # 【新增】加入 Email 伺服器設定 (以 Gmail 為例)
+    # ==========================================
+    app.config['MAIL_SERVER'] = 'smtp.gmail.com'
+    app.config['MAIL_PORT'] = 587
+    app.config['MAIL_USE_TLS'] = True
+    app.config['MAIL_USERNAME'] = 'alansu20051010@gmail.com'  # 🛑 記得換成你的 Gmail
+    app.config['MAIL_PASSWORD'] = 'mfvp atnh qols hykc'    # 🛑 記得換成 Google 的 16 位數應用程式密碼
+    app.config['MAIL_DEFAULT_SENDER'] = 'alansu20051010@gmail.com' # 🛑 記得換成你的 Gmail
+    
     # 3. 初始化插件 (將插件繫結到 app)
     bcrypt.init_app(app)
 
+    
+    # ==========================================
+    # 【新增】綁定 Mail 套件到 app
+    # ==========================================
+    from .blueprints.auth import mail 
+    mail.init_app(app)
+    
     # db.init_app(app)
     # migrate.init_app(app, db)
     # login_manager.init_app(app)
