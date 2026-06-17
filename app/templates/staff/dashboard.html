@@ -340,23 +340,58 @@
     const frame = document.getElementById("contentFrame");
     const pageTitle = document.getElementById("pageTitle");
 
+    function isDashboardUrl(url) {
+        try {
+            const parsedUrl = new URL(url, window.location.origin);
+            return parsedUrl.pathname === "/staff/dashboard";
+        } catch (e) {
+            return false;
+        }
+    }
+
     links.forEach(link => {
-        link.addEventListener("click", function () {
+        link.addEventListener("click", function (event) {
+            event.preventDefault();
+
+            const url = this.getAttribute("href");
+            const title = this.getAttribute("data-title") || "後台管理系統";
+
+            if (!url || url === "#" || isDashboardUrl(url)) {
+                showHome(event);
+                return;
+            }
+
             homePanel.style.display = "none";
             frame.style.display = "block";
+            frame.src = url;
 
-            const title = this.getAttribute("data-title");
-            if (title) {
-                pageTitle.innerText = title;
-            }
+            pageTitle.innerText = title;
 
             links.forEach(item => item.classList.remove("active"));
             this.classList.add("active");
         });
     });
 
+    frame.addEventListener("load", function () {
+        try {
+            const framePath = frame.contentWindow.location.pathname;
+
+            if (framePath === "/staff/dashboard") {
+                frame.style.display = "none";
+                frame.src = "";
+                homePanel.style.display = "block";
+                pageTitle.innerText = "後台管理系統";
+            }
+        } catch (e) {
+            console.log("iframe loaded");
+        }
+    });
+
     function showHome(event) {
-        event.preventDefault();
+        if (event) {
+            event.preventDefault();
+        }
+
         frame.style.display = "none";
         frame.src = "";
         homePanel.style.display = "block";
