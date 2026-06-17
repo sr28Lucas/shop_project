@@ -6,7 +6,8 @@ body {
     margin: 0;
     padding: 20px;
     background-color: #f8f9fa;
-    width: 1100px;
+    max-width: 1200px;
+    margin: 0 auto;
 }
 
 h1 {
@@ -26,7 +27,8 @@ h1 {
     margin-bottom: 20px; 
     border-radius: 8px; 
     box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-    width: 1060px;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .filter-section form {
@@ -73,20 +75,21 @@ h1 {
     background: white;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-    /* 移除 overflow-x: auto; 移除表格自身的滾動條 */
     padding-bottom: 10px;
-    width: 1100px;      /* 確保容器寬度為 100% */
+    width: 100%;
+    overflow-x: auto;
 }
 
 .product-table { 
-    width: 1100px; /* 保留最小寬度以防欄位過度壓縮 */
+    width: 100%;
     border-collapse: collapse; 
-    table-layout: fixed;
+    table-layout: auto;
 }
 .product-table th, .product-table td { 
     padding: 12px 15px; 
     text-align: left; 
     border-bottom: 1px solid #eee;
+    vertical-align: middle;
 }
 
 .product-table th {
@@ -95,14 +98,14 @@ h1 {
     font-weight: bold;
 }
 
-/* 欄位寬度控制 - 強制像素尺寸 */
-.col-id { width: 40px; }
-.col-name { width: 100px; }
-.col-stock { width: 80px; text-align: center; }
-.col-category { width: 90px; }
-.col-description { width: 100px; }
-.col-status { width: 70px; }
-.col-time { width: 11   0px; }
+/* 欄位最小寬度控制 */
+.col-id { min-width: 50px; }
+.col-name { min-width: 80px; }
+.col-stock { min-width: 70px; text-align: center; }
+.col-category { min-width: 80px; }
+.col-description { min-width: 80px; }
+.col-status { min-width: 70px; }
+.col-time { min-width: 100px; }
 .col-actions { width: 100px; }
 
 /* 描述文字溢出處理 */
@@ -129,7 +132,8 @@ h1 {
 /* 專門用於操作欄的按鈕容器 */
 .action-buttons-container {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
+    flex-wrap: wrap;
     gap: 5px;
 }
 
@@ -164,8 +168,5 @@ h1 {
 .btn-sku { background: #17a2b8; color: white; }
 .btn-edit { background: #ffc107; color: #212529; }
 .btn-delete { background: #dc3545; color: white; }
-
-/* 欄位寬度控制 */
-.col-actions { width: 110px; }
 
 

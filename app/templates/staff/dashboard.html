@@ -162,9 +162,15 @@
                        href="{{ url_for('staff.statistic.sales') }}"
                        target="contentFrame"
                        data-title="銷售分析">銷售分析</a>
+
+                    <a class="menu-link iframe-link"
+                       href="{{ url_for('staff.statistic.hot_items_analytics') }}"
+                       target="contentFrame"
+                       data-title="潛力爆款分析">潛力爆款分析</a>
                 {% else %}
                     <span class="menu-link disabled">營收統計（無權限）</span>
                     <span class="menu-link disabled">銷售分析（無權限）</span>
+                    <span class="menu-link disabled">潛力爆款分析（無權限）</span>
                 {% endif %}
             </details>
 
@@ -222,8 +228,11 @@
 
         <!-- 上方導覽列 -->
         <header class="topbar">
-            <div class="topbar-title" id="pageTitle">
-                後台管理系統
+            <div style="display: flex; align-items: center;">
+                <button class="sidebar-toggle-btn" onclick="toggleSidebar()">☰</button>
+                <div class="topbar-title" id="pageTitle">
+                    後台管理系統
+                </div>
             </div>
 
             <div class="topbar-user">
@@ -399,6 +408,25 @@
 
         links.forEach(item => item.classList.remove("active"));
     }
+
+    function toggleSidebar() {
+        const wrapper = document.querySelector('.admin-wrapper');
+        if (window.innerWidth <= 768) {
+            wrapper.classList.toggle('sidebar-active');
+        } else {
+            wrapper.classList.toggle('sidebar-collapsed');
+        }
+    }
+
+    // 新增：點擊 overlay 關閉 sidebar
+    document.querySelector('.admin-wrapper').addEventListener('click', function(e) {
+        if (window.innerWidth <= 768 && 
+            this.classList.contains('sidebar-active') && 
+            !e.target.closest('.sidebar') && 
+            !e.target.closest('.sidebar-toggle-btn')) {
+            this.classList.remove('sidebar-active');
+        }
+    });
 </script>
 
 </body>

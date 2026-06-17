@@ -75,6 +75,13 @@ def test_statistic_sales_access(client, auth_statistic_staff):
     assert response.status_code == 200
     assert "銷售" in response.get_data(as_text=True)
 
+def test_statistic_hot_items_access(client, auth_statistic_staff):
+    """測試潛力爆款統計頁面存取"""
+    with patch('app.blueprints.staff.permission.check_permission', return_value=True):
+        response = client.get('/staff/statistic/hot-items')
+    assert response.status_code == 200
+    assert "潛力爆款" in response.get_data(as_text=True)
+
 def test_statistic_calculations(client, auth_statistic_staff, test_product):
     """測試營收統計頁面顯示數據是否正確"""
     

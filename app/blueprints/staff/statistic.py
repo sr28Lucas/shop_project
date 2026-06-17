@@ -293,3 +293,39 @@ def sales():
         low_stock_items=low_stock_items,
         top_customers=top_customers
     )
+
+
+@statistic_bp.route('/hot-items')
+@require_permission('statistic')
+def hot_items_analytics():
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+    
+    # 撈出尚未下架的商品，並統計它們在 wishlist 和 cart 的熱度
+    query = """
+        SELECT 
+            p.id, 
+            p.name, 
+            c.name as category_name,
+            (SELECT COUNT(*) FROM wishlist_item wi WHERE wi.product_id = p.id) as wishlist_count,
+            COALESCE((
+                SELECT SUM(ci.qty) 
+                FROM cart_item ci 
+                JOIN sku s ON ci.sku_id = s.id 
+                JOIN variant v ON s.variant_id = v.id 
+                WHERE v.product_id = p.id
+            ), 0) as cart_qty
+        FROM product p
+        LEFT JOIN category c ON p.category_id = c.id
+        WHERE p.is_deleted = 0
+        ORDER BY (wishlist_count + cart_qty) DESC
+        LIMIT 10;
+    """
+    
+    cursor.execute(query)
+    hot_items = cursor.fetchall()
+    
+    cursor.close()
+    conn.close()
+    
+    return render_template('staff/analytics_hot_items.html', items=hot_items)

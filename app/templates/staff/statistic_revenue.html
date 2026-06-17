@@ -117,11 +117,10 @@
 <body>
 
 <h1>營收統計</h1>
-
 <div class="nav">
     <a href="{{ url_for('staff.dashboard') }}" class="btn">← 返回儀表板</a>
     <a href="{{ url_for('staff.statistic.sales') }}" class="btn btn-blue">銷售分析</a>
-    <a href="{{ url_for('staff.product.hot_items_analytics') }}" class="btn btn-blue">潛力爆款分析</a>
+    <a href="{{ url_for('staff.statistic.hot_items_analytics') }}" class="btn btn-blue">潛力爆款分析</a>
 </div>
 
 <div class="filter-box">
@@ -163,7 +162,7 @@
 
 <div class="section">
     <h2>每日營收</h2>
-    <table>
+    <div class="styled-table-wrapper"><table>
         <thead>
         <tr>
             <th>日期</th>
@@ -184,12 +183,12 @@
             </tr>
         {% endfor %}
         </tbody>
-    </table>
+    </table></div>
 </div>
 
 <div class="section">
     <h2>分類營收</h2>
-    <table>
+    <div class="styled-table-wrapper"><table>
         <thead>
         <tr>
             <th>分類</th>
@@ -210,12 +209,12 @@
             </tr>
         {% endfor %}
         </tbody>
-    </table>
+    </table></div>
 </div>
 
 <div class="section">
     <h2>熱銷商品 TOP 10</h2>
-    <table>
+    <div class="styled-table-wrapper"><table>
         <thead>
         <tr>
             <th>商品名稱</th>
@@ -236,12 +235,12 @@
             </tr>
         {% endfor %}
         </tbody>
-    </table>
+    </table></div>
 </div>
 
 <div class="section">
     <h2>訂單狀態統計</h2>
-    <table>
+    <div class="styled-table-wrapper"><table>
         <thead>
         <tr>
             <th>狀態</th>
@@ -260,7 +259,7 @@
             </tr>
         {% endfor %}
         </tbody>
-    </table>
+    </table></div>
 </div>
 
 </body>

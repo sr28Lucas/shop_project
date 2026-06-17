@@ -22,7 +22,7 @@ body {
 }
 
 .container {
-    max-width: 1000px;
+    width: 95%;
     margin: 0 auto;
 }
 
@@ -137,17 +137,16 @@ h1, h2, h3 {
         padding: 15px;
     }
 
-    .styled-table-wrapper {
-        overflow-x: auto;
-    }
-
-    .styled-table {
-        min-width: 600px;
-    }
-
     .flex-between {
         flex-direction: column;
         gap: 10px;
         align-items: flex-start;
     }
+}
+
+.styled-table-wrapper {
+    overflow-x: auto;
+    overflow-y: auto;
+    max-height: 600px;
+    width: 100%;
 }

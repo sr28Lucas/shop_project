@@ -118,7 +118,7 @@
 <div class="nav">
     <a href="{{ url_for('staff.dashboard') }}" class="btn">← 返回儀表板</a>
     <a href="{{ url_for('staff.statistic.revenue') }}" class="btn btn-blue">營收統計</a>
-    <a href="{{ url_for('staff.product.hot_items_analytics') }}" class="btn btn-blue">潛力爆款分析</a>
+    <a href="{{ url_for('staff.statistic.hot_items_analytics') }}" class="btn btn-blue">潛力爆款分析</a>
 </div>
 
 <div class="filter-box">
@@ -155,7 +155,7 @@
 
 <div class="section">
     <h2>商品銷售排行</h2>
-    <table>
+    <div class="styled-table-wrapper"><table>
         <thead>
         <tr>
             <th>商品名稱</th>
@@ -182,12 +182,12 @@
             </tr>
         {% endfor %}
         </tbody>
-    </table>
+    </table></div>
 </div>
 
 <div class="section">
     <h2>分類銷售分析</h2>
-    <table>
+    <div class="styled-table-wrapper"><table>
         <thead>
         <tr>
             <th>分類</th>
@@ -208,12 +208,12 @@
             </tr>
         {% endfor %}
         </tbody>
-    </table>
+    </table></div>
 </div>
 
 <div class="section">
     <h2>低庫存商品</h2>
-    <table>
+    <div class="styled-table-wrapper"><table>
         <thead>
         <tr>
             <th>商品名稱</th>
@@ -246,12 +246,12 @@
             </tr>
         {% endfor %}
         </tbody>
-    </table>
+    </table></div>
 </div>
 
 <div class="section">
     <h2>顧客消費排行 TOP 10</h2>
-    <table>
+    <div class="styled-table-wrapper"><table>
         <thead>
         <tr>
             <th>顧客名稱</th>
@@ -272,7 +272,7 @@
             </tr>
         {% endfor %}
         </tbody>
-    </table>
+    </table></div>
 </div>
 
 </body>

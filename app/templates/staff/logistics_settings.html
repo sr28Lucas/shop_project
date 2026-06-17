@@ -5,7 +5,7 @@
     <title>運費管理 - 後臺系統</title>
     <style>
         body { font-family: sans-serif; padding: 20px; background-color: #f8f9fa; }
-        .container { max-width: 800px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .container { width: 800px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
         h1 { color: #333; margin-bottom: 20px; }
         table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
         th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
@@ -32,7 +32,7 @@
         {% endwith %}
 
         <form method="POST" action="{{ url_for('staff.order.logistics_settings') }}">
-            <table>
+            <div class="styled-table-wrapper"><table>
                 <thead>
                     <tr>
                         <th>縣市</th>
@@ -47,7 +47,7 @@
                     </tr>
                     {% endfor %}
                 </tbody>
-            </table>
+            </table></div>
             <button type="submit" class="btn btn-save">儲存設定</button>
         </form>
     </div>

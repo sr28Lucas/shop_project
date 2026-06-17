@@ -106,11 +106,30 @@ body {
 /* 右側主內容 */
 .main {
     overflow: auto; /* 允許垂直與水平滾動 */
-    width: 100%;
     background: #f2f4f7;
     height: 100vh; /* 確保主容器高度填滿 */
     display: flex;
     flex-direction: column;
+}
+
+/* 側邊欄收起時的狀態 (Desktop) */
+.admin-wrapper.sidebar-collapsed {
+    grid-template-columns: 1fr;
+}
+.admin-wrapper.sidebar-collapsed .sidebar {
+    display: none;
+}
+
+.sidebar-toggle-btn {
+    background: #1abc9c;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    cursor: pointer;
+    border-radius: 4px;
+    margin-right: 10px;
+    position: relative;
+    z-index: 101; /* 確保高於 sidebar 的 z-index (100) */
 }
 
 /* 上方列 */
@@ -157,6 +176,8 @@ body {
 /* 內容區 */
 .content {
     padding: 32px;
+    flex: 1; /* 確保內容區佔滿剩餘空間 */
+    min-width: 0; /* 關鍵：防止內容溢出容器 */
 }
 
 .page-title {
@@ -247,23 +268,59 @@ body {
 }
 
 /* RWD */
-@media (max-width: 1000px) {
+@media (max-width: 1200px) {
     .dashboard-grid {
         grid-template-columns: repeat(2, minmax(180px, 1fr));
     }
 }
 
 @media (max-width: 768px) {
+    /* 確保手機版 wrapper 使用單欄佈局 */
     .admin-wrapper {
-        grid-template-columns: 190px 1fr;
-    }
-    
-    .main {
-        min-width: 500px; /* 在窄視窗下適度縮小 */
+        grid-template-columns: 1fr;
     }
 
+    /* 側邊欄固定定位，隱藏在左側外 */
+    .sidebar {
+        position: fixed;
+        left: -200px;
+        top: 0;
+        bottom: 0;
+        width: 200px;
+        z-index: 1000; /* 確保大於 topbar 的 z-index (10) */
+        transition: left 0.3s ease-in-out;
+    }
+
+    /* 點擊展開時，顯示側邊欄 */
+    .admin-wrapper.sidebar-active .sidebar {
+        left: 0;
+    }
+
+    /* 展開時顯示一個半透明背景層 (overlay)，點擊可以關閉 */
+    .admin-wrapper.sidebar-active::after {
+        content: "";
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0,0,0,0.5);
+        z-index: 900;
+    }
+
+    /* 確保主內容不會因為 sidebar 展開而變形，移除 margin-left */
+    .main {
+        min-width: 100%;
+        margin-left: 0;
+        overflow-x: hidden; /* 防止水平滾動條 */
+    }
+
+    /* 調整 topbar 樣式 */
     .topbar {
         padding: 0 16px;
+        z-index: 10;
+        position: sticky;
+        top: 0;
     }
 
     .topbar-user {

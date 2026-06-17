@@ -90,38 +90,40 @@
 <div class="section">
     <h2>全站潛力爆款排行榜 (Top 10)</h2>
     <p style="color: #666;">系統綜合分析了「願望清單收藏數」與「加入購物車數量」，找出了目前站內最具潛力的熱門單品。</p>
-    <table>
-        <thead>
-            <tr>
-                <th>熱度排名</th>
-                <th>商品名稱</th>
-                <th>商品分類</th>
-                <th>願望清單收藏</th>
-                <th>購物車數量</th>
-                <th>綜合熱度指數</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for item in items %}
-            <tr>
-                <td>
-                    <span class="rank-badge {% if loop.index == 1 %}rank-1{% elif loop.index == 2 %}rank-2{% elif loop.index == 3 %}rank-3{% endif %}">
-                        {{ loop.index }}
-                    </span>
-                </td>
-                <td style="font-weight: bold;">{{ item.name }}</td>
-                <td>{{ item.category_name or '未分類' }}</td>
-                <td style="color: #e83e8c;">{{ item.wishlist_count }}</td>
-                <td style="color: #0d6efd;">{{ item.cart_qty }}</td>
-                <td>{{ item.wishlist_count + item.cart_qty }}</td>
-            </tr>
-            {% else %}
-            <tr>
-                <td colspan="6" style="text-align:center;">目前還沒有任何商品被加入購物車或願望清單喔！</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    <div class="styled-table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>熱度排名</th>
+                    <th>商品名稱</th>
+                    <th>商品分類</th>
+                    <th>願望清單收藏</th>
+                    <th>購物車數量</th>
+                    <th>綜合熱度指數</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in items %}
+                <tr>
+                    <td>
+                        <span class="rank-badge {% if loop.index == 1 %}rank-1{% elif loop.index == 2 %}rank-2{% elif loop.index == 3 %}rank-3{% endif %}">
+                            {{ loop.index }}
+                        </span>
+                    </td>
+                    <td style="font-weight: bold;">{{ item.name }}</td>
+                    <td>{{ item.category_name or '未分類' }}</td>
+                    <td style="color: #e83e8c;">{{ item.wishlist_count }}</td>
+                    <td style="color: #0d6efd;">{{ item.cart_qty }}</td>
+                    <td>{{ item.wishlist_count + item.cart_qty }}</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="6" style="text-align:center;">目前還沒有任何商品被加入購物車或願望清單喔！</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 </div>
 
 </body>
