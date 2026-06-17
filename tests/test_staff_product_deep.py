@@ -1,6 +1,8 @@
 import pytest
 from app.db import get_db_connection
 from unittest.mock import patch
+from io import BytesIO
+from datetime import datetime
 
 @pytest.fixture
 def logged_in_staff(client):
@@ -32,20 +34,24 @@ def test_category():
 
 def test_product_add_full_flow(client, logged_in_staff, test_category):
     """測試商品新增完整流程 (三層驗證)"""
+    unique_name = f'整合測試商品_{datetime.now().timestamp()}'
+    
     # 1. 操作驗證
     with patch('app.blueprints.staff.permission.require_permission', return_value=lambda f: f):
-        response = client.post('/staff/product/add', data={
-            'name': '整合測試商品',
-            'category_id': test_category,
+        data = {
+            'name': unique_name,
+            'category_id': str(test_category),
             'description': '這是完整流程測試'
-        }, follow_redirects=True)
+        }
+        # Not sending multipart/form-data for now
+        response = client.post('/staff/product/add', data=data, follow_redirects=True)
     assert response.status_code == 200
     assert "OK" in response.get_data(as_text=True)
 
     # 2. 資料持久化驗證
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
-    cursor.execute("SELECT * FROM product WHERE name = '整合測試商品' AND is_deleted = 0")
+    cursor.execute("SELECT * FROM product WHERE name = %s AND is_deleted = 0", (unique_name,))
     product = cursor.fetchone()
     assert product is not None
     assert product['category_id'] == test_category
@@ -56,4 +62,4 @@ def test_product_add_full_flow(client, logged_in_staff, test_category):
     with patch('app.blueprints.staff.permission.require_permission', return_value=lambda f: f):
         response = client.get('/staff/product/list')
     assert response.status_code == 200
-    assert "整合測試商品" in response.get_data(as_text=True)
+    assert unique_name in response.get_data(as_text=True)

@@ -122,7 +122,7 @@ def test_promo_code_usage_increment(client, test_product):
 
 def test_analytics_page_access(client, auth_staff):
     """驗證後台潛力商品分析頁面可正常存取"""
-    response = client.get('/staff/product/analytics/hot-items', follow_redirects=True)
+    response = client.get('/staff/statistic/hot-items', follow_redirects=True)
     assert response.status_code == 200
     # 檢查頁面關鍵字
     assert "潛力商品數據分析" in response.get_data(as_text=True)

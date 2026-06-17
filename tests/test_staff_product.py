@@ -43,6 +43,37 @@ def test_bulk_update_status_success(client, auth_staff, test_product):
     cursor.close()
     conn.close()
 
+def test_bulk_update_status_multiple_products(client, auth_staff):
+    """測試批次更新多個商品狀態"""
+    # 建立兩個商品
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("INSERT INTO product (category_id, name, is_active, is_deleted, created_at, updated_at) VALUES (1, '商品1', 0, 0, NOW(), NOW())")
+    prod1 = cursor.lastrowid
+    cursor.execute("INSERT INTO product (category_id, name, is_active, is_deleted, created_at, updated_at) VALUES (1, '商品2', 0, 0, NOW(), NOW())")
+    prod2 = cursor.lastrowid
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+    # 批次更新為啟用 (on)
+    response = client.post('/staff/product/bulk_update_status', data={
+        'product_ids': [str(prod1), str(prod2)],
+        'action': 'on'
+    }, follow_redirects=True)
+    
+    assert response.status_code == 200
+    assert "已成功更新 2 個商品狀態" in response.get_data(as_text=True)
+
+    # 驗證資料庫
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute("SELECT is_active FROM product WHERE id IN (%s, %s)", (prod1, prod2))
+    products = cursor.fetchall()
+    assert all(p['is_active'] == 1 for p in products)
+    cursor.close()
+    conn.close()
+
 def test_product_add_success(client, auth_staff):
     """測試管理員新增商品"""
     # 獲取一個分類 ID

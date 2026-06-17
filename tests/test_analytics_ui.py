@@ -9,7 +9,7 @@ def test_hot_items_analytics_data_integrity(client, auth_staff):
     """
     
     # 確保資料庫清空或設定為已知狀態，或者針對目前數據進行斷言
-    response = client.get('/staff/product/analytics/hot-items')
+    response = client.get('/staff/statistic/hot-items')
     assert response.status_code == 200
     
     content = response.get_data(as_text=True)
@@ -30,7 +30,7 @@ def test_hot_items_analytics_data_integrity(client, auth_staff):
 
 def test_hot_items_analytics_layout(client, auth_staff):
     """測試頁面佈局元素存在"""
-    response = client.get('/staff/product/analytics/hot-items')
+    response = client.get('/staff/statistic/hot-items')
     assert response.status_code == 200
     content = response.get_data(as_text=True)
     

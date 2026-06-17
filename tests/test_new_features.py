@@ -87,7 +87,7 @@ def test_forgot_password_sends_email(client):
 def test_hot_items_analytics(client, auth_staff):
     """測試後台熱銷商品排行榜"""
     with patch('app.blueprints.staff.permission.check_permission', return_value=True):
-        response = client.get('/staff/product/analytics/hot-items')
+        response = client.get('/staff/statistic/hot-items')
     
     assert response.status_code == 200
     data = response.get_data(as_text=True)
