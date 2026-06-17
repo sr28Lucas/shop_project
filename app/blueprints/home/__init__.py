@@ -1,8 +1,33 @@
-from flask import Blueprint, render_template, request, get_flashed_messages, session, redirect, url_for, flash
+from flask import Blueprint, render_template, request, get_flashed_messages, session, redirect, url_for, flash, jsonify
 from app.db import get_db_connection
 from datetime import datetime
+from app.services.gemini_service import GeminiService
 
 home_bp = Blueprint('home', __name__, template_folder='../../templates/home')
+gemini_service = GeminiService()
+
+@home_bp.route('/api/chat', methods=['POST'])
+def chat():
+    user_query = request.json.get('query')
+    if not user_query:
+        return jsonify({'error': 'No query provided'}), 400
+
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+    
+    # Get all active products for context
+    cursor.execute("SELECT id, name, description FROM product WHERE is_active = 1 AND is_deleted = 0")
+    products = cursor.fetchall()
+    cursor.close()
+    conn.close()
+
+    product_context = "\n".join([f"- {p['name']} (ID: {p['id']}): {p['description']}" for p in products])
+    
+    try:
+        recommendation = gemini_service.get_recommendation(user_query, product_context)
+        return jsonify({'response': recommendation})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 @home_bp.route('/api/regions')
 def get_regions():

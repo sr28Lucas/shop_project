@@ -11,6 +11,10 @@ DATABASE_PASSWORD =
 DATABASE_USE = shop_db
 DATABASE_CHARSET = 	utf8mb4
 
+#ai
+GEMINI_API_KEY = 
+GEMINI_MODEL = gemini-3.1-flash-lite
+
 
 """
 

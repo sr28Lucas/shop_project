@@ -99,6 +99,9 @@
                     </form>
 
                     <div class="flex items-center space-x-4">
+                        <button id="chatbot-toggle" class="text-gray-600 hover:text-brand transition-all hover:-translate-y-0.5" title="導購助手">
+                            <i class="fa-solid fa-robot text-xl"></i>
+                        </button>
                         {% if session.get('customer_id') %}
                             <a href="{{ url_for('customer.center') }}" class="text-gray-600 hover:text-brand transition-all hover:-translate-y-0.5" title="會員中心">
                                 <i class="fa-regular fa-user text-xl"></i>
@@ -213,6 +216,7 @@
     <div id="toast-container" class="fixed bottom-10 right-10 z-[100] space-y-3"></div>
 
     <script src="{{ url_for('static', filename='js/home/common.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/home/chatbot.js') }}"></script>
     <script>
         function showToast(message, type = 'success') {
             const container = document.getElementById('toast-container');

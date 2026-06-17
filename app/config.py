@@ -28,6 +28,12 @@ class config:
         'charset': os.getenv('DATABASE_CHARSET') or ''
     }
 
+    AI_CONFIG = {
+        'gemini_api_key': os.getenv('GEMINI_API_KEY') or '',
+        'gemini_model': os.getenv('GEMINI_MODEL') or 'gemini-1.5-flash-002'
+    }
+
+
 
     # Email 配置
     MAIL_SERVER = 'smtp.gmail.com'  # 或其他郵件服務商
