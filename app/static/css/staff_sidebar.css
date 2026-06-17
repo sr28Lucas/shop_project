@@ -11,19 +11,16 @@ body {
 }
 
 .admin-wrapper {
-    display: flex;
-    min-height: 100vh;
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    height: 100vh;
+    overflow: hidden;
 }
 
 /* 左側選單 */
 .sidebar {
-    width: 250px;
     background: #263544;
     color: #fff;
-    position: fixed;
-    left: 0;
-    top: 0;
-    bottom: 0;
     overflow-y: auto;
     box-shadow: 2px 0 10px rgba(0,0,0,0.18);
 }
@@ -108,9 +105,12 @@ body {
 
 /* 右側主內容 */
 .main {
-    margin-left: 250px;
-    width: calc(100% - 250px);
-    min-height: 100vh;
+    overflow: auto; /* 允許垂直與水平滾動 */
+    width: 100%;
+    background: #f2f4f7;
+    height: 100vh; /* 確保主容器高度填滿 */
+    display: flex;
+    flex-direction: column;
 }
 
 /* 上方列 */
@@ -254,13 +254,12 @@ body {
 }
 
 @media (max-width: 768px) {
-    .sidebar {
-        width: 220px;
+    .admin-wrapper {
+        grid-template-columns: 190px 1fr;
     }
-
+    
     .main {
-        margin-left: 220px;
-        width: calc(100% - 220px);
+        min-width: 500px; /* 在窄視窗下適度縮小 */
     }
 
     .topbar {

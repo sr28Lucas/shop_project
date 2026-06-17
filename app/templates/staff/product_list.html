@@ -80,7 +80,7 @@
                     <tr>
                         <td><input type="checkbox" name="product_ids" value="{{ product.id }}" class="product-checkbox"></td>
                         <td>{{ product.id }}</td>
-                        <td title="{{ product.name }}" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ product.name }}</td>
+                        <td class="col-name" title="{{ product.name }}">{{ product.name }}</td>
                         <td class="col-stock">{{ product.total_stock if product.total_stock is not none else 0 }}</td>
                         <td>{{ product.category_name }}</td>
                         <td class="td-description" title="{{ product.description }}">{{ product.description or '-' }}</td>
@@ -107,9 +107,11 @@
                         </td>
                         
                         <td>
-                            <a href="{{ url_for('staff.product.variant_list', product_id=product.id) }}" class="btn btn-sku">規格管理</a>
-                            <a href="{{ url_for('staff.product.product_edit', id=product.id) }}" class="btn btn-edit">修改</a>
-                            <button type="button" class="btn btn-delete" onclick="if(confirm('確定要刪除此商品嗎？')) { deleteProduct({{ product.id }}, deleteUrlBase); }">刪除</button>
+                            <div class="action-buttons-container">
+                                <a href="{{ url_for('staff.product.variant_list', product_id=product.id) }}" class="btn btn-sku">規格管理</a>
+                                <a href="{{ url_for('staff.product.product_edit', id=product.id) }}" class="btn btn-edit">修改</a>
+                                <button type="button" class="btn btn-delete" onclick="if(confirm('確定要刪除此商品嗎？')) { deleteProduct({{ product.id }}, deleteUrlBase); }">刪除</button>
+                            </div>
                         </td>
                     </tr>
                     {% else %}

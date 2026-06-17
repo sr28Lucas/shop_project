@@ -3,10 +3,10 @@ body {
     font-family: "Microsoft JhengHei", Arial, sans-serif;
     line-height: 1.6;
     color: #333;
-    max-width: 1200px;
-    margin: 0 auto;
+    margin: 0;
     padding: 20px;
     background-color: #f8f9fa;
+    width: 1100px;
 }
 
 h1 {
@@ -26,6 +26,7 @@ h1 {
     margin-bottom: 20px; 
     border-radius: 8px; 
     box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    width: 1060px;
 }
 
 .filter-section form {
@@ -72,15 +73,16 @@ h1 {
     background: white;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-    overflow: hidden; /* 確保圓角效果 */
+    /* 移除 overflow-x: auto; 移除表格自身的滾動條 */
+    padding-bottom: 10px;
+    width: 1100px;      /* 確保容器寬度為 100% */
 }
 
 .product-table { 
-    width: 100%; 
+    width: 1100px; /* 保留最小寬度以防欄位過度壓縮 */
     border-collapse: collapse; 
-    table-layout: fixed; /* 固定佈局，控制欄寬 */
+    table-layout: fixed;
 }
-
 .product-table th, .product-table td { 
     padding: 12px 15px; 
     text-align: left; 
@@ -93,18 +95,20 @@ h1 {
     font-weight: bold;
 }
 
-/* 欄位寬度控制 */
+/* 欄位寬度控制 - 強制像素尺寸 */
 .col-id { width: 40px; }
-.col-name { width: 150px; }
-.col-stock { width: 70px; text-align: center; }
+.col-name { width: 100px; }
+.col-stock { width: 80px; text-align: center; }
 .col-category { width: 90px; }
-.col-description { width: 110px; }
-.col-status { width: 60px; }
-.col-time { width: 80px; }
-.col-actions { width: 250px; }
+.col-description { width: 100px; }
+.col-status { width: 70px; }
+.col-time { width: 11   0px; }
+.col-actions { width: 100px; }
 
 /* 描述文字溢出處理 */
 .td-description {
+    display: block;
+    max-width: 200px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -122,7 +126,24 @@ h1 {
 .status-active { background: #d4edda; color: #155724; }
 .status-inactive { background: #f8d7da; color: #721c24; }
 
-/* 按鈕樣式 */
+/* 專門用於操作欄的按鈕容器 */
+.action-buttons-container {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+/* 僅針對操作欄內的按鈕調整，不影響全域 .btn */
+.action-buttons-container .btn {
+    display: block;
+    width: 100px;
+    box-sizing: border-box; /* 確保寬度包含 padding 與 border */
+    padding: 6px 0;         /* 統一 padding */
+    margin: 0 auto 5px auto;
+    text-align: center;
+}
+
+/* 按鈕樣式 (全域維持 inline-block，由容器控制) */
 .btn { 
     display: inline-block;
     padding: 6px 12px; 
@@ -144,6 +165,7 @@ h1 {
 .btn-edit { background: #ffc107; color: #212529; }
 .btn-delete { background: #dc3545; color: white; }
 
-form.inline-form {
-    display: inline;
-}
+/* 欄位寬度控制 */
+.col-actions { width: 110px; }
+
+

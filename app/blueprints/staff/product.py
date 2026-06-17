@@ -17,11 +17,13 @@ def product_list():
     category_id = request.args.get('category_id')
     is_active = request.args.get('is_active')
     
-    # 使用 ProductModel 或調整查詢以包含 is_deleted=0
+    # 調整查詢，包含庫存總數計算 (修正 JOIN 路徑)
     query = """
-    SELECT p.*, c.name as category_name
+    SELECT p.*, c.name as category_name, COALESCE(SUM(s.stock), 0) as total_stock
     FROM product p 
     LEFT JOIN category c ON p.category_id = c.id
+    LEFT JOIN variant v ON p.id = v.product_id
+    LEFT JOIN sku s ON v.id = s.variant_id
     WHERE p.is_deleted = 0 
     """
 
@@ -33,6 +35,8 @@ def product_list():
     if is_active:
         query += " AND p.is_active = %s"
         params.append(is_active)
+        
+    query += " GROUP BY p.id"
     
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
