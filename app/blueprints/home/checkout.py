@@ -281,6 +281,18 @@ def information():
     """, (session['customer_id'],))
     customer = cursor.fetchone()
     
+    # 🌟 撈取目前有效、且設定為「公開」的優惠碼
+    cursor.execute("""
+        SELECT code, description, discount_type, discount_value 
+        FROM promo_code 
+        WHERE is_active = 1 
+          AND is_deleted = 0 
+          AND is_public = 1 
+          AND (start_at IS NULL OR start_at <= NOW()) 
+          AND (end_at IS NULL OR end_at >= NOW())
+    """)
+    public_promos = cursor.fetchall()
+    
     if request.method == 'POST':
         selected_skus = request.form.getlist('selected_skus')
         if selected_skus:
@@ -312,7 +324,8 @@ def information():
         if not request.form.get('name'):
             cursor.close()
             conn.close()
-            return render_template('home/information.html', customer=customer)
+            # 傳入 public_promos
+            return render_template('home/information.html', customer=customer, public_promos=public_promos)
 
         name = request.form.get('name', '').strip()
         phone = request.form.get('phone', '').strip()
@@ -343,14 +356,18 @@ def information():
                         flash(promo_err)
                         cursor.close()
                         conn.close()
+                        # 傳入 public_promos
                         return render_template('home/information.html', customer=customer, 
-                                             temp_info={'name': name, 'phone': phone, 'address': address, 'promo_code': promo_code, 'region': region, 'locality': locality})
+                                             temp_info={'name': name, 'phone': phone, 'address': address, 'promo_code': promo_code, 'region': region, 'locality': locality},
+                                             public_promos=public_promos)
                 else:
                     flash("優惠碼無效或不存在。")
                     cursor.close()
                     conn.close()
+                    # 傳入 public_promos
                     return render_template('home/information.html', customer=customer, 
-                                         temp_info={'name': name, 'phone': phone, 'address': address, 'promo_code': promo_code, 'region': region, 'locality': locality})
+                                         temp_info={'name': name, 'phone': phone, 'address': address, 'promo_code': promo_code, 'region': region, 'locality': locality},
+                                         public_promos=public_promos)
 
             session['checkout_info'] = {'name': name, 'phone': phone, 'region': region, 'locality': locality, 'address': address, 'promo_code': promo_code}
             cursor.close()
@@ -359,12 +376,15 @@ def information():
         
         cursor.close()
         conn.close()
+        # 傳入 public_promos
         return render_template('home/information.html', customer=customer, 
-                                 temp_info={'name': name, 'phone': phone, 'address': address, 'promo_code': promo_code, 'region': region, 'locality': locality})
+                                 temp_info={'name': name, 'phone': phone, 'address': address, 'promo_code': promo_code, 'region': region, 'locality': locality},
+                                 public_promos=public_promos)
     
     cursor.close()
     conn.close()
-    return render_template('home/information.html', customer=customer)
+    # 傳入 public_promos
+    return render_template('home/information.html', customer=customer, public_promos=public_promos)
 
 @checkout_bp.route('/payment', methods=['GET', 'POST'])
 def payment():
