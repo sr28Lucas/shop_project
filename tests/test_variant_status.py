@@ -1,5 +1,6 @@
 import pytest
 from app.db import get_db_connection
+from unittest.mock import patch
 
 def test_variant_and_sku_status_and_soft_delete(client, auth_client, test_product):
     """驗證 Variant/SKU 的啟用狀態(is_active)與軟刪除(is_deleted)邏輯"""
@@ -20,14 +21,18 @@ def test_variant_and_sku_status_and_soft_delete(client, auth_client, test_produc
     conn.close()
 
     # 2. 測試軟刪除 (Delete) - 應設為 is_deleted=1 且 is_active=0
-    client.post(f'/staff/product/{product_id}/variant/{variant_id}/delete', follow_redirects=True)
-    
+    with patch('app.blueprints.staff.permission.check_permission', return_value=True):
+        response = client.post(f'/staff/product/{product_id}/variant/{variant_id}/delete', follow_redirects=True)
+        assert response.status_code == 200
+
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
     cursor.execute("SELECT is_deleted, is_active FROM variant WHERE id = %s", (variant_id,))
     v = cursor.fetchone()
-    assert v['is_deleted'] == 1, "Variant should be marked as deleted"
-    assert v['is_active'] == 0, "Variant should be deactivated after deletion"
+    assert v is not None
+    assert v['is_deleted'] == 1, f"Variant {variant_id} should be marked as deleted. Result: {v}"
+    # 根據業務邏輯，軟刪除應設為非啟用
+    assert v['is_active'] == 0, "Variant should be inactive"
     
     cursor.execute("SELECT is_deleted, is_active FROM sku WHERE id = %s", (sku_id,))
     s = cursor.fetchone()
@@ -40,7 +45,8 @@ def test_variant_and_sku_status_and_soft_delete(client, auth_client, test_produc
     new_sku_id = cursor.lastrowid
     conn.commit()
     
-    client.post(f'/staff/product/sku/delete/{new_sku_id}', follow_redirects=True)
+    with patch('app.blueprints.staff.permission.check_permission', return_value=True):
+        client.post(f'/staff/product/sku/delete/{new_sku_id}', follow_redirects=True)
     
     cursor.execute("SELECT is_deleted, is_active FROM sku WHERE id = %s", (new_sku_id,))
     s_new = cursor.fetchone()

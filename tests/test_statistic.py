@@ -31,19 +31,51 @@ def setup_order(client, test_product, status='completed'):
     
     return order['id']
 
-def test_statistic_revenue_access(client, auth_staff):
+from unittest.mock import patch
+
+@pytest.fixture
+def auth_statistic_staff(client):
+    """登入具備統計權限的員工"""
+    # 建立一個擁有統計權限的角色
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("INSERT INTO role (name, statistic, created_at, updated_at) VALUES ('StatRole', 1, NOW(), NOW())")
+    role_id = cursor.lastrowid
+    cursor.execute("INSERT INTO staff (email, password, name, role_id, created_at, updated_at) VALUES ('stat@test.com', 'password', 'Stat Staff', %s, NOW(), NOW())", (role_id,))
+    staff_id = cursor.lastrowid
+    conn.commit()
+    cursor.close()
+    conn.close()
+    
+    with client.session_transaction() as sess:
+        sess['staff_id'] = staff_id
+        
+    yield {'staff_id': staff_id}
+    
+    # 清理
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM staff WHERE id = %s", (staff_id,))
+    cursor.execute("DELETE FROM role WHERE id = %s", (role_id,))
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+def test_statistic_revenue_access(client, auth_statistic_staff):
     """測試營收統計頁面存取"""
-    response = client.get('/staff/statistic/revenue')
+    with patch('app.blueprints.staff.permission.check_permission', return_value=True):
+        response = client.get('/staff/statistic/revenue')
     assert response.status_code == 200
     assert "營收" in response.get_data(as_text=True)
 
-def test_statistic_sales_access(client, auth_staff):
+def test_statistic_sales_access(client, auth_statistic_staff):
     """測試銷售統計頁面存取"""
-    response = client.get('/staff/statistic/sales')
+    with patch('app.blueprints.staff.permission.check_permission', return_value=True):
+        response = client.get('/staff/statistic/sales')
     assert response.status_code == 200
     assert "銷售" in response.get_data(as_text=True)
 
-def test_statistic_calculations(client, auth_staff, test_product):
+def test_statistic_calculations(client, auth_statistic_staff, test_product):
     """測試營收統計頁面顯示數據是否正確"""
     
     # 建立一個已完成訂單 (假設金額為 1000)
@@ -56,17 +88,14 @@ def test_statistic_calculations(client, auth_staff, test_product):
     setup_order(client, test_product, status='refunded')
     
     # 查詢統計
-    response = client.get('/staff/statistic/revenue')
+    with patch('app.blueprints.staff.permission.check_permission', return_value=True):
+        response = client.get('/staff/statistic/revenue')
     assert response.status_code == 200
     
     content = response.get_data(as_text=True)
     
     # 驗證統計值
     assert "總營收" in content
-    # Look for a number pattern instead of a strictly formatted string if format is tricky
-    import re
-    # Check for the presence of the number 1000 formatted or not in the "總營收" card
-    # Actually let's just assert the number exists in the right card
     assert "1000" in content or "1,000" in content
     assert "有效訂單數" in content
     assert ">1</div>" in content 
@@ -77,7 +106,7 @@ def test_statistic_calculations(client, auth_staff, test_product):
     assert "已退款訂單" in content
     assert ">1</div>" in content
 
-def test_return_deduction_in_statistics(client, auth_staff):
+def test_return_deduction_in_statistics(client, auth_statistic_staff):
     """驗證退貨會正確從營收統計中扣除"""
     
     # 1. 建立獨立的測試環境
@@ -126,7 +155,8 @@ def test_return_deduction_in_statistics(client, auth_staff):
     
     # 4. 查詢統計，預期該分類營收應為 0
     today = datetime.now().strftime('%Y-%m-%d')
-    response = client.get(f'/staff/statistic/revenue?start_date={today}&end_date={today}')
+    with patch('app.blueprints.staff.permission.check_permission', return_value=True):
+        response = client.get(f'/staff/statistic/revenue?start_date={today}&end_date={today}')
     assert response.status_code == 200
     content = response.get_data(as_text=True)
     

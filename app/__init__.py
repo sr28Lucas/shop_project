@@ -30,6 +30,10 @@ def create_app():
     from .blueprints.auth import mail 
     mail.init_app(app)
     
+    # 【安全防護】確保測試時不發送真實郵件
+    if app.config.get('TESTING'):
+        app.config['MAIL_SUPPRESS_SEND'] = True
+    
     # db.init_app(app)
     # migrate.init_app(app, db)
     # login_manager.init_app(app)

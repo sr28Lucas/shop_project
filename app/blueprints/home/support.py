@@ -43,7 +43,7 @@ def has_existing_refund_request(cursor, customer_id, order_id):
 def new_inquiry():
     if not require_customer_login():
         flash('請先登入會員')
-        return redirect(url_for('auth.customer_login'))
+        return redirect(url_for('auth.login'))
 
     customer_id = session.get('customer_id')
 
@@ -108,7 +108,7 @@ def new_inquiry():
 def list_inquiries():
     if not require_customer_login():
         flash('請先登入會員')
-        return redirect(url_for('auth.customer_login'))
+        return redirect(url_for('auth.login'))
 
     customer_id = session.get('customer_id')
 
@@ -162,7 +162,7 @@ def list_inquiries():
 def detail(id):
     if not require_customer_login():
         flash('請先登入會員')
-        return redirect(url_for('auth.customer_login'))
+        return redirect(url_for('auth.login'))
 
     customer_id = session.get('customer_id')
 
@@ -220,7 +220,7 @@ def detail(id):
 def reply(id):
     if not require_customer_login():
         flash('請先登入會員')
-        return redirect(url_for('auth.customer_login'))
+        return redirect(url_for('auth.login'))
 
     customer_id = session.get('customer_id')
     content = request.form.get('content', '').strip()

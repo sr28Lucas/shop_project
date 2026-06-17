@@ -141,19 +141,24 @@ def client(app):
 
 @pytest.fixture
 def auth_client(client):
-    """提供一個模擬登入後的 Helper"""
+    """提供一個模擬登入後的 Helper，並增強驗證機制"""
     class AuthHelper:
         def login_customer(self, email='test@test.com', password='password'):
-            return client.post('/auth/login', data={
+            response = client.post('/auth/login', data={
                 'email': email,
                 'password': password
             }, follow_redirects=True)
+            # 確保確實導向到會員中心或至少回應正常
+            assert response.status_code == 200
+            return response
 
         def login_staff(self, email='root@root', password='root'):
-            return client.post('/auth/staff_login', data={
+            response = client.post('/auth/staff_login', data={
                 'email': email,
                 'password': password
             }, follow_redirects=True)
+            assert response.status_code == 200
+            return response
             
     return AuthHelper()
 
