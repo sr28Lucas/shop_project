@@ -427,6 +427,16 @@
             this.classList.remove('sidebar-active');
         }
     });
+
+    // 新增：監聽視窗大小改變，自動修正側邊欄狀態
+    window.addEventListener('resize', function() {
+        const wrapper = document.querySelector('.admin-wrapper');
+        if (window.innerWidth > 768) {
+            wrapper.classList.remove('sidebar-active');
+        } else {
+            wrapper.classList.remove('sidebar-collapsed');
+        }
+    });
 </script>
 
 </body>
