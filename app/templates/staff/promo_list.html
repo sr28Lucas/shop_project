@@ -5,14 +5,16 @@
     <title>折扣碼管理</title>
     <style>
         body { font-family: sans-serif; padding: 20px; background-color: #f8f9fa; }
-        .container { max-width: 1000px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .container { max-width: 1200px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
         h1 { color: #333; margin-bottom: 20px; }
         .action-bar { margin-bottom: 20px; }
         .btn { padding: 10px 15px; text-decoration: none; border-radius: 4px; display: inline-block; cursor: pointer; }
         .btn-add { background: #d63384; color: white; }
-        table { width: 100%; border-collapse: collapse; }
-        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.95em; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
         th { background-color: #f2f2f2; }
+        .badge-public { background-color: #28a745; color: white; padding: 3px 6px; border-radius: 4px; font-size: 0.85em; }
+        .badge-private { background-color: #6c757d; color: white; padding: 3px 6px; border-radius: 4px; font-size: 0.85em; }
     </style>
 </head>
 <body>
@@ -34,9 +36,11 @@
                 <tr>
                     <th>代碼</th>
                     <th>描述</th>
+                    <th>顯示狀態</th>
                     <th>類型</th>
                     <th>折扣值</th>
-                    <th>次數限制 (已用)</th>
+                    <th>總次數限制 (已用)</th>
+                    <th>每人限用</th>
                     <th>最低門檻</th>
                     <th>狀態</th>
                     <th>時間範圍</th>
@@ -46,18 +50,36 @@
             <tbody>
                 {% for promo in promos %}
                 <tr>
-                    <td>{{ promo.code }}</td>
+                    <td style="font-weight: bold; color: #d63384;">{{ promo.code }}</td>
                     <td>{{ promo.description }}</td>
-                    <td>{{ promo.discount_type }}</td>
+                    
+                    <td>
+                        {% if promo.is_public|string == '1' %}
+                            <span class="badge-public">公開推薦</span>
+                        {% else %}
+                            <span class="badge-private">隱藏專屬</span>
+                        {% endif %}
+                    </td>
+                    
+                    <td>
+                        {% if promo.discount_type == 'subtotal_discount' %}小計打折
+                        {% elif promo.discount_type == 'subtotal_deduction' %}小計折抵
+                        {% elif promo.discount_type == 'shipping_deduction' %}運費折抵
+                        {% elif promo.discount_type == 'free_shipping' %}免運費
+                        {% else %}{{ promo.discount_type }}{% endif %}
+                    </td>
                     <td>{{ promo.discount_value }}</td>
                     <td>{{ promo.usage_limit if promo.usage_limit else '無限制' }} ({{ promo.used_count }})</td>
+                    
+                    <td>{{ promo.per_user_limit if promo.per_user_limit|string != '0' else '無限制' }}</td>
+                    
                     <td>{{ promo.min_order_amount }}</td>
                     <td>{{ '啟用' if promo.is_active else '停用' }}</td>
-                    <td>{{ promo.start_at or '不限' }} ~ {{ promo.end_at or '不限' }}</td>
+                    <td style="font-size: 0.85em;">{{ promo.start_at or '不限' }} <br>~<br> {{ promo.end_at or '不限' }}</td>
                     <td>
-                        <a href="{{ url_for('staff.promo.promo_edit', id=promo.id) }}" class="btn-edit">編輯</a>
-                        <form action="{{ url_for('staff.promo.promo_delete', id=promo.id) }}" method="POST" style="display:inline;">
-                            <button type="submit" onclick="return confirm('確定刪除？')">刪除</button>
+                        <a href="{{ url_for('staff.promo.promo_edit', id=promo.id) }}" class="btn-edit" style="color: #007bff; text-decoration: none; font-weight: bold;">編輯</a>
+                        <form action="{{ url_for('staff.promo.promo_delete', id=promo.id) }}" method="POST" style="display:inline; margin-left: 5px;">
+                            <button type="submit" onclick="return confirm('確定刪除？')" style="color: #dc3545; background: none; border: none; cursor: pointer; font-weight: bold;">刪除</button>
                         </form>
                     </td>
                 </tr>

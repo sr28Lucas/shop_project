@@ -46,7 +46,8 @@ def calculate_order_totals(subtotal, shipping_fee, promo):
         
     return subtotal_discount, shipping_discount, final_shipping_fee
 
-def validate_promo_code(promo, subtotal=None):
+# 🌟 核心升級：傳入 conn 與 customer_id，進行個人歷史訂單檢查
+def validate_promo_code(conn, promo, subtotal=None, customer_id=None):
     if not promo:
         return False, "優惠碼不存在或已失效。"
     
@@ -58,10 +59,26 @@ def validate_promo_code(promo, subtotal=None):
         return False, "優惠碼已過期。"
         
     if promo['usage_limit'] and promo['used_count'] >= promo['usage_limit']:
-        return False, "優惠碼使用次數已達上限。"
+        return False, "優惠碼全站使用次數已達上限。"
 
     if subtotal is not None and subtotal < promo['min_order_amount']:
         return False, f"未達優惠碼最低消費金額 (需滿 ${promo['min_order_amount']:,.0f})。"
+        
+    # 🌟 新增：個人使用次數檢查防呆
+    if customer_id and promo.get('per_user_limit', 0) > 0:
+        with conn.cursor(dictionary=True) as cursor:
+            cursor.execute("""
+                SELECT COUNT(id) AS used_times 
+                FROM orders 
+                WHERE customer_id = %s 
+                  AND promo_code_id = %s 
+                  AND status != 'cancelled'
+            """, (customer_id, promo['id']))
+            user_usage = cursor.fetchone()
+            used_times = user_usage['used_times'] if user_usage else 0
+
+            if used_times >= promo['per_user_limit']:
+                return False, f"這個優惠碼每人限用 {promo['per_user_limit']} 次，您已經達到使用上限囉！"
         
     return True, None
 
@@ -319,9 +336,9 @@ def information():
                 cursor.execute("SELECT * FROM promo_code WHERE code = %s AND is_active = 1 AND is_deleted = 0", (promo_code,))
                 promo = cursor.fetchone()
                 if promo:
-                    # 計算目前的 subtotal 以驗證門檻
                     subtotal = sum(item['qty'] * item['price'] for item in items_to_check)
-                    is_valid, promo_err = validate_promo_code(promo, subtotal)
+                    # 🌟 升級：傳入 conn 與 customer_id
+                    is_valid, promo_err = validate_promo_code(conn, promo, subtotal, session['customer_id'])
                     if not is_valid:
                         flash(promo_err)
                         cursor.close()
@@ -396,7 +413,8 @@ def payment():
                 promo = cursor_promo.fetchone()
             
             if promo:
-                is_valid, error = validate_promo_code(promo, subtotal)
+                # 🌟 升級：傳入 conn 與 customer_id
+                is_valid, error = validate_promo_code(conn, promo, subtotal, session['customer_id'])
                 if not is_valid:
                     flash(error)
                     promo = None
@@ -439,9 +457,7 @@ def place_order():
     conn = get_db_connection()
     
     try:
-        # 建立專用游標
         with conn.cursor(dictionary=True) as cursor:
-            # 獲取購物車項目
             format_strings = ','.join(['%s'] * len(selected_ids))
             cursor.execute(f"""
                 SELECT ci.qty, s.id as sku_id, s.sku_code, s.price, s.cost, s.size, s.stock, v.color, v.id as variant_id, p.name as product_name, p.id as product_id,
@@ -463,7 +479,6 @@ def place_order():
             flash("您選擇的商品目前無法結帳。")
             return redirect(url_for('home.checkout.view_cart'))
         
-        # 檢查庫存與資料完整性
         for item in cart_items:
             if not item.get('product_name') or item.get('price') is None or item.get('stock') is None:
                 conn.close()
@@ -477,7 +492,6 @@ def place_order():
 
         subtotal = sum(item['qty'] * item['price'] for item in cart_items)
         
-        # 獲取運費
         shipping_fee = 0
         with conn.cursor(dictionary=True) as cursor_fee:
             cursor_fee.execute("SELECT fee FROM region WHERE name = %s", (session['checkout_info']['region'],))
@@ -485,7 +499,6 @@ def place_order():
             if region_data:
                 shipping_fee = region_data['fee']
         
-        # 處理優惠碼
         promo_code = session['checkout_info'].get('promo_code')
         promo = None
         if promo_code:
@@ -494,7 +507,8 @@ def place_order():
                 promo = cursor_promo.fetchone()
             
             if promo:
-                is_valid, error = validate_promo_code(promo, subtotal)
+                # 🌟 升級：傳入 conn 與 customer_id
+                is_valid, error = validate_promo_code(conn, promo, subtotal, session['customer_id'])
                 if not is_valid:
                     flash(error)
                     promo = None
@@ -508,10 +522,8 @@ def place_order():
             return redirect(url_for('home.checkout.view_cart'))
         
         if request.method == 'POST':
-            # --- 執行結帳 (真正下單) ---
             with conn.cursor() as cursor:
                 now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-                # 插入訂單
                 cursor.execute("""INSERT INTO orders (customer_id, subtotal, shipping_fee, discount_total, total, promo_code_id, promo_code_snapshot,
                                name, phone, region, locality, address, created_at, updated_at)
                                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)""",
@@ -521,14 +533,11 @@ def place_order():
                                 session['checkout_info']['address'], now, now))
                 order_id = cursor.lastrowid
 
-                # 如果有優惠碼，更新使用次數
                 if promo:
                     cursor.execute("UPDATE promo_code SET used_count = used_count + 1 WHERE id = %s", (promo['id'],))
 
-                # 計算折扣比例
                 discount_rate = discount_total / subtotal if subtotal > 0 else 0
 
-                # 插入訂單明細，並扣除庫存
                 for item in cart_items:
                     cursor.execute("UPDATE sku SET stock = stock - %s WHERE id = %s", (item['qty'], item['sku_id']))
 
@@ -538,17 +547,13 @@ def place_order():
                                       VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)""",
                                    (order_id, item['product_id'], item['variant_id'], item['sku_id'], item['product_name'], item['product_name'], item['sku_code'], item['size'], item['color'], item['qty'], item['price'], unit_price, item['cost']))
 
-                # 插入付款記錄
                 cursor.execute("INSERT INTO payment (order_id, method, card_number, status, paid_at) VALUES (%s, 'credit_card', %s, 'paid', %s)",
                                (order_id, session['payment_info']['card_number'], now))
 
-                # 插入貨運記錄
                 cursor.execute("INSERT INTO shipment (order_id, status) VALUES (%s, 'pending')", (order_id,))
 
-                # 刪除購物車項目
                 cursor.execute(f"DELETE FROM cart_item WHERE cart_id = %s AND sku_id IN ({format_strings})", [cart_id] + selected_ids)
 
-                # 清理購物車
                 cursor.execute("SELECT 1 FROM cart_item WHERE cart_id = %s", (cart_id,))
                 if not cursor.fetchone():
                     cursor.execute("DELETE FROM cart WHERE id = %s", (cart_id,))
@@ -561,7 +566,6 @@ def place_order():
             conn.close()
             return redirect(url_for('home.checkout.complete', order_id=order_id))
         
-        # GET 請求：顯示確認頁面 (下單前檢查介面)
         conn.close()
         return render_template('home/place_order.html',
                                cart_items=cart_items,
@@ -573,7 +577,6 @@ def place_order():
                                total=total)
 
     except Exception as e:
-        # 嘗試回滾，但若連線已斷開則跳過
         try:
             if conn.is_connected():
                 conn.rollback()
@@ -586,4 +589,3 @@ def place_order():
 @checkout_bp.route('/complete/<int:order_id>')
 def complete(order_id):
     return render_template('home/complete.html', order_id=order_id)
-

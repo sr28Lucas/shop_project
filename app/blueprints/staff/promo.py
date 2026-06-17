@@ -46,13 +46,15 @@ def promo_add():
             flash("所有欄位均為必填")
             return render_template('staff/promo_add.html', form_data=form_data)
         
-        # Input Validation
+        # Input Validation (🌟 新增 per_user_limit 與 is_public 取值與驗證)
         try:
             discount_value = float(request.form.get('discount_value', 0))
             usage_limit = int(request.form.get('usage_limit', 0))
+            per_user_limit = int(request.form.get('per_user_limit', 1))
             min_order_amount = float(request.form.get('min_order_amount', 0))
+            is_public = int(request.form.get('is_public', 0))
         except ValueError:
-            flash("折扣值、使用限制、最低訂單金額必須為有效數字")
+            flash("折扣值、使用限制、金額等欄位必須為有效數字")
             return render_template('staff/promo_add.html', form_data=form_data)
         
         # Validation
@@ -60,7 +62,8 @@ def promo_add():
         if error:
             flash(error)
             return render_template('staff/promo_add.html', form_data=form_data)
-        if min_order_amount < 0 or usage_limit < 0:
+            
+        if min_order_amount < 0 or usage_limit < 0 or per_user_limit < 0:
             flash("最低訂單金額或使用限制不能為負數")
             return render_template('staff/promo_add.html', form_data=form_data)
         
@@ -77,9 +80,11 @@ def promo_add():
         start_at = request.form['start_at'] if request.form['start_at'] else None
         end_at = request.form['end_at'] if request.form['end_at'] else None
         now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        sql = """INSERT INTO promo_code (code, description, discount_type, discount_value, usage_limit, min_order_amount, start_at, end_at, is_deleted, created_at, updated_at)
-                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s, 0, %s, %s)"""
-        cursor.execute(sql, (code, description, discount_type, discount_value, usage_limit, min_order_amount, start_at, end_at, now, now))
+        
+        # 🌟 更新 SQL 加入 per_user_limit 和 is_public
+        sql = """INSERT INTO promo_code (code, description, discount_type, discount_value, usage_limit, per_user_limit, min_order_amount, is_public, start_at, end_at, is_deleted, created_at, updated_at)
+                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, 0, %s, %s)"""
+        cursor.execute(sql, (code, description, discount_type, discount_value, usage_limit, per_user_limit, min_order_amount, is_public, start_at, end_at, now, now))
         conn.commit()
         cursor.close()
         conn.close()
@@ -99,13 +104,15 @@ def promo_edit(id):
         description = request.form['description']
         discount_type = request.form['discount_type']
         
-        # Input Validation
+        # Input Validation (🌟 新增 per_user_limit 與 is_public 取值與驗證)
         try:
             discount_value = float(request.form['discount_value'])
             usage_limit = int(request.form.get('usage_limit', 0))
+            per_user_limit = int(request.form.get('per_user_limit', 1))
             min_order_amount = float(request.form.get('min_order_amount', 0))
+            is_public = int(request.form.get('is_public', 0))
         except ValueError:
-            flash("折扣值、使用限制、最低訂單金額必須為有效數字")
+            flash("折扣值、使用限制、金額等欄位必須為有效數字")
             return redirect(url_for('staff.promo.promo_edit', id=id))
         
         # Validation
@@ -113,16 +120,18 @@ def promo_edit(id):
         if error:
             flash(error)
             return redirect(url_for('staff.promo.promo_edit', id=id))
-        if min_order_amount < 0 or usage_limit < 0:
+            
+        if min_order_amount < 0 or usage_limit < 0 or per_user_limit < 0:
             flash("最低訂單金額或使用限制不能為負數")
             return redirect(url_for('staff.promo.promo_edit', id=id))
             
         start_at = request.form['start_at'] if request.form['start_at'] else None
         end_at = request.form['end_at'] if request.form['end_at'] else None
         
+        # 🌟 更新 SQL 加入 per_user_limit 和 is_public
         sql = """UPDATE promo_code SET code=%s, description=%s, discount_type=%s, discount_value=%s, 
-                 usage_limit=%s, min_order_amount=%s, start_at=%s, end_at=%s, updated_at=%s WHERE id=%s"""
-        cursor.execute(sql, (code, description, discount_type, discount_value, usage_limit, min_order_amount, start_at, end_at, datetime.now(), id))
+                 usage_limit=%s, per_user_limit=%s, min_order_amount=%s, is_public=%s, start_at=%s, end_at=%s, updated_at=%s WHERE id=%s"""
+        cursor.execute(sql, (code, description, discount_type, discount_value, usage_limit, per_user_limit, min_order_amount, is_public, start_at, end_at, datetime.now(), id))
         conn.commit()
         flash("折扣碼更新成功")
         cursor.close()

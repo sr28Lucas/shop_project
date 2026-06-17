@@ -344,4 +344,8 @@ ALTER TABLE `return_item` ADD FOREIGN KEY (`return_request_id`) REFERENCES `retu
 
 ALTER TABLE `return_item` ADD FOREIGN KEY (`order_item_id`) REFERENCES `order_item` (`id`);
 
-ALTER TABLE customer ADD COLUMN is_verified TINYINT DEFAULT 0;
+ALTER TABLE `customer` ADD COLUMN is_verified TINYINT DEFAULT 0;
+
+ALTER TABLE `promo_code` ADD COLUMN `per_user_limit` INT NOT NULL DEFAULT 1 COMMENT 'every member usage_limit';
+
+ALTER TABLE `promo_code` ADD COLUMN `is_public` BOOL NOT NULL DEFAULT 0 COMMENT '1=public, 0=hide';
