@@ -4,9 +4,11 @@ from .config import config
 from app.db import get_db_connection
 
 
-def create_app():
+def create_app(test_config=None):
     # 1. 建立 Flask 實例
     app = Flask(__name__)
+    if test_config:
+        app.config.update(test_config)
     # 2. 載入設定 (從 config.py 讀取不同環境的設定)
     app.config.from_object(config) # 自動將config中全大寫的屬性導入
 
