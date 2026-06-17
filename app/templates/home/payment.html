@@ -44,12 +44,21 @@
                 </div>
                 <div class="flex justify-between text-sm font-medium text-gray-500">
                     <span>物流費用 (Shipping)</span>
-                    <span class="text-gray-900 font-bold">+ NT$ {{ "{:,.0f}".format(shipping_fee or 0) }}</span>
+                    <span class="text-gray-900 font-bold">
+                        {% if shipping_discount > 0 and shipping_discount >= shipping_fee %}
+                        <span class="line-through text-gray-400 mr-2">NT$ {{ "{:,.0f}".format(shipping_fee or 0) }}</span>
+                        NT$ 0
+                        {% else %}
+                        NT$ {{ "{:,.0f}".format(shipping_fee or 0) }}
+                        {% endif %}
+                    </span>
                 </div>
+                {% if shipping_discount > 0 and shipping_discount < shipping_fee %}
                 <div class="flex justify-between text-sm font-medium text-brand border-b border-gray-200 pb-3">
                     <span>運費折抵 (Ship. Disc)</span>
                     <span class="font-bold">- NT$ {{ "{:,.0f}".format(shipping_discount or 0) }}</span>
                 </div>
+                {% endif %}
                 <div class="flex justify-between items-end pt-1">
                     <span class="text-xs font-black text-gray-400 uppercase tracking-widest">應付總計 (Total)</span>
                     <span class="text-2xl font-black tracking-tighter text-gray-900">NT$ {{ "{:,.0f}".format(total or 0) }}</span>

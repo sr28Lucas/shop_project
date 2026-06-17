@@ -42,6 +42,7 @@ def calculate_order_totals(subtotal, shipping_fee, promo):
         shipping_discount = shipping_fee
         
     subtotal_discount = min(subtotal, subtotal_discount)
+    # 🌟 修改：確保最終物流費用計算正確
     final_shipping_fee = max(0, shipping_fee - shipping_discount)
         
     return subtotal_discount, shipping_discount, final_shipping_fee
@@ -81,6 +82,29 @@ def validate_promo_code(conn, promo, subtotal=None, customer_id=None):
                 return False, f"這個優惠碼每人限用 {promo['per_user_limit']} 次，您已經達到使用上限囉！"
         
     return True, None
+
+# 🌟 新增：取得符合資格的公開優惠碼
+def get_eligible_public_promos(conn, customer_id, subtotal):
+    now = datetime.now()
+    with conn.cursor(dictionary=True) as cursor:
+        cursor.execute("""
+            SELECT * FROM promo_code 
+            WHERE is_public = 1 
+              AND is_active = 1 
+              AND is_deleted = 0
+              AND (start_at IS NULL OR start_at <= %s)
+              AND (end_at IS NULL OR end_at >= %s)
+              AND (usage_limit = 0 OR used_count < usage_limit)
+        """, (now, now))
+        promos = cursor.fetchall()
+        
+    eligible_promos = []
+    for promo in promos:
+        is_valid, _ = validate_promo_code(conn, promo, subtotal, customer_id)
+        if is_valid:
+            eligible_promos.append(promo)
+            
+    return eligible_promos
 
 @checkout_bp.route('/view_cart')
 def view_cart():
@@ -272,6 +296,24 @@ def information():
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
     
+    # 計算子集金額以篩選優惠
+    cart_id = get_active_cart(session['customer_id'])
+    selected_ids = session.get('selected_sku_ids', [])
+    
+    subtotal = 0
+    if selected_ids:
+        format_strings = ','.join(['%s'] * len(selected_ids))
+        cursor.execute(f"""
+            SELECT SUM(ci.qty * s.price) as subtotal
+            FROM cart_item ci
+            JOIN sku s ON ci.sku_id = s.id
+            WHERE ci.cart_id = %s AND ci.sku_id IN ({format_strings})
+        """, [cart_id] + selected_ids)
+        result = cursor.fetchone()
+        subtotal = result['subtotal'] if result and result['subtotal'] else 0
+
+    eligible_promos = get_eligible_public_promos(conn, session['customer_id'], subtotal)
+
     cursor.execute("""
         SELECT c.*, r.name as region, l.name as locality 
         FROM customer c
@@ -324,8 +366,7 @@ def information():
         if not request.form.get('name'):
             cursor.close()
             conn.close()
-            # 傳入 public_promos
-            return render_template('home/information.html', customer=customer, public_promos=public_promos)
+            return render_template('home/information.html', customer=customer, eligible_promos=eligible_promos)
 
         name = request.form.get('name', '').strip()
         phone = request.form.get('phone', '').strip()
@@ -356,18 +397,14 @@ def information():
                         flash(promo_err)
                         cursor.close()
                         conn.close()
-                        # 傳入 public_promos
-                        return render_template('home/information.html', customer=customer, 
-                                             temp_info={'name': name, 'phone': phone, 'address': address, 'promo_code': promo_code, 'region': region, 'locality': locality},
-                                             public_promos=public_promos)
+                        return render_template('home/information.html', customer=customer, eligible_promos=eligible_promos,
+                                             temp_info={'name': name, 'phone': phone, 'address': address, 'promo_code': promo_code, 'region': region, 'locality': locality})
                 else:
                     flash("優惠碼無效或不存在。")
                     cursor.close()
                     conn.close()
-                    # 傳入 public_promos
-                    return render_template('home/information.html', customer=customer, 
-                                         temp_info={'name': name, 'phone': phone, 'address': address, 'promo_code': promo_code, 'region': region, 'locality': locality},
-                                         public_promos=public_promos)
+                    return render_template('home/information.html', customer=customer, eligible_promos=eligible_promos,
+                                         temp_info={'name': name, 'phone': phone, 'address': address, 'promo_code': promo_code, 'region': region, 'locality': locality})
 
             session['checkout_info'] = {'name': name, 'phone': phone, 'region': region, 'locality': locality, 'address': address, 'promo_code': promo_code}
             cursor.close()
@@ -376,15 +413,12 @@ def information():
         
         cursor.close()
         conn.close()
-        # 傳入 public_promos
-        return render_template('home/information.html', customer=customer, 
-                                 temp_info={'name': name, 'phone': phone, 'address': address, 'promo_code': promo_code, 'region': region, 'locality': locality},
-                                 public_promos=public_promos)
+        return render_template('home/information.html', customer=customer, eligible_promos=eligible_promos,
+                                 temp_info={'name': name, 'phone': phone, 'address': address, 'promo_code': promo_code, 'region': region, 'locality': locality})
     
     cursor.close()
     conn.close()
-    # 傳入 public_promos
-    return render_template('home/information.html', customer=customer, public_promos=public_promos)
+    return render_template('home/information.html', customer=customer, eligible_promos=eligible_promos)
 
 @checkout_bp.route('/payment', methods=['GET', 'POST'])
 def payment():
