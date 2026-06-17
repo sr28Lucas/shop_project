@@ -125,13 +125,20 @@
                     </div>
                     
                     <!-- Mobile Menu Button -->
-                    <button class="md:hidden text-gray-600 focus:outline-none">
+                    <button id="mobile-menu-button" class="md:hidden text-gray-600 focus:outline-none">
                         <i class="fa-solid fa-bars text-2xl"></i>
                     </button>
                 </div>
             </div>
         </div>
     </header>
+
+    <!-- Mobile Menu -->
+    <div id="mobile-menu" class="hidden md:hidden bg-white border-b border-gray-100 px-4 py-4 space-y-4">
+        <a href="{{ url_for('home.announcements') }}" class="block text-sm font-medium text-gray-700 hover:text-brand">最新公告</a>
+        <a href="{{ url_for('home.hot_items') }}" class="block text-sm font-medium text-gray-700 hover:text-brand">熱銷商品</a>
+        <a href="{{ url_for('home.index') }}" class="block text-sm font-medium text-gray-700 hover:text-brand">全系列商品</a>
+    </div>
 
     {% block full_width_banner %}{% endblock %}
 
