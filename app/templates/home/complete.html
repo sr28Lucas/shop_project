@@ -1,25 +1,63 @@
 {% extends "home/base.html" %}
 
-{% block title %}下單成功{% endblock %}
-
-{% block head %}
-<style>
-    .checkout-container { max-width: 600px; margin: 40px auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); text-align: center; }
-    .order-number { font-size: 24px; font-weight: bold; color: #28a745; margin: 20px 0; }
-    .btn-link { display: inline-block; padding: 10px 20px; background: #6c757d; color: white; border-radius: 4px; text-decoration: none; margin: 10px; }
-</style>
-{% endblock %}
+{% block title %}下單成功 - VIVID{% endblock %}
 
 {% block content %}
-<div class="checkout-container">
-    <h2>感謝您的訂購！</h2>
-    <p>您的訂單編號為：</p>
-    <div class="order-number">#{{ order_id }}</div>
-    <p>我們會盡快為您處理。</p>
+<div class="max-w-2xl mx-auto py-20 px-4 text-center">
+    <div class="mb-10 relative">
+        <div class="w-24 h-24 bg-green-50 rounded-full flex items-center justify-center mx-auto relative z-10 border border-green-100">
+            <i class="fa-solid fa-check text-5xl text-green-500"></i>
+        </div>
+        <!-- Decorative particles -->
+        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 bg-brand/5 rounded-full animate-pulse"></div>
+    </div>
+
+    <h1 class="text-4xl font-black text-gray-900 tracking-tight mb-4">感謝您的訂購！</h1>
+    <p class="text-gray-500 font-medium mb-12">我們已收到您的訂單，並準備好為您精心包裝。稍後您將收到一封確認信函。</p>
     
-    <div>
-        <a href="{{ url_for('customer.customer_order.order_view', id=order_id) }}" class="btn-link">查看訂單狀態</a>
-        <a href="{{ url_for('home.index') }}" class="btn-link">繼續購物</a>
+    <div class="bg-white rounded-3xl border border-gray-100 p-8 shadow-sm mb-12 flex flex-col md:flex-row items-center justify-between gap-6">
+        <div class="text-left">
+            <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">您的訂單編號</p>
+            <p class="text-2xl font-black text-gray-900 tracking-tighter">#{{ order_id }}</p>
+        </div>
+        <div class="h-10 w-px bg-gray-100 hidden md:block"></div>
+        <div class="text-left">
+            <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">預計到貨時間</p>
+            <p class="text-lg font-bold text-gray-900">3 - 5 個工作天</p>
+        </div>
+        <a href="{{ url_for('customer.customer_order.order_view', id=order_id) }}" 
+           class="px-6 py-3 bg-gray-900 text-white rounded-xl font-bold text-xs hover:bg-brand transition-all shadow-lg shadow-gray-200 uppercase tracking-widest">
+            追蹤訂單
+        </a>
+    </div>
+
+    <div class="flex flex-col sm:flex-row gap-4 justify-center">
+        <a href="{{ url_for('home.index') }}" 
+           class="px-10 py-4 bg-white text-gray-900 border border-gray-100 rounded-2xl font-bold hover:bg-gray-50 transition-all shadow-sm">
+            繼續購物
+        </a>
+        <a href="{{ url_for('customer.center') }}" 
+           class="px-10 py-4 bg-gray-50 text-gray-600 rounded-2xl font-bold hover:bg-gray-100 transition-all">
+            會員中心
+        </a>
+    </div>
+    
+    <div class="mt-20 pt-10 border-t border-gray-50 grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div class="space-y-2">
+            <i class="fa-solid fa-truck-fast text-brand/40 text-2xl"></i>
+            <h4 class="text-xs font-black text-gray-900 uppercase tracking-widest">快速配送</h4>
+            <p class="text-[10px] text-gray-400">標準物流 3-5 天送達</p>
+        </div>
+        <div class="space-y-2">
+            <i class="fa-solid fa-arrows-rotate text-brand/40 text-2xl"></i>
+            <h4 class="text-xs font-black text-gray-900 uppercase tracking-widest">7天退貨</h4>
+            <p class="text-[10px] text-gray-400">安心購物的售後保障</p>
+        </div>
+        <div class="space-y-2">
+            <i class="fa-solid fa-headset text-brand/40 text-2xl"></i>
+            <h4 class="text-xs font-black text-gray-900 uppercase tracking-widest">客服支援</h4>
+            <p class="text-[10px] text-gray-400">service@vivid.com.tw</p>
+        </div>
     </div>
 </div>
 {% endblock %}

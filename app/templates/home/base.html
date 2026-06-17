@@ -3,83 +3,238 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}首頁{% endblock %} - 電商網站</title>
+    <title>{% block title %}首頁{% endblock %} - VIVID</title>
     
+    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            light: '#ff85a2',
+                            DEFAULT: '#d63384',
+                            dark: '#b82770',
+                        },
+                        secondary: '#222222',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'Noto Sans TC', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    
+    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
+    <!-- Custom CSS (Legacy and specific overrides) -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/home/common.css') }}">
+    
+    <style>
+        /* Modern Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #ccc; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #aaa; }
+
+        .glass-header {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+        
+        /* Smooth transitions */
+        .nav-link-underline::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: -4px;
+            left: 0;
+            background-color: #d63384;
+            transition: width 0.3s ease;
+        }
+        .nav-link-underline:hover::after {
+            width: 100%;
+        }
+    </style>
     
     {% block head %}{% endblock %}
 </head>
-<body>
-    <header>
-        <div class="header-top">
-            <div class="logo">
-                <a href="{{ url_for('home.index') }}" class="logo-placeholder">VIVID</a>
-            </div>
-            
-            <nav class="header-nav-inline">
-                <ul>
-                    <li><a href="{{ url_for('home.announcements') }}">最新公告</a></li>
-                    <li><a href="{{ url_for('home.hot_items') }}">熱銷商品</a></li>
-                    <li><a href="{{ url_for('home.index') }}">全系列商品</a></li>
-                </ul>
-            </nav>
+<body class="bg-gray-50 text-gray-900 font-sans antialiased">
+    <!-- Navigation -->
+    <header class="glass-header sticky top-0 z-50 border-b border-gray-100 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-20">
+                <!-- Logo -->
+                <div class="flex-shrink-0 flex items-center">
+                    <a href="{{ url_for('home.index') }}" class="text-3xl font-black tracking-tighter bg-gradient-to-r from-brand to-pink-500 bg-clip-text text-transparent hover:scale-105 transition-transform">
+                        VIVID
+                    </a>
+                </div>
 
-            <div class="header-icons">
-                <form action="{{ url_for('home.index') }}" method="GET" class="minimal-search">
-                    <button type="submit"><i class="fa-solid fa-magnifying-glass"></i></button>
-                    <input type="text" name="q" placeholder="搜尋商品..." value="{{ request.args.get('q', '') }}">
-                </form>
+                <!-- Desktop Nav -->
+                <nav class="hidden md:flex space-x-10">
+                    <a href="{{ url_for('home.announcements') }}" class="text-sm font-medium text-gray-700 hover:text-brand transition-colors relative nav-link-underline">最新公告</a>
+                    <a href="{{ url_for('home.hot_items') }}" class="text-sm font-medium text-gray-700 hover:text-brand transition-colors relative nav-link-underline">熱銷商品</a>
+                    <a href="{{ url_for('home.index') }}" class="text-sm font-medium text-gray-700 hover:text-brand transition-colors relative nav-link-underline">全系列商品</a>
+                </nav>
 
-                {% if session.get('customer_id') %}
-                    <a href="{{ url_for('customer.center') }}" class="icon-link" title="會員中心">
-                        <i class="fa-regular fa-user"></i>
-                    </a>
-                    <a href="{{ url_for('auth.logout') }}" onclick="return confirm('確定要登出嗎？');" class="icon-link" title="登出" style="font-size: 16px;">
-                        <i class="fa-solid fa-arrow-right-from-bracket"></i>
-                    </a>
-                {% else %}
-                    <a href="{{ url_for('auth.login') }}" class="icon-link" title="登入/註冊">
-                        <i class="fa-regular fa-user"></i>
-                    </a>
-                {% endif %}
-                
-                <a href="{{ url_for('home.wishlist.index') }}" class="icon-link" title="願望清單">
-                    <i class="fa-regular fa-heart"></i>
-                </a>
-                
-                <a href="{{ url_for('home.checkout.view_cart') }}" class="icon-link cart-icon" title="購物車">
-                    <i class="fa-solid fa-bag-shopping"></i>
-                    <span class="cart-count">{{ cart_count|default(0) }}</span>
-                </a>
+                <!-- Search & Icons -->
+                <div class="flex items-center space-x-6">
+                    <form action="{{ url_for('home.index') }}#shop-start" method="GET" class="hidden lg:flex items-center bg-gray-100 rounded-full px-4 py-2 focus-within:ring-2 focus-within:ring-brand/20 transition-all">
+                        <button type="submit" class="text-gray-400 hover:text-brand transition-colors mr-2">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                        </button>
+                        <input type="text" name="q" placeholder="搜尋商品..." value="{{ request.args.get('q', '') }}" 
+                               class="bg-transparent border-none focus:ring-0 text-sm w-40 focus:w-60 transition-all duration-300 outline-none">
+                    </form>
+
+                    <div class="flex items-center space-x-4">
+                        {% if session.get('customer_id') %}
+                            <a href="{{ url_for('customer.center') }}" class="text-gray-600 hover:text-brand transition-all hover:-translate-y-0.5" title="會員中心">
+                                <i class="fa-regular fa-user text-xl"></i>
+                            </a>
+                            <a href="{{ url_for('auth.logout') }}" onclick="return confirm('確定要登出嗎？');" class="text-gray-600 hover:text-red-500 transition-all hover:-translate-y-0.5" title="登出">
+                                <i class="fa-solid fa-arrow-right-from-bracket text-lg"></i>
+                            </a>
+                        {% else %}
+                            <a href="{{ url_for('auth.login') }}" class="text-gray-600 hover:text-brand transition-all hover:-translate-y-0.5" title="登入/註冊">
+                                <i class="fa-regular fa-user text-xl"></i>
+                            </a>
+                        {% endif %}
+                        
+                        <a href="{{ url_for('home.wishlist.index') }}" class="text-gray-600 hover:text-brand transition-all hover:-translate-y-0.5 relative" title="願望清單">
+                            <i class="fa-regular fa-heart text-xl"></i>
+                        </a>
+                        
+                        <a href="{{ url_for('home.checkout.view_cart') }}" class="text-gray-600 hover:text-brand transition-all hover:-translate-y-0.5 relative" title="購物車">
+                            <i class="fa-solid fa-bag-shopping text-xl"></i>
+                            <span class="absolute -top-2 -right-2 bg-brand text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full border-2 border-white cart-count">
+                                {{ cart_count|default(0) }}
+                            </span>
+                        </a>
+                    </div>
+                    
+                    <!-- Mobile Menu Button -->
+                    <button class="md:hidden text-gray-600 focus:outline-none">
+                        <i class="fa-solid fa-bars text-2xl"></i>
+                    </button>
+                </div>
             </div>
         </div>
     </header>
 
     {% block full_width_banner %}{% endblock %}
 
-    <main class="container">
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 min-h-[60vh]">
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
-                <div class="flash-messages">
+                <div class="mb-6 space-y-2">
                     {% for category, message in messages %}
-                        <div class="flash flash-{{ category }}">{{ message }}</div>
+                        <div class="p-4 rounded-lg flex items-center {% if category == 'success' %}bg-green-50 text-green-700 border border-green-200{% else %}bg-red-50 text-red-700 border border-red-200{% endif %}">
+                            <i class="fa-solid {% if category == 'success' %}fa-circle-check{% else %}fa-circle-exclamation{% endif %} mr-3"></i>
+                            <p class="text-sm font-medium">{{ message }}</p>
+                        </div>
                     {% endfor %}
                 </div>
             {% endif %}
         {% endwith %}
+        
         {% block content %}{% endblock %}
     </main>
 
-    <footer>
-        <p>&copy; VIVID</p>
+    <!-- Footer -->
+    <footer class="bg-gray-950 text-gray-400 py-16 border-t border-gray-900 mt-20">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-12">
+                <div class="col-span-1 md:col-span-1">
+                    <a href="{{ url_for('home.index') }}" class="text-2xl font-black text-white tracking-tighter mb-6 block">VIVID</a>
+                    <p class="text-sm leading-relaxed mb-6">定義妳的現代極簡美學。我們專注於高品質的面料與永恆的設計，為妳的日常生活增添一份自信。線上購物滿 $1,500 即享免運服務。</p>
+                    <div class="flex space-x-4">
+                        <a href="#" class="hover:text-white transition-colors text-xl"><i class="fa-brands fa-instagram"></i></a>
+                        <a href="#" class="hover:text-white transition-colors text-xl"><i class="fa-brands fa-facebook"></i></a>
+                        <a href="#" class="hover:text-white transition-colors text-xl"><i class="fa-brands fa-line"></i></a>
+                    </div>
+                </div>
+                
+                <div>
+                    <h4 class="text-white font-bold mb-6 text-sm uppercase tracking-widest">購物資訊</h4>
+                    <ul class="space-y-4 text-sm">
+                        <li><a href="{{ url_for('home.index') }}#shop-start" class="hover:text-white transition-colors">最新到貨</a></li>
+                        <li><a href="{{ url_for('home.hot_items') }}" class="hover:text-white transition-colors">熱銷排行</a></li>
+                        <li><a href="{{ url_for('home.index') }}" class="hover:text-white transition-colors">全系列商品</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="text-white font-bold mb-6 text-sm uppercase tracking-widest">客戶服務</h4>
+                    <ul class="space-y-4 text-sm">
+                        <li><a href="{{ url_for('customer.customer_order.order_list') if session.get('customer_id') else url_for('auth.login') }}" class="hover:text-white transition-colors">訂單查詢</a></li>
+                        <li><a href="{{ url_for('home.support.list_inquiries') if session.get('customer_id') else url_for('auth.login') }}" class="hover:text-white transition-colors">客服信箱</a></li>
+                        <li><a href="{{ url_for('customer.customer_return.list_requests') if session.get('customer_id') else url_for('auth.login') }}" class="hover:text-white transition-colors">退貨紀錄</a></li>
+                        <li><a href="{{ url_for('customer.center') if session.get('customer_id') else url_for('auth.login') }}" class="hover:text-white transition-colors">會員中心</a></li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h4 class="text-white font-bold mb-6 text-sm uppercase tracking-widest">聯絡我們</h4>
+                    <p class="text-sm mb-4">週一至週五 10:00 - 18:00</p>
+                    <p class="text-sm mb-4">service@vivid.com.tw</p>
+                </div>
+            </div>
+            
+            <div class="mt-16 pt-8 border-t border-gray-900 flex flex-col md:flex-row justify-between items-center gap-4 text-xs uppercase tracking-tighter">
+                <p>&copy; 2026 VIVID OFFICIAL ONLINE STORE. ALL RIGHTS RESERVED.</p>
+                <div class="flex space-x-6">
+                    <span>支付方式：信用卡 (VISA / MASTERCARD)</span>
+                </div>
+            </div>
+        </div>
     </footer>
 
+    <!-- Toast Container -->
+    <div id="toast-container" class="fixed bottom-10 right-10 z-[100] space-y-3"></div>
+
     <script src="{{ url_for('static', filename='js/home/common.js') }}"></script>
+    <script>
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            const bgColor = type === 'success' ? 'bg-white' : 'bg-red-50';
+            const textColor = type === 'success' ? 'text-gray-800' : 'text-red-800';
+            const iconColor = type === 'success' ? 'text-brand' : 'text-red-500';
+            const icon = type === 'success' ? 'fa-circle-check' : 'fa-circle-exclamation';
+
+            toast.className = `${bgColor} ${textColor} px-6 py-4 rounded-xl shadow-2xl flex items-center space-x-4 transform transition-all duration-500 translate-x-full border border-gray-100`;
+            toast.innerHTML = `
+                <i class="fa-solid ${icon} ${iconColor} text-xl"></i>
+                <span class="font-medium text-sm">${message}</span>
+            `;
+
+            container.appendChild(toast);
+            
+            // Animate in
+            setTimeout(() => {
+                toast.classList.remove('translate-x-full');
+            }, 100);
+
+            // Animate out and remove
+            setTimeout(() => {
+                toast.classList.add('translate-x-full', 'opacity-0');
+                setTimeout(() => toast.remove(), 500);
+            }, 4000);
+        }
+    </script>
     {% block scripts %}{% endblock %}
 </body>
 </html>

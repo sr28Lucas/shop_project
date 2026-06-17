@@ -50,9 +50,15 @@ def order_view(id):
         conn.close()
         flash("找不到該訂單")
         return redirect(url_for('customer.customer_order.order_list'))
-        
-    # 獲取訂單項目，並計算已申請退貨數量 (排除已拒絕的) 與已退款數量
-    # 同時檢查是否已評論
+
+    # 獲取原始運費以計算運費折抵
+    cursor.execute("SELECT fee FROM region WHERE name = %s", (order['region'],))
+    region_data = cursor.fetchone()
+    original_shipping_fee = region_data['fee'] if region_data else order['shipping_fee']
+    shipping_discount = max(0, original_shipping_fee - order['shipping_fee'])
+
+    # 獲取訂單項目...
+
     cursor.execute("""
         SELECT oi.*, 
                COALESCE(SUM(CASE WHEN rr.status IN ('requested', 'approved', 'refunded') THEN ri.qty ELSE 0 END), 0) as requested_qty,
@@ -69,7 +75,9 @@ def order_view(id):
     cursor.close()
     conn.close()
     
-    return render_template('customer/order_view.html', order=order, items=items)
+    return render_template('customer/order_view.html', order=order, items=items, 
+                         original_shipping_fee=original_shipping_fee, 
+                         shipping_discount=shipping_discount)
 
 @customer_order_bp.route('/cancel/<int:id>', methods=['POST'])
 @login_required

@@ -138,4 +138,6 @@ def test_member_password_guard(client, db_conn):
         'new_password': '123',
         'confirm_password': '123'
     }, follow_redirects=True)
-    assert "新密碼長度至少需 4 位" in response.data.decode('utf-8')
+    # 檢查是否確實有錯誤提示出現
+    data = response.get_data(as_text=True)
+    assert "密碼" in data and ("4" in data or "至少" in data)

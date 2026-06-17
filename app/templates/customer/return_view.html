@@ -1,68 +1,132 @@
-<!DOCTYPE html>
-<html lang="zh-Hant">
-<head>
-    <meta charset="UTF-8">
-    <title>退貨詳情 #{{ return_req.id }}</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/customer/common.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/customer/order.css') }}">
-</head>
-<body>
-    <div style="max-width: 800px; margin: 0 auto; padding: 20px;">
-        <h1>退貨申請詳情 #{{ return_req.id }}</h1>
-        <div class="action-bar" style="margin-bottom: 20px;">
-            <a href="{{ url_for('customer.customer_return.list_requests') }}" class="btn btn-outline">← 返回列表</a>
-        </div>
+{% extends "home/base.html" %}
 
-        <div class="order-card">
-            <h3>基本資訊</h3>
-            <p><strong>關聯訂單：</strong>#{{ return_req.order_id }}</p>
-            <p><strong>申請狀態：</strong>
-                {% if return_req.status == 'requested' %}
-                    <span style="color: #f39c12;">待審核</span>
-                {% elif return_req.status == 'approved' %}
-                    <span style="color: #3498db;">已受理</span>
-                {% elif return_req.status == 'rejected' %}
-                    <span style="color: #e74c3c;">已拒絕</span>
-                {% elif return_req.status == 'refunded' %}
-                    <span style="color: #27ae60;">已退款</span>
-                {% else %}
-                    {{ return_req.status }}
+{% block title %}退貨詳情 #{{ return_req.id }} - 會員中心{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto py-10">
+    <div class="flex items-center justify-between mb-10">
+        <div>
+            <nav class="flex text-xs text-gray-400 mb-2 space-x-2">
+                <a href="{{ url_for('home.index') }}" class="hover:text-brand">首頁</a>
+                <span>/</span>
+                <a href="{{ url_for('customer.center') }}" class="hover:text-brand">會員中心</a>
+                <span>/</span>
+                <a href="{{ url_for('customer.customer_return.list_requests') }}" class="hover:text-brand">退貨紀錄</a>
+                <span>/</span>
+                <span class="text-gray-600 font-medium">詳情 #{{ return_req.id }}</span>
+            </nav>
+            <h1 class="text-3xl font-black text-gray-900 tracking-tight">退貨申請詳情 #{{ return_req.id }}</h1>
+        </div>
+        <a href="{{ url_for('customer.customer_return.list_requests') }}" class="text-xs font-bold text-gray-400 hover:text-brand flex items-center bg-white px-4 py-2 rounded-xl border border-gray-100 transition-all shadow-sm">
+            <i class="fa-solid fa-chevron-left mr-2"></i> 返回列表
+        </a>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
+        <!-- Return Status Info -->
+        <div class="lg:col-span-2 bg-white rounded-3xl border border-gray-100 p-8 shadow-sm">
+            <div class="flex items-center gap-4 mb-8">
+                <div class="w-1.5 h-6 bg-brand rounded-full"></div>
+                <h3 class="text-xs font-black text-gray-400 uppercase tracking-widest">申請狀態</h3>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-y-6 gap-x-12">
+                <div class="space-y-1">
+                    <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest">關聯訂單</p>
+                    <p class="text-sm font-bold text-gray-900">#{{ return_req.order_id }}</p>
+                </div>
+                <div class="space-y-1">
+                    <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest">當前狀態</p>
+                    <div class="pt-1">
+                        {% if return_req.status == 'requested' %}
+                            <span class="bg-amber-50 text-amber-600 text-[10px] font-bold px-3 py-1 rounded-full border border-amber-100">待審核</span>
+                        {% elif return_req.status == 'approved' %}
+                            <span class="bg-blue-50 text-blue-600 text-[10px] font-bold px-3 py-1 rounded-full border border-blue-100">已受理</span>
+                        {% elif return_req.status == 'rejected' %}
+                            <span class="bg-red-50 text-red-500 text-[10px] font-bold px-3 py-1 rounded-full border border-red-100">已拒絕</span>
+                        {% elif return_req.status == 'refunded' %}
+                            <span class="bg-green-50 text-green-600 text-[10px] font-bold px-3 py-1 rounded-full border border-green-100">已退款</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="space-y-1">
+                    <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest">申請時間</p>
+                    <p class="text-sm font-bold text-gray-600">{{ return_req.requested_at.strftime('%Y/%m/%d %H:%M') if return_req.requested_at else '-' }}</p>
+                </div>
+                {% if return_req.status == 'refunded' %}
+                <div class="space-y-1">
+                    <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest">退款時間</p>
+                    <p class="text-sm font-bold text-green-600">{{ return_req.refunded_at.strftime('%Y/%m/%d %H:%M') if return_req.refunded_at else '-' }}</p>
+                </div>
                 {% endif %}
-            </p>
-            <p><strong>申請時間：</strong>{{ return_req.requested_at.strftime('%Y-%m-%d %H:%M') if return_req.requested_at else '-' }}</p>
-            <p><strong>退貨原因：</strong><br>{{ return_req.reason }}</p>
+            </div>
             
-            {% if return_req.status == 'refunded' %}
-                <p><strong>退款時間：</strong>{{ return_req.refunded_at.strftime('%Y-%m-%d %H:%M') if return_req.refunded_at else '-' }}</p>
-            {% endif %}
+            <div class="mt-8 pt-8 border-t border-gray-50">
+                <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">退貨原因</p>
+                <div class="bg-gray-50 rounded-2xl p-6 text-sm text-gray-700 leading-relaxed font-medium">
+                    {{ return_req.reason }}
+                </div>
+            </div>
         </div>
 
-        <h3>退貨商品明細</h3>
-        <div class="order-card">
-            <table style="width: 100%; border-collapse: collapse;">
+        <!-- Progress Indicator -->
+        <div class="bg-white rounded-3xl border border-gray-100 p-8 shadow-sm">
+            <h3 class="text-xs font-black text-gray-400 uppercase tracking-widest mb-8">進度追蹤</h3>
+            <div class="space-y-8 relative">
+                <div class="absolute left-3 top-0 bottom-0 w-px bg-gray-100"></div>
+                
+                <div class="relative pl-10">
+                    <div class="absolute left-1.5 top-1.5 w-3 h-3 rounded-full bg-brand shadow-[0_0_10px_rgba(214,51,132,0.5)]"></div>
+                    <p class="text-xs font-black uppercase tracking-widest text-brand mb-1">已送出申請</p>
+                    <p class="text-[10px] text-gray-400">{{ return_req.requested_at.strftime('%m/%d %H:%M') }}</p>
+                </div>
+
+                <div class="relative pl-10">
+                    <div class="absolute left-1.5 top-1.5 w-3 h-3 rounded-full {% if return_req.status != 'requested' %}bg-brand shadow-[0_0_10px_rgba(214,51,132,0.5)]{% else %}bg-gray-200{% endif %}"></div>
+                    <p class="text-xs font-black uppercase tracking-widest {% if return_req.status != 'requested' %}text-gray-900{% else %}text-gray-300{% endif %} mb-1">
+                        {% if return_req.status == 'rejected' %}審核未通過{% else %}審核中 / 已受理{% endif %}
+                    </p>
+                </div>
+
+                <div class="relative pl-10">
+                    <div class="absolute left-1.5 top-1.5 w-3 h-3 rounded-full {% if return_req.status == 'refunded' %}bg-brand shadow-[0_0_10px_rgba(214,51,132,0.5)]{% else %}bg-gray-200{% endif %}"></div>
+                    <p class="text-xs font-black uppercase tracking-widest {% if return_req.status == 'refunded' %}text-gray-900{% else %}text-gray-300{% endif %} mb-1">已完成退款</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Return Items -->
+    <div class="bg-white rounded-3xl border border-gray-100 overflow-hidden shadow-sm">
+        <div class="p-8 border-b border-gray-50">
+            <h3 class="text-sm font-black text-gray-400 uppercase tracking-widest">退貨商品明細</h3>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full">
                 <thead>
-                    <tr style="border-bottom: 2px solid #eee;">
-                        <th style="padding: 10px; text-align: left;">商品</th>
-                        <th style="padding: 10px; text-align: center;">數量</th>
-                        <th style="padding: 10px; text-align: right;">單價</th>
-                        <th style="padding: 10px; text-align: left;">備註</th>
+                    <tr class="bg-gray-50/50">
+                        <th class="px-8 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">商品資訊</th>
+                        <th class="px-8 py-4 text-center text-[10px] font-black text-gray-400 uppercase tracking-widest">退貨數量</th>
+                        <th class="px-8 py-4 text-right text-[10px] font-black text-gray-400 uppercase tracking-widest">成交單價</th>
+                        <th class="px-8 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">品項備註</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody class="divide-y divide-gray-50">
                     {% for item in items %}
-                    <tr style="border-bottom: 1px solid #eee;">
-                        <td style="padding: 10px;">
-                            {{ item.product_name }}<br>
-                            <small>{{ item.color }} / {{ item.size }}</small>
+                    <tr>
+                        <td class="px-8 py-6">
+                            <div class="flex flex-col">
+                                <span class="text-sm font-black text-gray-900 mb-1">{{ item.product_name }}</span>
+                                <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{{ item.color }} / {{ item.size }}</span>
+                            </div>
                         </td>
-                        <td style="padding: 10px; text-align: center;">{{ item.qty }}</td>
-                        <td style="padding: 10px; text-align: right;">${{ "{:,.0f}".format(item.unit_price) }}</td>
-                        <td style="padding: 10px;">{{ item.reason or '-' }}</td>
+                        <td class="px-8 py-6 text-center text-sm font-bold text-gray-600">{{ item.qty }}</td>
+                        <td class="px-8 py-6 text-right text-sm font-black text-gray-900 tracking-tight">NT$ {{ "{:,.0f}".format(item.unit_price) }}</td>
+                        <td class="px-8 py-6 text-sm text-gray-500 font-medium italic">{{ item.reason or '-' }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
     </div>
-</body>
-</html>
+</div>
+{% endblock %}

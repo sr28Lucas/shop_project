@@ -2,38 +2,43 @@
 
 {% block title %}會員登入{% endblock %}
 
-{% block head %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/auth.css') }}">
-{% endblock %}
-
 {% block content %}
-<div class="auth-container">
-    <h2>會員登入</h2>
+<div class="max-w-md mx-auto py-12">
+    <div class="bg-white rounded-3xl border border-gray-100 p-10 shadow-2xl shadow-gray-200">
+        <div class="text-center mb-10">
+            <h2 class="text-3xl font-black text-gray-900 tracking-tight mb-2">歡迎回來</h2>
+            <p class="text-sm text-gray-400 font-medium">請登入您的 VIVID 帳號以繼續</p>
+        </div>
 
-   {# {% with messages = get_flashed_messages(with_categories=true) %}
-      {% if messages %}
-        {% for category, message in messages %}
-          <div class="flash-message flash-error">{{ message }}</div>
-        {% endfor %}
-      {% endif %}
-    {% endwith %}
-#}
-    <form class="auth-form" method="POST" action="{{ url_for('auth.login') }}">
-        <div class="form-group">
-            <label>帳號 (Email)</label>
-            <input type="email" name="email" required placeholder="請輸入您的 Email">
-        </div>
+        <form class="space-y-6" method="POST" action="{{ url_for('auth.login') }}">
+            <div class="space-y-2">
+                <label class="text-xs font-black text-gray-400 uppercase tracking-widest ml-1">帳號 (Email)</label>
+                <input type="email" name="email" value="{{ email or '' }}" required 
+                       class="w-full px-5 py-4 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-brand/20 transition-all outline-none text-gray-900 font-medium" 
+                       placeholder="example@vivid.com">
+            </div>
+            
+            <div class="space-y-2">
+                <div class="flex justify-between items-center ml-1">
+                    <label class="text-xs font-black text-gray-400 uppercase tracking-widest">密碼</label>
+                    <a href="{{ url_for('auth.forgot_password') }}" class="text-[10px] font-bold text-brand hover:underline uppercase tracking-widest">忘記密碼？</a>
+                </div>
+                <input type="password" name="password" required 
+                       class="w-full px-5 py-4 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-brand/20 transition-all outline-none text-gray-900 font-medium" 
+                       placeholder="••••••••">
+            </div>
+            
+            <button type="submit" class="w-full py-4 bg-gray-900 text-white rounded-2xl font-bold text-lg hover:bg-brand transition-all duration-300 shadow-xl shadow-gray-200 hover:shadow-brand/20">
+                確認登入
+            </button>
+        </form>
         
-        <div class="form-group">
-            <label>密碼</label>
-            <input type="password" name="password" required placeholder="請輸入密碼">
+        <div class="mt-10 pt-10 border-t border-gray-50 text-center">
+            <p class="text-sm text-gray-400 font-medium mb-4">還沒有帳號嗎？</p>
+            <a href="{{ url_for('auth.register') }}" class="inline-flex items-center text-sm font-black text-brand hover:translate-x-1 transition-transform uppercase tracking-widest">
+                立即申辦會員 <i class="fa-solid fa-arrow-right ml-2"></i>
+            </a>
         </div>
-        
-        <button type="submit">確認登入</button>
-    </form>
-    
-    <div class="auth-links">
-        還沒有帳號？ <a href="{{ url_for('auth.register') }}">點此申辦會員</a>
     </div>
 </div>
 {% endblock %}

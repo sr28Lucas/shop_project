@@ -1,42 +1,92 @@
 <!DOCTYPE html>
-<html lang="zh-TW">
+<html lang="zh-Hant" style="display: none;">
 <head>
+    <script>
+        (function() {
+            function breakout() {
+                if (window.top !== window.self) {
+                    window.top.location.replace(window.self.location.href);
+                } else {
+                    document.documentElement.style.display = 'block';
+                }
+            }
+            // 首次載入執行
+            breakout();
+            // 處理瀏覽器返回 (BFCache) 導致的閃爍
+            window.addEventListener('pageshow', function(event) {
+                if (event.persisted) breakout();
+            });
+        })();
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>管理員登入</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/auth.css') }}">
+    <title>管理員登入 - VIVID Internal</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body { background-color: #f0f2f5; font-family: "Microsoft JhengHei", Arial, sans-serif; }
-        .auth-container h2 { color: #34495e; }
-        .auth-form button { background: #3498db; } /* 管理端使用藍色系 */
-        .auth-form button:hover { background: #2980b9; }
+        body { font-family: 'Inter', 'Noto Sans TC', sans-serif; }
     </style>
 </head>
-<body>
-    <div class="auth-container">
-        <h2>管理員登入</h2>
-        
-        {% with messages = get_flashed_messages(with_categories=true) %}
-          {% if messages %}
-            {% for category, message in messages %}
-              <div class="flash-message flash-error">{{ message }}</div>
-            {% endfor %}
-          {% endif %}
-        {% endwith %}
-
-        <form class="auth-form" method="POST" action="{{ url_for('auth.staff_login') }}">
-            <div class="form-group">
-                <label>帳號 (Email)</label>
-                <input type="email" name="email" required placeholder="管理員帳號">
+<body class="bg-slate-50 text-slate-900 antialiased">
+    <div class="min-h-screen flex items-center justify-center p-4">
+        <div class="max-w-md w-full bg-white rounded-[40px] border border-slate-100 p-12 shadow-2xl shadow-slate-200">
+            <div class="text-center mb-12">
+                <div class="w-16 h-16 bg-blue-500 rounded-2xl flex items-center justify-center text-white text-2xl font-black mx-auto mb-6 shadow-lg shadow-blue-100">
+                    V
+                </div>
+                <h2 class="text-3xl font-black text-slate-900 tracking-tight mb-2">後台管理系統</h2>
+                <p class="text-sm text-slate-400 font-medium">INTERNAL ACCESS ONLY</p>
             </div>
 
-            <div class="form-group">
-                <label>密碼</label>
-                <input type="password" name="password" required placeholder="管理員密碼">
-            </div>
+            {% with messages = get_flashed_messages(with_categories=true) %}
+              {% if messages %}
+                <div class="mb-8 space-y-2">
+                    {% for category, message in messages %}
+                      <div class="p-4 rounded-2xl bg-red-50 text-red-600 border border-red-100 text-xs font-bold flex items-center">
+                          <i class="fa-solid fa-circle-exclamation mr-3"></i>
+                          {{ message }}
+                      </div>
+                    {% endfor %}
+                </div>
+              {% endif %}
+            {% endwith %}
 
-            <button type="submit">進入系統</button>
-        </form>
+            <form class="space-y-6" method="POST" action="{{ url_for('auth.staff_login') }}">
+                <div class="space-y-2">
+                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">管理員帳號</label>
+                    <div class="relative">
+                        <i class="fa-regular fa-envelope absolute left-5 top-1/2 -translate-y-1/2 text-slate-300"></i>
+                        <input type="email" name="email" required 
+                               class="w-full pl-12 pr-5 py-4 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-blue-500/20 transition-all outline-none text-slate-900 font-medium" 
+                               placeholder="admin@vivid.com">
+                    </div>
+                </div>
+
+                <div class="space-y-2">
+                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">安全密碼</label>
+                    <div class="relative">
+                        <i class="fa-solid fa-lock absolute left-5 top-1/2 -translate-y-1/2 text-slate-300"></i>
+                        <input type="password" name="password" required 
+                               class="w-full pl-12 pr-5 py-4 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-blue-500/20 transition-all outline-none text-slate-900 font-medium" 
+                               placeholder="••••••••">
+                    </div>
+                </div>
+
+                <div class="pt-4">
+                    <button type="submit" class="w-full py-5 bg-slate-900 text-white rounded-2xl font-bold text-sm hover:bg-blue-600 transition-all duration-500 shadow-xl shadow-slate-200 hover:shadow-blue-200 uppercase tracking-widest flex items-center justify-center gap-3">
+                        確認身分並登入 <i class="fa-solid fa-arrow-right-to-bracket"></i>
+                    </button>
+                </div>
+            </form>
+
+            <div class="mt-12 pt-8 border-t border-slate-50 text-center">
+                <a href="{{ url_for('home.index') }}" class="text-[10px] font-black text-slate-300 hover:text-slate-600 transition-colors uppercase tracking-[0.2em]">
+                    <i class="fa-solid fa-chevron-left mr-1"></i> 返回品牌前台
+                </a>
+            </div>
+        </div>
     </div>
 </body>
 </html>

@@ -1,66 +1,93 @@
-<!DOCTYPE html>
-<html lang="zh-Hant">
-<head>
-    <meta charset="UTF-8">
-    <title>退貨紀錄 - 會員中心</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/customer/common.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/customer/order.css') }}">
-</head>
-<body>
-    <div style="max-width: 900px; margin: 0 auto; padding: 20px;">
-        <h1>退貨紀錄</h1>
-        <div class="action-bar" style="margin-bottom: 20px;">
-            <a href="{{ url_for('customer.center') }}" class="btn btn-outline">← 返回會員中心</a>
+{% extends "home/base.html" %}
+
+{% block title %}退貨紀錄 - 會員中心{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto py-10">
+    <div class="flex items-center justify-between mb-10">
+        <div>
+            <nav class="flex text-xs text-gray-400 mb-2 space-x-2">
+                <a href="{{ url_for('home.index') }}" class="hover:text-brand">首頁</a>
+                <span>/</span>
+                <a href="{{ url_for('customer.center') }}" class="hover:text-brand">會員中心</a>
+                <span>/</span>
+                <span class="text-gray-600 font-medium">退貨紀錄</span>
+            </nav>
+            <h1 class="text-3xl font-black text-gray-900 tracking-tight">退貨紀錄</h1>
         </div>
+        <a href="{{ url_for('customer.center') }}" class="text-xs font-bold text-gray-400 hover:text-brand flex items-center bg-white px-4 py-2 rounded-xl border border-gray-100 transition-all shadow-sm">
+            <i class="fa-solid fa-chevron-left mr-2"></i> 返回會員中心
+        </a>
+    </div>
 
-        {% with messages = get_flashed_messages() %}
-            {% if messages %}
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <div class="mb-6 space-y-2">
                 {% for message in messages %}
-                    <div style="background: #e1f5fe; padding: 10px; margin-bottom: 15px; border-radius: 4px;">{{ message }}</div>
+                    <div class="p-4 rounded-xl bg-blue-50 text-blue-700 border border-blue-100 flex items-center">
+                        <i class="fa-solid fa-circle-info mr-3"></i>
+                        <p class="text-sm font-medium">{{ message }}</p>
+                    </div>
                 {% endfor %}
-            {% endif %}
-        {% endwith %}
+            </div>
+        {% endif %}
+    {% endwith %}
 
-        <div class="order-card">
-            <table style="width: 100%; border-collapse: collapse;">
+    <div class="bg-white rounded-3xl border border-gray-100 overflow-hidden shadow-sm">
+        <div class="overflow-x-auto">
+            <table class="w-full">
                 <thead>
-                    <tr style="border-bottom: 2px solid #eee;">
-                        <th style="padding: 12px; text-align: left;">申請時間</th>
-                        <th style="padding: 12px; text-align: left;">相關訂單</th>
-                        <th style="padding: 12px; text-align: center;">狀態</th>
-                        <th style="padding: 12px; text-align: right;">操作</th>
+                    <tr class="bg-gray-50/50">
+                        <th class="px-8 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">申請時間</th>
+                        <th class="px-8 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">相關訂單</th>
+                        <th class="px-8 py-4 text-center text-[10px] font-black text-gray-400 uppercase tracking-widest">狀態</th>
+                        <th class="px-8 py-4 text-right text-[10px] font-black text-gray-400 uppercase tracking-widest">操作</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody class="divide-y divide-gray-50">
                     {% for ret in returns %}
-                    <tr style="border-bottom: 1px solid #eee;">
-                        <td style="padding: 12px;">{{ ret.requested_at.strftime('%Y-%m-%d %H:%M') if ret.requested_at else '-' }}</td>
-                        <td style="padding: 12px;">#{{ ret.order_id }} (總計: ${{ "{:,.0f}".format(ret.order_total) }})</td>
-                        <td style="padding: 12px; text-align: center;">
+                    <tr class="group hover:bg-gray-50/30 transition-colors">
+                        <td class="px-8 py-6 text-sm font-bold text-gray-600">
+                            {{ ret.requested_at.strftime('%Y/%m/%d %H:%M') if ret.requested_at else '-' }}
+                        </td>
+                        <td class="px-8 py-6">
+                            <div class="flex flex-col">
+                                <span class="text-sm font-black text-gray-900 tracking-tight mb-1">#{{ ret.order_id }}</span>
+                                <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">金額: NT$ {{ "{:,.0f}".format(ret.order_total) }}</span>
+                            </div>
+                        </td>
+                        <td class="px-8 py-6 text-center">
                             {% if ret.status == 'requested' %}
-                                <span style="color: #f39c12;">待審核</span>
+                                <span class="inline-flex items-center px-3 py-1 rounded-full bg-amber-50 text-amber-600 text-[10px] font-bold border border-amber-100 uppercase tracking-widest">待審核</span>
                             {% elif ret.status == 'approved' %}
-                                <span style="color: #3498db;">已受理</span>
+                                <span class="inline-flex items-center px-3 py-1 rounded-full bg-blue-50 text-blue-600 text-[10px] font-bold border border-blue-100 uppercase tracking-widest">已受理</span>
                             {% elif ret.status == 'rejected' %}
-                                <span style="color: #e74c3c;">已拒絕</span>
+                                <span class="inline-flex items-center px-3 py-1 rounded-full bg-red-50 text-red-500 text-[10px] font-bold border border-red-100 uppercase tracking-widest">已拒絕</span>
                             {% elif ret.status == 'refunded' %}
-                                <span style="color: #27ae60;">已退款</span>
+                                <span class="inline-flex items-center px-3 py-1 rounded-full bg-green-50 text-green-600 text-[10px] font-bold border border-green-100 uppercase tracking-widest">已退款</span>
                             {% else %}
-                                {{ ret.status }}
+                                <span class="inline-flex items-center px-3 py-1 rounded-full bg-gray-50 text-gray-600 text-[10px] font-bold border border-gray-100 uppercase tracking-widest">{{ ret.status }}</span>
                             {% endif %}
                         </td>
-                        <td style="padding: 12px; text-align: right;">
-                            <a href="{{ url_for('customer.customer_return.view', id=ret.id) }}" class="btn btn-outline" style="font-size: 13px;">查看詳情</a>
+                        <td class="px-8 py-6 text-right">
+                            <a href="{{ url_for('customer.customer_return.view', id=ret.id) }}" class="inline-flex items-center px-4 py-2 bg-white text-gray-900 border border-gray-200 rounded-xl font-bold text-xs hover:bg-gray-900 hover:text-white transition-all shadow-sm">
+                                查看詳情
+                            </a>
                         </td>
                     </tr>
                     {% else %}
                     <tr>
-                        <td colspan="4" style="text-align: center; padding: 30px;">目前尚無退貨申請紀錄</td>
+                        <td colspan="4" class="py-32 text-center">
+                            <div class="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-6 text-gray-200">
+                                <i class="fa-solid fa-rotate-left text-4xl"></i>
+                            </div>
+                            <h3 class="text-xl font-bold text-gray-900">尚無退貨申請紀錄</h3>
+                        </td>
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
     </div>
-</body>
-</html>
+</div>
+{% endblock %}

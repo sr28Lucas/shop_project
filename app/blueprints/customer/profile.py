@@ -28,8 +28,11 @@ def edit():
         if phone and not Validator.is_valid_phone(phone):
             flash("電話長度需在 8-20 碼之間。", "error")
             return redirect(url_for('customer.profile.edit'))
-        if address and not Validator.is_valid_address(address):
-            flash("地址長度需在 5-100 字元之間。", "error")
+        if address and len(address) < 5:
+            flash("詳細地址若輸入則至少需 5 個字元。", "error")
+            return redirect(url_for('customer.profile.edit'))
+        if address and len(address) > 100:
+            flash("詳細地址長度不能超過 100 字元。", "error")
             return redirect(url_for('customer.profile.edit'))
 
         try:

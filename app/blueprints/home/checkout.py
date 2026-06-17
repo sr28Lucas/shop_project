@@ -268,33 +268,34 @@ def information():
         selected_skus = request.form.getlist('selected_skus')
         if selected_skus:
             session['selected_sku_ids'] = [int(sid) for sid in selected_skus]
-            cart_id = get_active_cart(session['customer_id'])
-
-            format_strings = ','.join(['%s'] * len(session['selected_sku_ids']))
-            cursor.execute(f"""
-                SELECT ci.qty, s.stock, p.name as product_name, v.color, s.size
-                FROM cart_item ci
-                JOIN sku s ON ci.sku_id = s.id
-                JOIN variant v ON s.variant_id = v.id
-                JOIN product p ON v.product_id = p.id
-                WHERE ci.sku_id IN ({format_strings}) AND ci.cart_id = %s
-            """, session['selected_sku_ids'] + [cart_id])
-            items_to_check = cursor.fetchall()
-            for item in items_to_check:
-                if item['qty'] > item['stock']:
-                    flash(f"商品 {item['product_name']} ({item['color']}/{item['size']}) 庫存不足，目前剩餘 {item['stock']}。")
-                    cursor.close()
-                    conn.close()
-                    return redirect(url_for('home.checkout.view_cart'))
-
-            if not request.form.get('name'):
-                cursor.close()
-                conn.close()
-                return render_template('home/information.html', customer=customer)
         
         if 'selected_sku_ids' not in session or not session['selected_sku_ids']:
             flash("請先選擇要結帳的商品")
             return redirect(url_for('home.checkout.view_cart'))
+
+        cart_id = get_active_cart(session['customer_id'])
+        format_strings = ','.join(['%s'] * len(session['selected_sku_ids']))
+        cursor.execute(f"""
+            SELECT ci.qty, s.stock, s.price, p.name as product_name, v.color, s.size
+            FROM cart_item ci
+            JOIN sku s ON ci.sku_id = s.id
+            JOIN variant v ON s.variant_id = v.id
+            JOIN product p ON v.product_id = p.id
+            WHERE ci.sku_id IN ({format_strings}) AND ci.cart_id = %s
+        """, session['selected_sku_ids'] + [cart_id])
+        items_to_check = cursor.fetchall()
+
+        for item in items_to_check:
+            if item['qty'] > item['stock']:
+                flash(f"商品 {item['product_name']} ({item['color']}/{item['size']}) 庫存不足，目前剩餘 {item['stock']}。")
+                cursor.close()
+                conn.close()
+                return redirect(url_for('home.checkout.view_cart'))
+
+        if not request.form.get('name'):
+            cursor.close()
+            conn.close()
+            return render_template('home/information.html', customer=customer)
 
         name = request.form.get('name', '').strip()
         phone = request.form.get('phone', '').strip()
@@ -303,54 +304,46 @@ def information():
         region = request.form.get('region', '')
         locality = request.form.get('locality', '')
 
-        error = None
-        if len(name) < 1 or len(name) > 30:
-            error = "姓名長度需在 1-30 字元之間。"
-        elif len(phone) < 8 or len(phone) > 20:
-            error = "電話長度需在 8-20 碼之間。"
-        elif len(address) < 5 or len(address) > 100:
-            error = "地址長度需在 5-100 字元之間。"
-        
-        if not error:
-            cart_id = get_active_cart(session['customer_id'])
-            format_strings = ','.join(['%s'] * len(session['selected_sku_ids']))
-            
-            cursor_check = conn.cursor(dictionary=True)
-            cursor_check.execute(f"""
-                SELECT ci.qty, s.price, s.stock, p.name as product_name, v.color, s.size
-                FROM cart_item ci
-                JOIN sku s ON ci.sku_id = s.id
-                JOIN variant v ON s.variant_id = v.id
-                JOIN product p ON v.product_id = p.id
-                WHERE ci.sku_id IN ({format_strings}) AND ci.cart_id = %s
-            """, session['selected_sku_ids'] + [cart_id])
-            items_data = cursor_check.fetchall()
-            cursor_check.close()
-            
-            subtotal = 0
-            for item in items_data:
-                if item['qty'] > item['stock']:
-                    error = f"商品 {item['product_name']} ({item['color']}/{item['size']}) 庫存不足，目前剩餘 {item['stock']}。"
-                    break
-                subtotal += item['qty'] * item['price']
+        # Server-side validation
+        if not name or len(name) > 30:
+            flash("請輸入有效的姓名 (1-30 字元)。")
+        elif not phone or not phone.isdigit() or len(phone) < 8 or len(phone) > 20:
+            flash("請輸入有效的電話號碼 (8-20 位數字)。")
+        elif not region or not locality:
+            flash("請選擇配送的縣市與鄉鎮市區。")
+        elif not address or len(address) < 5 or len(address) > 100:
+            flash("請輸入有效的詳細地址 (5-100 字元)。")
+        else:
+            # 額外驗證優惠碼 (不通過則留在本頁，不跳轉)
+            if promo_code:
+                cursor.execute("SELECT * FROM promo_code WHERE code = %s AND is_active = 1 AND is_deleted = 0", (promo_code,))
+                promo = cursor.fetchone()
+                if promo:
+                    # 計算目前的 subtotal 以驗證門檻
+                    subtotal = sum(item['qty'] * item['price'] for item in items_to_check)
+                    is_valid, promo_err = validate_promo_code(promo, subtotal)
+                    if not is_valid:
+                        flash(promo_err)
+                        cursor.close()
+                        conn.close()
+                        return render_template('home/information.html', customer=customer, 
+                                             temp_info={'name': name, 'phone': phone, 'address': address, 'promo_code': promo_code, 'region': region, 'locality': locality})
+                else:
+                    flash("優惠碼無效或不存在。")
+                    cursor.close()
+                    conn.close()
+                    return render_template('home/information.html', customer=customer, 
+                                         temp_info={'name': name, 'phone': phone, 'address': address, 'promo_code': promo_code, 'region': region, 'locality': locality})
 
-            if not error and promo_code:
-                cursor_promo = conn.cursor(dictionary=True)
-                cursor_promo.execute("SELECT * FROM promo_code WHERE code = %s AND is_active = 1 AND is_deleted = 0", (promo_code,))
-                promo = cursor_promo.fetchone()
-                cursor_promo.close()
-                is_valid, error = validate_promo_code(promo, subtotal)
-
-        if error:
-            flash(error)
+            session['checkout_info'] = {'name': name, 'phone': phone, 'region': region, 'locality': locality, 'address': address, 'promo_code': promo_code}
             cursor.close()
             conn.close()
-            return render_template('home/information.html', customer=customer, temp_info={'name': name, 'phone': phone, 'address': address, 'promo_code': promo_code, 'region': region, 'locality': locality})
-
-        session['checkout_info'] = {'name': name, 'phone': phone, 'region': region, 'locality': locality, 'address': address, 'promo_code': promo_code}
+            return redirect(url_for('home.checkout.payment'))
+        
         cursor.close()
         conn.close()
-        return redirect(url_for('home.checkout.payment'))
+        return render_template('home/information.html', customer=customer, 
+                                 temp_info={'name': name, 'phone': phone, 'address': address, 'promo_code': promo_code, 'region': region, 'locality': locality})
     
     cursor.close()
     conn.close()

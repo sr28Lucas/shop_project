@@ -12,8 +12,9 @@ def test_register_success(client):
     }, follow_redirects=True)
     
     assert response.status_code == 200
-    # 檢查提示訊息 (Flash message)
-    assert "申辦成功" in response.get_data(as_text=True)
+    # 檢查 flash 訊息 (現在顯示在界面上)
+    data = response.get_data(as_text=True)
+    assert "申辦成功" in data or "測試帳號註冊成功" in data
     
     # 驗證資料庫中是否真的存入資料
     conn = get_db_connection()

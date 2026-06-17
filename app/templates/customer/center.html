@@ -2,143 +2,100 @@
 
 {% block title %}會員中心{% endblock %}
 
-{% block head %}
-<style>
-    .center-container { 
-        display: flex; 
-        gap: 30px; 
-        flex-wrap: wrap; 
-    }
-
-    .center-card { 
-        flex: 1 1 300px; 
-        background: white; 
-        border-radius: 8px; 
-        box-shadow: 0 2px 8px rgba(0,0,0,0.05); 
-        overflow: hidden; 
-    }
-
-    .center-card-header { 
-        background: #f8f9fa; 
-        padding: 15px 20px; 
-        font-weight: bold; 
-        border-bottom: 1px solid #eee; 
-        color: #2c3e50; 
-    }
-
-    .center-card-body { 
-        padding: 20px; 
-    }
-
-    .center-list { 
-        list-style: none; 
-        padding: 0; 
-        margin: 0; 
-    }
-
-    .center-list li { 
-        margin-bottom: 15px; 
-    }
-
-    .center-list li a { 
-        text-decoration: none; 
-        color: #555; 
-        display: block; 
-        padding: 10px; 
-        border-radius: 4px; 
-        border: 1px solid #eee; 
-        transition: all 0.2s; 
-    }
-
-    .center-list li a:hover { 
-        background: #f8f9fa; 
-        color: #d63384; 
-        border-color: #d63384; 
-    }
-
-    .user-welcome { 
-        background: white; 
-        padding: 20px; 
-        border-radius: 8px; 
-        margin-bottom: 30px; 
-        display: flex; 
-        justify-content: space-between; 
-        align-items: center; 
-        box-shadow: 0 2px 8px rgba(0,0,0,0.05); 
-    }
-</style>
-{% endblock %}
-
 {% block content %}
-    <div class="user-welcome">
-        <div>
-            <span style="font-size: 20px; font-weight: bold; color: #2c3e50;">
-                您好，{{ user.name }}！
-            </span>
-            <p style="margin: 5px 0 0 0; color: #888;">
-                歡迎來到會員中心，您可以在這裡管理您的個人資料與訂單。
-            </p>
+<div class="max-w-7xl mx-auto py-10">
+    <!-- Welcome Section -->
+    <div class="bg-white rounded-3xl border border-gray-100 p-8 mb-10 shadow-sm flex flex-col md:flex-row justify-between items-center gap-6">
+        <div class="flex items-center gap-6">
+            <div class="w-20 h-20 rounded-full bg-brand/10 flex items-center justify-center text-brand text-3xl font-black border-4 border-white shadow-lg">
+                {{ user.name[0] }}
+            </div>
+            <div>
+                <h2 class="text-3xl font-black text-gray-900 tracking-tight mb-1">您好，{{ user.name }}！</h2>
+                <p class="text-sm text-gray-400 font-medium">歡迎來到您的個人專區，管理您的風格與體驗。</p>
+            </div>
         </div>
-
-        <a href="{{ url_for('auth.logout') }}" onclick="return confirm('確定要登出嗎？');"
-           style="background: #6c757d; color: white; padding: 8px 20px; border-radius: 4px; text-decoration: none; font-weight: bold;">
-            登出系統
-        </a>
+        <div class="flex gap-4">
+            <a href="{{ url_for('customer.profile.edit') }}" class="px-6 py-3 bg-gray-50 text-gray-900 rounded-xl font-bold text-sm hover:bg-gray-100 transition-all border border-gray-100">
+                編輯資料
+            </a>
+            <a href="{{ url_for('auth.logout') }}" onclick="return confirm('確定要登出嗎？');"
+               class="px-6 py-3 bg-red-50 text-red-500 rounded-xl font-bold text-sm hover:bg-red-500 hover:text-white transition-all border border-red-100">
+                登出系統
+            </a>
+        </div>
     </div>
 
-    <div class="center-container">
-        <div class="center-card">
-            <div class="center-card-header">👤 會員資料</div>
-            <div class="center-card-body">
-                <ul class="center-list">
-                    <li>
-                        <a href="{{ url_for('customer.profile.edit') }}">
-                            編輯個人基本資料
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{{ url_for('customer.profile.change_password') }}">
-                            修改帳號密碼
-                        </a>
-                    </li>
-                </ul>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <!-- Profile Card -->
+        <div class="group bg-white rounded-3xl border border-gray-100 p-8 shadow-sm hover:shadow-xl transition-all duration-300">
+            <div class="w-12 h-12 rounded-2xl bg-brand/5 flex items-center justify-center text-brand mb-6 group-hover:bg-brand group-hover:text-white transition-all">
+                <i class="fa-solid fa-user text-xl"></i>
             </div>
+            <h3 class="text-xl font-black text-gray-900 mb-4 tracking-tight">會員資料</h3>
+            <p class="text-sm text-gray-400 font-medium mb-8 leading-relaxed">維護您的個人基本資訊，確保配送資料正確無誤。</p>
+            <ul class="space-y-3">
+                <li>
+                    <a href="{{ url_for('customer.profile.edit') }}" class="flex items-center justify-between text-sm font-bold text-gray-600 hover:text-brand transition-colors p-3 rounded-xl hover:bg-gray-50 group/item">
+                        <span>編輯基本資料</span>
+                        <i class="fa-solid fa-chevron-right text-[10px] transform group-hover/item:translate-x-1 transition-transform"></i>
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ url_for('customer.profile.change_password') }}" class="flex items-center justify-between text-sm font-bold text-gray-600 hover:text-brand transition-colors p-3 rounded-xl hover:bg-gray-50 group/item">
+                        <span>修改帳號密碼</span>
+                        <i class="fa-solid fa-chevron-right text-[10px] transform group-hover/item:translate-x-1 transition-transform"></i>
+                    </a>
+                </li>
+            </ul>
         </div>
 
-        <div class="center-card">
-            <div class="center-card-header">📦 訂單管理</div>
-            <div class="center-card-body">
-                <ul class="center-list">
-                    <li>
-                        <a href="{{ url_for('customer.customer_order.order_list') }}">
-                            查詢歷史訂單紀錄
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{{ url_for('customer.customer_return.list_requests') }}">
-                            查詢退貨申請進度
-                        </a>
-                    </li>
-                </ul>
+        <!-- Orders Card -->
+        <div class="group bg-white rounded-3xl border border-gray-100 p-8 shadow-sm hover:shadow-xl transition-all duration-300">
+            <div class="w-12 h-12 rounded-2xl bg-brand/5 flex items-center justify-center text-brand mb-6 group-hover:bg-brand group-hover:text-white transition-all">
+                <i class="fa-solid fa-box text-xl"></i>
             </div>
+            <h3 class="text-xl font-black text-gray-900 mb-4 tracking-tight">訂單管理</h3>
+            <p class="text-sm text-gray-400 font-medium mb-8 leading-relaxed">追蹤您的訂單狀態、查看購買歷史及管理退貨申請。</p>
+            <ul class="space-y-3">
+                <li>
+                    <a href="{{ url_for('customer.customer_order.order_list') }}" class="flex items-center justify-between text-sm font-bold text-gray-600 hover:text-brand transition-colors p-3 rounded-xl hover:bg-gray-50 group/item">
+                        <span>查詢歷史訂單</span>
+                        <i class="fa-solid fa-chevron-right text-[10px] transform group-hover/item:translate-x-1 transition-transform"></i>
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ url_for('customer.customer_return.list_requests') }}" class="flex items-center justify-between text-sm font-bold text-gray-600 hover:text-brand transition-colors p-3 rounded-xl hover:bg-gray-50 group/item">
+                        <span>退貨進度查詢</span>
+                        <i class="fa-solid fa-chevron-right text-[10px] transform group-hover/item:translate-x-1 transition-transform"></i>
+                    </a>
+                </li>
+            </ul>
         </div>
 
-        <div class="center-card">
-            <div class="center-card-header">💬 客服與支援</div>
-            <div class="center-card-body">
-                <ul class="center-list">
-                    <li>
-                        <a href="{{ url_for('home.support.new_inquiry') }}">
-                            向客服人員提問
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{{ url_for('home.support.list_inquiries') }}">
-                            查看客服對話歷史
-                        </a>
-                    </li>
-                </ul>
+        <!-- Support Card -->
+        <div class="group bg-white rounded-3xl border border-gray-100 p-8 shadow-sm hover:shadow-xl transition-all duration-300">
+            <div class="w-12 h-12 rounded-2xl bg-brand/5 flex items-center justify-center text-brand mb-6 group-hover:bg-brand group-hover:text-white transition-all">
+                <i class="fa-solid fa-comments text-xl"></i>
             </div>
+            <h3 class="text-xl font-black text-gray-900 mb-4 tracking-tight">客服與支援</h3>
+            <p class="text-sm text-gray-400 font-medium mb-8 leading-relaxed">有任何問題嗎？我們的客服團隊隨時準備為您提供協助。</p>
+            <ul class="space-y-3">
+                <li>
+                    <a href="{{ url_for('home.support.new_inquiry') }}" class="flex items-center justify-between text-sm font-bold text-gray-600 hover:text-brand transition-colors p-3 rounded-xl hover:bg-gray-50 group/item">
+                        <span>向客服提問</span>
+                        <i class="fa-solid fa-chevron-right text-[10px] transform group-hover/item:translate-x-1 transition-transform"></i>
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ url_for('home.support.list_inquiries') }}" class="flex items-center justify-between text-sm font-bold text-gray-600 hover:text-brand transition-colors p-3 rounded-xl hover:bg-gray-50 group/item">
+                        <span>客服對話紀錄</span>
+                        <i class="fa-solid fa-chevron-right text-[10px] transform group-hover/item:translate-x-1 transition-transform"></i>
+                    </a>
+                </li>
+            </ul>
         </div>
     </div>
+
+</div>
 {% endblock %}

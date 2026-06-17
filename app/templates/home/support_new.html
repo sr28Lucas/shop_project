@@ -1,99 +1,66 @@
 {% extends "home/base.html" %}
 
-{% block title %}回客服人員提問{% endblock %}
+{% block title %}建立客服諮詢 - VIVID{% endblock %}
 
 {% block content %}
-<style>
-    .support-container {
-        max-width: 900px;
-        margin: 30px auto;
-        background: white;
-        padding: 30px;
-        border-radius: 8px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.08);
-    }
-
-    .form-group {
-        margin-bottom: 18px;
-    }
-
-    label {
-        display: block;
-        margin-bottom: 8px;
-        font-weight: bold;
-    }
-
-    select, textarea {
-        width: 100%;
-        padding: 10px;
-        border: 1px solid #ddd;
-        border-radius: 4px;
-        box-sizing: border-box;
-    }
-
-    textarea {
-        height: 160px;
-        resize: vertical;
-    }
-
-    .btn {
-        display: inline-block;
-        padding: 10px 18px;
-        border: none;
-        border-radius: 4px;
-        background: #d63384;
-        color: white;
-        text-decoration: none;
-        cursor: pointer;
-    }
-
-    .btn-gray {
-        background: #6c757d;
-    }
-
-    .flash {
-        background: #fff3cd;
-        border: 1px solid #ffeeba;
-        padding: 10px 15px;
-        margin-bottom: 15px;
-        border-radius: 4px;
-        color: #856404;
-    }
-</style>
-
-<div class="support-container">
-    <h2>回客服人員提問</h2>
-
-    {% with messages = get_flashed_messages() %}
-        {% if messages %}
-            {% for message in messages %}
-                <div class="flash">{{ message }}</div>
-            {% endfor %}
-        {% endif %}
-    {% endwith %}
-
-    <form method="post" action="{{ url_for('home.support.new_inquiry') }}">
-        <div class="form-group">
-            <label>問題類型</label>
-            <select name="purpose" required>
-                <option value="">請選擇問題類型</option>
-                <option value="商品問題">商品問題</option>
-                <option value="尺寸問題">尺寸問題</option>
-                <option value="訂單問題">訂單問題</option>
-                <option value="付款問題">付款問題</option>
-                <option value="出貨問題">出貨問題</option>
-                <option value="退貨退款">退貨退款</option>
-                <option value="其他問題">其他問題</option>
-            </select>
+<div class="max-w-3xl mx-auto py-10 px-4">
+    <div class="flex items-center justify-between mb-10">
+        <div>
+            <nav class="flex text-xs text-gray-400 mb-2 space-x-2">
+                <a href="{{ url_for('home.index') }}" class="hover:text-brand transition-colors">首頁</a>
+                <span>/</span>
+                <a href="{{ url_for('customer.center') }}" class="hover:text-brand transition-colors">會員中心</a>
+                <span>/</span>
+                <span class="text-gray-600 font-medium">建立諮詢</span>
+            </nav>
+            <h1 class="text-3xl font-black text-gray-900 tracking-tight">建立客服諮詢</h1>
         </div>
+        <a href="{{ url_for('home.support.list_inquiries') }}" class="text-xs font-bold text-gray-400 hover:text-brand flex items-center bg-white px-4 py-2 rounded-xl border border-gray-100 transition-all shadow-sm">
+            <i class="fa-solid fa-chevron-left mr-2"></i> 返回列表
+        </a>
+    </div>
 
-        <div class="form-group">
-            <label>問題內容</label>
-            <textarea name="content" placeholder="請輸入您想詢問客服的問題..." required></textarea>
-        </div>
+    <div class="bg-white rounded-[32px] border border-gray-100 p-8 md:p-12 shadow-sm">
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <div class="mb-10 p-4 rounded-xl bg-amber-50 text-amber-700 border border-amber-100 flex items-center text-sm font-medium">
+                    <i class="fa-solid fa-circle-exclamation mr-3"></i>
+                    {{ messages[0] }}
+                </div>
+            {% endif %}
+        {% endwith %}
 
-        <button type="submit" class="btn">送出問題</button>
-        <a href="{{ url_for('home.support.list_inquiries') }}" class="btn btn-gray">查看客服對話歷史</a>
-    </form>
+        <form method="post" action="{{ url_for('home.support.new_inquiry') }}" class="space-y-8">
+            <div class="space-y-2">
+                <label class="text-xs font-black text-gray-400 uppercase tracking-widest ml-1">問題類型 <span class="text-brand">*</span></label>
+                <select name="purpose" required 
+                        class="w-full px-6 py-4 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-brand/20 transition-all outline-none text-gray-900 font-medium appearance-none">
+                    <option value="">請選擇最符合您的類別</option>
+                    <option value="商品問題">🛍️ 商品細節與預購諮詢</option>
+                    <option value="尺寸問題">📏 尺寸建議與對照</option>
+                    <option value="訂單問題">📑 訂單狀態與變更</option>
+                    <option value="付款問題">💳 付款失敗或授權諮詢</option>
+                    <option value="出貨問題">🚚 物流進度與追蹤</option>
+                    <option value="退貨退款">↩️ 退貨申請與退款查詢</option>
+                    <option value="其他問題">✨ 其他意見回饋</option>
+                </select>
+            </div>
+
+            <div class="space-y-2">
+                <label class="text-xs font-black text-gray-400 uppercase tracking-widest ml-1">諮詢內容 <span class="text-brand">*</span></label>
+                <textarea name="content" required placeholder="請詳細描述您的問題，如有相關訂單編號也請一併提供，我們將會更快速為您處理..." 
+                          class="w-full h-64 px-6 py-5 bg-gray-50 border-none rounded-[32px] focus:ring-2 focus:ring-brand/20 transition-all outline-none text-gray-900 font-medium leading-relaxed"></textarea>
+            </div>
+
+            <div class="pt-4 flex flex-col md:flex-row gap-4 items-center">
+                <button type="submit" class="w-full md:flex-1 py-5 bg-gray-900 text-white rounded-2xl font-bold text-lg hover:bg-brand transition-all duration-300 shadow-xl shadow-gray-200 hover:shadow-brand/20">
+                    送出問題諮詢 <i class="fa-solid fa-paper-plane ml-2"></i>
+                </button>
+                <p class="text-[10px] text-gray-400 font-medium text-center md:text-left leading-relaxed md:max-w-[200px]">
+                    諮詢送出後，客服人員通常會在 24 小時內（工作日）給予回覆。
+                </p>
+            </div>
+        </form>
+    </div>
 </div>
 {% endblock %}

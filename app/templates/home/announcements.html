@@ -3,37 +3,61 @@
 {% block title %}公告列表{% endblock %}
 
 {% block content %}
-    <h2 style="border-bottom: 2px solid #d63384; padding-bottom: 10px; margin-bottom: 30px;">最新公告</h2>
+<div class="max-w-4xl mx-auto">
+    <div class="mb-12">
+        <nav class="flex text-xs text-gray-400 mb-4 space-x-2">
+            <a href="{{ url_for('home.index') }}" class="hover:text-brand">首頁</a>
+            <span>/</span>
+            <span class="text-gray-600 font-medium">最新公告</span>
+        </nav>
+        <h2 class="text-4xl font-black text-gray-900 tracking-tight">最新公告 <span class="text-brand font-light">/ News</span></h2>
+        <p class="text-gray-500 mt-4">掌握 VIVID 的最新動態、活動資訊與服務變更。</p>
+    </div>
 
-    <div class="announcement-list">
+    <div class="space-y-6">
         {% for a in announcements %}
-            <div style="background: white; border-radius: 8px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
-                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
-                    <h3 style="margin: 0; color: #2c3e50;">
+            <div class="group bg-white rounded-3xl border border-gray-100 p-8 shadow-sm hover:shadow-xl transition-all duration-300">
+                <div class="flex flex-col md:flex-row justify-between items-start gap-4 mb-6">
+                    <div class="flex flex-wrap items-center gap-3">
                         {% if a.pin %}
-                            <span style="background: #d63384; color: white; font-size: 12px; padding: 2px 6px; border-radius: 3px; vertical-align: middle; margin-right: 8px;">置頂</span>
+                            <span class="bg-gray-900 text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-widest flex items-center">
+                                <i class="fa-solid fa-thumbtack mr-1.5 text-[8px]"></i> 置頂
+                            </span>
                         {% endif %}
                         {% if a.type == 'important' %}
-                            <span style="background: #ff4757; color: white; font-size: 12px; padding: 2px 6px; border-radius: 3px; vertical-align: middle; margin-right: 8px;">重要</span>
+                            <span class="bg-red-50 text-red-500 text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-widest border border-red-100">重要</span>
+                        {% elif a.type == 'event' %}
+                            <span class="bg-green-50 text-green-500 text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-widest border border-green-100">活動</span>
+                        {% else %}
+                            <span class="bg-blue-50 text-blue-500 text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-widest border border-blue-100">公告</span>
                         {% endif %}
-                        {% if a.type == 'event' %}
-                            <span style="background: #2ed573; color: white; font-size: 12px; padding: 2px 6px; border-radius: 3px; vertical-align: middle; margin-right: 8px;">活動</span>
-                        {% endif %}
-                        <a href="{{ url_for('home.announcement_view', id=a.id) }}" style="text-decoration: none; color: inherit;">{{ a.title }}</a>
-                    </h3>
-                    <small style="color: #888;">{{ a.created_at.strftime('%Y-%m-%d') if a.created_at else '' }}</small>
+                        <h3 class="text-xl font-black text-gray-900 group-hover:text-brand transition-colors">
+                            <a href="{{ url_for('home.announcement_view', id=a.id) }}">{{ a.title }}</a>
+                        </h3>
+                    </div>
+                    <time class="text-xs font-bold text-gray-400 uppercase tracking-widest bg-gray-50 px-3 py-1 rounded-full">
+                        {{ a.created_at.strftime('%Y/%m/%d') if a.created_at else '' }}
+                    </time>
                 </div>
-                <div style="line-height: 1.6; color: #666; max-height: 100px; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;">
+                
+                <div class="text-gray-600 leading-relaxed text-sm line-clamp-3 mb-8">
                     {{ a.content }}
                 </div>
-                <div style="margin-top: 15px;">
-                    <a href="{{ url_for('home.announcement_view', id=a.id) }}" style="color: #d63384; font-weight: bold; text-decoration: none;">閱讀更多 →</a>
+                
+                <div class="flex justify-end">
+                    <a href="{{ url_for('home.announcement_view', id=a.id) }}" class="inline-flex items-center text-xs font-black text-brand hover:translate-x-2 transition-transform uppercase tracking-widest">
+                        閱讀更多 <i class="fa-solid fa-arrow-right ml-2"></i>
+                    </a>
                 </div>
             </div>
         {% else %}
-            <div style="text-align: center; padding: 50px; color: #888;">
-                目前暫無公告。
+            <div class="text-center py-32 bg-white rounded-3xl border border-gray-100 shadow-sm">
+                <div class="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-6 text-gray-200">
+                    <i class="fa-solid fa-bullhorn text-4xl"></i>
+                </div>
+                <h3 class="text-xl font-bold text-gray-900">目前暫無公告</h3>
             </div>
         {% endfor %}
     </div>
+</div>
 {% endblock %}

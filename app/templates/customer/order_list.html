@@ -1,54 +1,92 @@
-<!DOCTYPE html>
-<html lang="zh-Hant">
-<head>
-    <meta charset="UTF-8">
-    <title>我的訂單 - 會員中心</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/customer/common.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/customer/order.css') }}">
-</head>
-<body>
-    <div style="max-width: 800px; margin: 0 auto; padding: 20px;">
-        <h1>我的訂單</h1>
-        <div class="action-bar" style="margin-bottom: 20px;">
-            <a href="{{ url_for('customer.center') }}" class="btn btn-outline">← 返回會員中心</a>
-        </div>
+{% extends "home/base.html" %}
 
-        {% with messages = get_flashed_messages() %}
+{% block title %}我的訂單 - 會員中心{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto py-10">
+    <div class="flex items-center justify-between mb-10">
+        <div>
+            <nav class="flex text-xs text-gray-400 mb-2 space-x-2">
+                <a href="{{ url_for('home.index') }}" class="hover:text-brand">首頁</a>
+                <span>/</span>
+                <a href="{{ url_for('customer.center') }}" class="hover:text-brand">會員中心</a>
+                <span>/</span>
+                <span class="text-gray-600 font-medium">我的訂單</span>
+            </nav>
+            <h1 class="text-3xl font-black text-gray-900 tracking-tight">我的訂單</h1>
+        </div>
+        <a href="{{ url_for('customer.center') }}" class="text-xs font-bold text-gray-400 hover:text-brand flex items-center bg-white px-4 py-2 rounded-xl border border-gray-100 transition-all shadow-sm">
+            <i class="fa-solid fa-chevron-left mr-2"></i> 返回會員中心
+        </a>
+    </div>
+
+    {% with messages = get_flashed_messages() %}
         {% if messages %}
-            <div class="flash-msg" style="padding: 10px; background: #eee; margin-bottom: 20px;">
-            {% for message in messages %} {{ message }} {% endfor %}
+            <div class="mb-6 space-y-2">
+                {% for message in messages %}
+                    <div class="p-4 rounded-xl bg-blue-50 text-blue-700 border border-blue-100 flex items-center">
+                        <i class="fa-solid fa-circle-info mr-3"></i>
+                        <p class="text-sm font-medium">{{ message }}</p>
+                    </div>
+                {% endfor %}
             </div>
         {% endif %}
-        {% endwith %}
+    {% endwith %}
 
+    <div class="space-y-6">
         {% for order in orders %}
-        <div class="order-card">
-            <div class="order-header">
-                <strong>訂單編號：#{{ order.id }}</strong>
-                <span class="status-badge status-{{ order.status }}">
-                    {% if order.status == 'pending' %}待處理
-                    {% elif order.status == 'shipped' %}已出貨
-                    {% elif order.status == 'completed' %}已完成
-                    {% elif order.status == 'cancelled' %}已取消
-                    {% elif order.status == 'refunded' %}已退款
-                    {% else %}{{ order.status }}{% endif %}
-                </span>
+            <div class="group bg-white rounded-3xl border border-gray-100 p-8 shadow-sm hover:shadow-xl transition-all duration-300">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+                    <div class="space-y-2">
+                        <div class="flex items-center gap-4">
+                            <span class="text-lg font-black text-gray-900">#{{ order.id }}</span>
+                            {% if order.status == 'pending' %}
+                                <span class="bg-amber-50 text-amber-600 text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-widest border border-amber-100">待處理</span>
+                            {% elif order.status == 'shipped' %}
+                                <span class="bg-blue-50 text-blue-600 text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-widest border border-blue-100">已出貨</span>
+                            {% elif order.status == 'completed' %}
+                                <span class="bg-green-50 text-green-600 text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-widest border border-green-100">已完成</span>
+                            {% elif order.status == 'cancelled' %}
+                                <span class="bg-gray-50 text-gray-400 text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-widest border border-gray-100">已取消</span>
+                            {% elif order.status == 'refunded' %}
+                                <span class="bg-red-50 text-red-500 text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-widest border border-red-100">已退款</span>
+                            {% else %}
+                                <span class="bg-gray-50 text-gray-600 text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-widest border border-gray-100">{{ order.status }}</span>
+                            {% endif %}
+                        </div>
+                        <div class="flex items-center text-xs text-gray-400 font-medium space-x-4">
+                            <span class="flex items-center"><i class="fa-regular fa-calendar mr-1.5"></i> {{ order.created_at.strftime('%Y/%m/%d %H:%M') }}</span>
+                            <span class="flex items-center"><i class="fa-solid fa-money-bill-wave mr-1.5 text-[10px]"></i> NT$ {{ "{:,.0f}".format(order.total) }}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center gap-3 w-full md:w-auto">
+                        {% if (order.shipment_status == 'pending' or order.shipment_status == None) and order.status != 'cancelled' %}
+                        <form action="{{ url_for('customer.customer_order.cancel_order', id=order.id) }}" method="POST" class="flex-1 md:flex-none">
+                            <button type="submit" class="w-full px-6 py-3 bg-white text-red-500 border border-red-100 rounded-xl font-bold text-sm hover:bg-red-50 transition-all text-center" 
+                                    onclick="return confirm('確定要取消此訂單嗎？')">
+                                取消訂單
+                            </button>
+                        </form>
+                        {% endif %}
+                        <a href="{{ url_for('customer.customer_order.order_view', id=order.id) }}" class="flex-1 md:flex-none px-6 py-3 bg-gray-900 text-white rounded-xl font-bold text-sm hover:bg-brand transition-all text-center">
+                            查看詳情
+                        </a>
+                    </div>
+                </div>
             </div>
-            <p>建立時間：{{ order.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
-            <p>金額：${{ "{:,.0f}".format(order.total) }}</p>
-            
-            <div class="action-bar">
-                <a href="{{ url_for('customer.customer_order.order_view', id=order.id) }}" class="btn btn-primary">查看詳情</a>
-                {% if (order.shipment_status == 'pending' or order.shipment_status == None) and order.status != 'cancelled' %}
-                <form action="{{ url_for('customer.customer_order.cancel_order', id=order.id) }}" method="POST" style="display:inline;">
-                    <button type="submit" class="btn btn-danger" onclick="return confirm('確定要取消此訂單嗎？')">取消訂單</button>
-                </form>
-                {% endif %}
-            </div>
-        </div>
         {% else %}
-        <p style="text-align: center; padding: 30px;">尚無訂單紀錄</p>
+            <div class="text-center py-32 bg-white rounded-3xl border border-gray-100 shadow-sm">
+                <div class="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-6 text-gray-200">
+                    <i class="fa-solid fa-clipboard-list text-4xl"></i>
+                </div>
+                <h3 class="text-xl font-bold text-gray-900 mb-2">尚無訂單紀錄</h3>
+                <p class="text-gray-400 mb-8">還沒有在 VIVID 留下您的風格足跡嗎？</p>
+                <a href="{{ url_for('home.index') }}" class="inline-flex items-center justify-center px-10 py-4 bg-brand text-white rounded-full font-bold shadow-xl shadow-brand/20 hover:scale-105 transition-all">
+                    現在就去逛逛
+                </a>
+            </div>
         {% endfor %}
     </div>
-</body>
-</html>
+</div>
+{% endblock %}

@@ -2,226 +2,200 @@
 
 {% block title %}{{ product.name }}{% endblock %}
 
-{% block head %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/home/product_view.css') }}">
-<style>
-    /* 評價系統 CSS */
-    .review-section { font-family: sans-serif; margin-top: 40px; color: #333; padding-top: 20px; border-top: 2px solid #eee;}
-    .review-header { display: flex; gap: 40px; margin-bottom: 30px; align-items: center; flex-wrap: wrap;}
-    .overall-score-box { text-align: center; }
-    .overall-score { font-size: 3.5em; font-weight: bold; line-height: 1;}
-    .stars { color: #f5c518; font-size: 1.2em; letter-spacing: 2px;}
-    .sub-scores { display: flex; flex-direction: column; gap: 8px; border-left: 2px solid #eee; padding-left: 30px; }
-    .sub-score-item { display: flex; justify-content: space-between; width: 140px; font-size: 1em;}
-    
-    .fit-section { margin-bottom: 30px; padding: 20px; background: #f8f9fa; border-radius: 8px;}
-    .fit-title { font-weight: bold; margin-bottom: 15px; font-size: 1em;}
-    .fit-bar-container { display: flex; align-items: center; justify-content: space-between; text-align: center; font-size: 0.9em; color: #666; }
-    .fit-item { flex: 1; display: flex; flex-direction: column; align-items: center; }
-    .progress-track { width: 90%; height: 6px; background: #ddd; border-radius: 3px; margin: 8px 0; overflow: hidden; position: relative; }
-    .progress-fill { height: 100%; background: #333; position: absolute; left: 0; }
-    
-    .review-card { border-bottom: 1px solid #eee; padding: 20px 0; }
-    .reviewer-info { font-size: 0.9em; color: #888; margin-bottom: 8px; display: flex; justify-content: space-between;}
-    .review-specs { font-size: 0.85em; color: #777; margin: 8px 0; background: #f1f1f1; display: inline-block; padding: 4px 10px; border-radius: 4px;}
-    .review-comment { font-size: 1em; line-height: 1.6; margin-top: 10px; color: #222;}
-
-    /* =========================================
-       蝦皮風格：商品縮圖外層與按鈕內嵌 CSS (確保權重最高)
-    ========================================= */
-    .thumbnail-container {
-        position: relative;
-        width: 100%;
-        max-width: 450px;
-        margin-top: 10px;
-    }
-
-    .thumbnail-list {
-        display: flex !important;          
-        overflow-x: auto !important;       
-        flex-wrap: nowrap !important;      
-        gap: 10px !important;              
-        scroll-behavior: smooth;
-        padding-bottom: 0 !important;
-        -ms-overflow-style: none !important;  /* IE/Edge 隱藏捲軸 */
-        scrollbar-width: none !important;     /* Firefox 隱藏捲軸 */
-    }
-    .thumbnail-list::-webkit-scrollbar {
-        display: none !important;             /* Chrome/Safari 隱藏捲軸 */
-    }
-
-    .thumbnail-list .thumbnail {
-        flex-shrink: 0 !important;         
-        width: 80px !important;            
-        height: 80px !important;           
-        cursor: pointer;
-        border: 2px solid transparent; 
-        border-radius: 4px;
-        overflow: hidden;
-    }
-    .thumbnail-list .thumbnail.active { border-color: #d63384 !important; }
-    .thumbnail-list .thumbnail img { width: 100% !important; height: 100% !important; object-fit: cover !important; }
-
-    .slide-btn {
-        position: absolute;
-        top: 50%;
-        transform: translateY(-50%);
-        background-color: rgba(0, 0, 0, 0.4);
-        color: white;
-        border: none;
-        width: 24px;
-        height: 40px;
-        cursor: pointer;
-        z-index: 10;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 14px;
-        transition: background-color 0.3s;
-    }
-    .slide-btn:hover { background-color: rgba(0, 0, 0, 0.8); }
-    .left-btn { left: 0; border-top-right-radius: 4px; border-bottom-right-radius: 4px; }
-    .right-btn { right: 0; border-top-left-radius: 4px; border-bottom-left-radius: 4px; }
-</style>
-{% endblock %}
-
 {% block content %}
-    <div class="product-detail-container">
-        <div class="product-images">
-            <div class="main-image">
-                <img id="mainImg" src="{{ url_for('static', filename='upload/' + product.main_image) if product.main_image else '' }}" alt="{{ product.name }}">
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-20 max-w-6xl mx-auto">
+    <!-- Image Gallery Section -->
+    <div class="lg:col-span-5">
+        <div class="sticky top-28 space-y-6">
+            <div class="aspect-[3/4] rounded-3xl overflow-hidden bg-white shadow-xl">
+                <img id="mainImg" src="{{ url_for('static', filename='upload/' + product.main_image) if product.main_image else '' }}" 
+                     alt="{{ product.name }}" class="w-full h-full object-cover transition-opacity duration-300">
             </div>
             
-            <div class="thumbnail-container">
-                <button class="slide-btn left-btn" onclick="slideThumbnails(-1)" type="button">❮</button>
+            <div class="relative group max-w-[400px] mx-auto">
+                <button class="absolute -left-4 top-1/2 -translate-y-1/2 w-8 h-8 bg-white/80 backdrop-blur rounded-full shadow-lg flex items-center justify-center text-gray-800 hover:bg-white transition-all z-10" onclick="slideThumbnails(-1)">
+                    <i class="fa-solid fa-chevron-left text-xs"></i>
+                </button>
                 
-                <div class="thumbnail-list" id="thumbList">
+                <div class="flex gap-3 overflow-x-auto pb-2 no-scrollbar scroll-smooth" id="thumbList">
                     {% for img in product_images %}
-                        <div class="thumbnail {{ 'active' if img.filename == product.main_image }}" onclick="changeMainImage('{{ url_for('static', filename='upload/' + img.filename) }}', this)">
-                            <img src="{{ url_for('static', filename='upload/' + img.filename) }}" alt="{{ product.name }}">
+                        <div class="flex-shrink-0 w-20 aspect-[3/4] rounded-xl overflow-hidden cursor-pointer border-2 transition-all duration-200 thumbnail {{ 'border-brand ring-2 ring-brand/20' if img.filename == product.main_image else 'border-transparent hover:border-gray-300' }}" 
+                             onclick="changeMainImage('{{ url_for('static', filename='upload/' + img.filename) }}', this)">
+                            <img src="{{ url_for('static', filename='upload/' + img.filename) }}" alt="{{ product.name }}" class="w-full h-full object-cover">
                         </div>
                     {% endfor %}
                 </div>
                 
-                <button class="slide-btn right-btn" onclick="slideThumbnails(1)" type="button">❯</button>
-            </div>
-        </div>
-        
-        <div class="product-selection">
-            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-                <h1 class="product-title" style="margin-top: 0;">{{ product.name }}</h1>
-                <button type="button" id="wishlist-btn" class="wishlist-btn {{ 'active' if is_in_wishlist }}" onclick="toggleWishlist({{ product.id }})">
-                    <span class="heart-icon">{{ '❤️' if is_in_wishlist else '🤍' }}</span>
+                <button class="absolute -right-4 top-1/2 -translate-y-1/2 w-8 h-8 bg-white/80 backdrop-blur rounded-full shadow-lg flex items-center justify-center text-gray-800 hover:bg-white transition-all z-10" onclick="slideThumbnails(1)">
+                    <i class="fa-solid fa-chevron-right text-xs"></i>
                 </button>
             </div>
-            <div class="product-category">{{ product.category_name }}</div>
-            <form id="add-to-cart-form">
+        </div>
+    </div>
+    
+    <!-- Product Selection Section -->
+    <div class="lg:col-span-7">
+        <div class="space-y-8">
+            <div>
+                <nav class="flex text-xs text-gray-400 mb-4 space-x-2">
+                    <a href="{{ url_for('home.index') }}" class="hover:text-brand">首頁</a>
+                    <span>/</span>
+                    <a href="{{ url_for('home.index', cat=product.category_id) }}" class="hover:text-brand">{{ product.category_name }}</a>
+                </nav>
+                <div class="flex justify-between items-start">
+                    <h1 class="text-3xl lg:text-4xl font-black text-gray-900 tracking-tight leading-tight">{{ product.name }}</h1>
+                    <button type="button" id="wishlist-btn" 
+                            class="w-12 h-12 rounded-full flex items-center justify-center border transition-all duration-300 {{ 'bg-red-50 border-red-100 text-brand' if is_in_wishlist else 'bg-white border-gray-100 text-gray-400 hover:border-brand hover:text-brand' }}" 
+                            onclick="toggleWishlist({{ product.id }})">
+                        <i class="fa-{{ 'solid' if is_in_wishlist else 'regular' }} fa-heart text-xl"></i>
+                    </button>
+                </div>
+            </div>
+
+            <form id="add-to-cart-form" class="space-y-8">
                 <input type="hidden" name="sku_id" id="selected-sku-id">
 
-                <div class="sku-selector">
-                    <label class="sku-label">顏色</label>
-                    <div class="sku-options" id="variant-options">
+                <!-- Variant Selector -->
+                <div class="space-y-4">
+                    <label class="text-xs font-black text-gray-400 uppercase tracking-widest block">選擇顏色</label>
+                    <div class="flex flex-wrap gap-3" id="variant-options">
                         {% for variant in variants %}
-                            <button type="button" class="sku-btn" onclick="selectVariant({{ variant.id }}, this)">
+                            <button type="button" 
+                                    class="px-6 py-3 rounded-xl border-2 text-sm font-bold transition-all duration-200 variant-btn border-gray-100 text-gray-600 hover:border-brand/30 hover:bg-gray-50" 
+                                    onclick="selectVariant({{ variant.id }}, this)">
                                 {{ variant.color }}
                             </button>
                         {% endfor %}
                     </div>
                 </div>
 
-                <div class="sku-selector" id="size-selector" style="display: none;">
-                    <label class="sku-label">尺寸</label>
-                    <div class="sku-options" id="size-options"></div>
+                <!-- Size Selector -->
+                <div class="space-y-4 transition-all duration-300 opacity-0 transform translate-y-4 hidden" id="size-selector">
+                    <label class="text-xs font-black text-gray-400 uppercase tracking-widest block">選擇尺寸</label>
+                    <div class="flex flex-wrap gap-3" id="size-options"></div>
                 </div>
 
-                <div class="sku-selector">
-                    <label class="sku-label">數量</label>
-                    <div class="quantity-selector">
-                        <button type="button" class="qty-btn" onclick="updateQty(-1)">-</button>
-                        <input type="number" name="qty" id="buy-qty" value="1" min="1" max="99">
-                        <button type="button" class="qty-btn" onclick="updateQty(1)">+</button>
+                <!-- Quantity & Price -->
+                <div class="flex items-end justify-between border-t border-gray-100 pt-8">
+                    <div class="space-y-4">
+                        <label class="text-xs font-black text-gray-400 uppercase tracking-widest block">數量</label>
+                        <div class="inline-flex items-center bg-gray-100 rounded-xl p-1">
+                            <button type="button" class="w-10 h-10 flex items-center justify-center text-gray-500 hover:text-brand transition-colors" onclick="updateQty(-1)">
+                                <i class="fa-solid fa-minus"></i>
+                            </button>
+                            <input type="number" name="qty" id="buy-qty" value="1" min="1" max="99" 
+                                   class="w-12 bg-transparent border-none text-center font-bold text-gray-900 focus:ring-0 outline-none">
+                            <button type="button" class="w-10 h-10 flex items-center justify-center text-gray-500 hover:text-brand transition-colors" onclick="updateQty(1)">
+                                <i class="fa-solid fa-plus"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="text-right">
+                        <div id="selected-price" class="text-3xl font-black text-brand tracking-tighter opacity-0 transition-opacity"></div>
                     </div>
                 </div>
                 
-                <div id="selected-price" style="font-size: 24px; color: #d63384; font-weight: bold; margin-bottom: 20px; display: none;"></div>
-                
-                <div class="buy-actions">
-                    <button type="submit" class="btn-cart" id="add-to-cart-btn">加入購物車</button>
+                <div class="pt-4">
+                    <button type="submit" id="add-to-cart-btn" 
+                            class="w-full py-5 bg-gray-900 text-white rounded-2xl font-bold text-lg hover:bg-brand transition-all duration-300 shadow-xl shadow-gray-200 hover:shadow-brand/20 disabled:opacity-50 disabled:cursor-not-allowed">
+                        加入購物車
+                    </button>
                 </div>
-                
-                <div id="cart-message" style="margin-top: 10px; padding: 10px; display: none;"></div>
             </form>
             
-            <div style="margin-top: 40px; border-top: 1px solid #eee; padding-top: 20px;">
-                <h3>商品描述</h3>
-                <p style="white-space: pre-wrap; line-height: 1.6; color: #666;">{{ product.description }}</p>
+            <!-- Description -->
+            <div class="pt-12 border-t border-gray-100">
+                <h3 class="text-sm font-black text-gray-400 uppercase tracking-widest mb-6">商品描述</h3>
+                <div class="prose prose-sm prose-brand max-w-none text-gray-600 leading-relaxed whitespace-pre-wrap">{{ product.description }}</div>
             </div>
-            
-            <div class="review-section">
-                <h3 style="font-size: 1.2em; margin-bottom: 20px;">顧客評論 ({{ stats.total_reviews if stats else 0 }})</h3>
+
+            <!-- Review Section -->
+            <div class="pt-16 border-t border-gray-100">
+                <div class="flex justify-between items-center mb-10">
+                    <h3 class="text-sm font-black text-gray-400 uppercase tracking-widest">顧客評論</h3>
+                    <span class="text-xs font-bold text-gray-500 bg-gray-100 px-3 py-1 rounded-full">{{ stats.total_reviews if stats else 0 }} 則評論</span>
+                </div>
                 
                 {% if stats and stats.total_reviews > 0 %}
-                <div class="review-header">
-                    <div class="overall-score-box">
-                        <div class="overall-score">{{ "{:.2f}".format(stats.avg_overall|float) }}</div>
-                        <div class="stars">
-                            {% for _ in range(stats.avg_overall|round|int) %}★{% endfor %}{% for _ in range(5 - stats.avg_overall|round|int) %}☆{% endfor %}
+                <div class="flex flex-col sm:flex-row gap-10 items-center mb-12 p-8 bg-gray-50 rounded-3xl">
+                    <div class="text-center">
+                        <div class="text-5xl font-black text-gray-900 tracking-tighter mb-2">{{ "{:.1f}".format(stats.avg_overall|float) }}</div>
+                        <div class="flex justify-center text-yellow-400 text-sm mb-2">
+                            {% for i in range(5) %}
+                                <i class="fa-{{ 'solid' if i < stats.avg_overall|round|int else 'regular' }} fa-star"></i>
+                            {% endfor %}
                         </div>
+                        <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">平均評分</p>
                     </div>
-                    <div class="sub-scores">
-                        <div class="sub-score-item"><span>品質</span> <strong>{{ "{:.2f}".format(stats.avg_quality|float) }}</strong></div>
-                        <div class="sub-score-item"><span>舒適</span> <strong>{{ "{:.2f}".format(stats.avg_comfort|float) }}</strong></div>
-                        <div class="sub-score-item"><span>價值</span> <strong>{{ "{:.2f}".format(stats.avg_value|float) }}</strong></div>
-                    </div>
-                </div>
-
-                <div class="fit-section">
-                    <div class="fit-title">整體適合：</div>
-                    <div class="fit-bar-container">
-                        <div class="fit-item">
-                            <span>偏小</span>
-                            <div class="progress-track"><div class="progress-fill" style="width: {{ stats.fit_small_pct }}%;"></div></div>
-                            <span>{{ stats.fit_small_pct }}%</span>
+                    
+                    <div class="flex-1 w-full space-y-4">
+                        {% for label, score in [('品質', stats.avg_quality), ('舒適', stats.avg_comfort), ('價值', stats.avg_value)] %}
+                        <div class="space-y-1">
+                            <div class="flex justify-between text-xs font-bold text-gray-600">
+                                <span>{{ label }}</span>
+                                <span>{{ "{:.1f}".format(score|float) }}</span>
+                            </div>
+                            <div class="h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                                <div class="h-full bg-brand transition-all duration-1000" style="width: {{ (score|float / 5 * 100) }}%"></div>
+                            </div>
                         </div>
-                        <div class="fit-item">
-                            <span style="font-weight: bold; color: #000;">尺碼標準</span>
-                            <div class="progress-track"><div class="progress-fill" style="width: {{ stats.fit_normal_pct }}%; background: #000;"></div></div>
-                            <span style="font-weight: bold; color: #000;">{{ stats.fit_normal_pct }}%</span>
-                        </div>
-                        <div class="fit-item">
-                            <span>偏大</span>
-                            <div class="progress-track"><div class="progress-fill" style="width: {{ stats.fit_large_pct }}%;"></div></div>
-                            <span>{{ stats.fit_large_pct }}%</span>
-                        </div>
+                        {% endfor %}
                     </div>
                 </div>
 
-                <div class="review-list">
+                <!-- Fit Feedback -->
+                <div class="mb-12 space-y-4">
+                    <h4 class="text-xs font-bold text-gray-700">版型回饋</h4>
+                    <div class="grid grid-cols-3 gap-1">
+                        {% for label, pct, is_active in [('偏小', stats.fit_small_pct, false), ('標準', stats.fit_normal_pct, true), ('偏大', stats.fit_large_pct, false)] %}
+                        <div class="space-y-2">
+                            <div class="h-2 rounded-full overflow-hidden {% if is_active %}bg-gray-100{% else %}bg-gray-50{% endif %}">
+                                <div class="h-full {% if is_active %}bg-gray-900{% else %}bg-gray-300{% endif %} transition-all duration-1000" style="width: {{ pct }}%"></div>
+                            </div>
+                            <div class="flex justify-between text-[10px] font-bold text-gray-500 uppercase tracking-tighter px-1">
+                                <span>{{ label }}</span>
+                                <span>{{ pct }}%</span>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Review Cards -->
+                <div class="space-y-8">
                     {% for review in reviews %}
-                    <div class="review-card">
-                        <div class="reviewer-info">
-                            <span>{{ review.anonymous_name }}</span>
-                            <span>{{ review.created_at.strftime('%d %b, %Y') }}</span>
+                    <div class="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm transition-all hover:shadow-md">
+                        <div class="flex justify-between items-start mb-4">
+                            <div>
+                                <h5 class="text-sm font-bold text-gray-900 mb-1">{{ review.anonymous_name }}</h5>
+                                <div class="flex text-yellow-400 text-[10px]">
+                                    {% for i in range(5) %}
+                                        <i class="fa-{{ 'solid' if i < review.overall_rating|int else 'regular' }} fa-star"></i>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            <span class="text-[10px] font-bold text-gray-400">{{ review.created_at.strftime('%Y/%m/%d') }}</span>
                         </div>
-                        <div class="stars">
-                            {% for _ in range(review.overall_rating|int) %}★{% endfor %}{% for _ in range(5 - review.overall_rating|int) %}☆{% endfor %}
+                        <div class="flex flex-wrap gap-2 mb-4">
+                            <span class="text-[10px] font-bold bg-gray-50 text-gray-500 px-2 py-1 rounded-md">顏色: {{ review.color }}</span>
+                            <span class="text-[10px] font-bold bg-gray-50 text-gray-500 px-2 py-1 rounded-md">尺寸: {{ review.size }}</span>
+                            <span class="text-[10px] font-bold bg-gray-50 text-gray-500 px-2 py-1 rounded-md">版型: {% if review.fit_feedback == -1 %}偏小{% elif review.fit_feedback == 0 %}標準{% else %}偏大{% endif %}</span>
                         </div>
-                        <div class="review-specs">
-                            總體合體度: {% if review.fit_feedback == -1 %}偏小{% elif review.fit_feedback == 0 %}標準{% else %}偏大{% endif %} | 
-                            顏色: {{ review.color }} | 尺寸: {{ review.size }}
-                        </div>
-                        <div class="review-comment">
-                            {{ review.comment }}
-                        </div>
+                        <p class="text-sm text-gray-600 leading-relaxed">{{ review.comment }}</p>
                     </div>
                     {% endfor %}
                 </div>
                 {% else %}
-                <p style="padding: 20px 0; color: #999;">目前還沒有評價，購買後即可成為第一個評價的人！</p>
+                <div class="text-center py-20 bg-gray-50 rounded-3xl border border-dashed border-gray-200">
+                    <i class="fa-regular fa-comment-dots text-4xl text-gray-200 mb-4"></i>
+                    <p class="text-sm text-gray-400 font-medium">目前還沒有評價，購買後即可成為第一個評價的人！</p>
+                </div>
                 {% endif %}
             </div>
-            </div>
+        </div>
     </div>
+</div>
 {% endblock %}
 
 {% block scripts %}
@@ -242,25 +216,32 @@
 
     function slideThumbnails(direction) {
         const list = document.getElementById('thumbList');
-        const scrollAmount = 100; // 移動的距離
+        const scrollAmount = 200;
         list.scrollBy({ left: direction * scrollAmount, behavior: 'smooth' });
     }
 
     function changeMainImage(url, el) {
-        document.getElementById('mainImg').src = url;
-        // 移除所有縮圖的 active 狀態
-        document.querySelectorAll('.thumbnail').forEach(t => t.classList.remove('active'));
-        // 如果是點擊縮圖，則加上 active
-        if (el) el.classList.add('active');
+        const mainImg = document.getElementById('mainImg');
+        mainImg.style.opacity = '0';
+        setTimeout(() => {
+            mainImg.src = url;
+            mainImg.style.opacity = '1';
+        }, 200);
+        
+        document.querySelectorAll('.thumbnail').forEach(t => t.classList.remove('border-brand', 'ring-2', 'ring-brand/20'));
+        if (el) el.classList.add('border-brand', 'ring-2', 'ring-brand/20');
     }
 
     function selectVariant(variantId, el) {
-        document.querySelectorAll('#variant-options .sku-btn').forEach(b => b.classList.remove('active'));
-        el.classList.add('active');
+        document.querySelectorAll('.variant-btn').forEach(b => {
+            b.classList.remove('border-brand', 'text-brand', 'bg-brand/5');
+            b.classList.add('border-gray-100', 'text-gray-600');
+        });
+        el.classList.add('border-brand', 'text-brand', 'bg-brand/5');
+        el.classList.remove('border-gray-100', 'text-gray-600');
         
         const variant = variantsData[variantId];
         
-        // 切換圖片
         if (variant.image) {
             const imageUrl = "{{ url_for('static', filename='upload/') }}" + variant.image;
             changeMainImage(imageUrl, null);
@@ -269,17 +250,21 @@
         const sizeSelector = document.getElementById('size-selector');
         const sizeOptions = document.getElementById('size-options');
         sizeOptions.innerHTML = '';
-        sizeSelector.style.display = 'block';
+        
+        sizeSelector.classList.remove('hidden');
+        setTimeout(() => {
+            sizeSelector.classList.remove('opacity-0', 'translate-y-4');
+        }, 50);
         
         variant.skus.forEach(sku => {
             const btn = document.createElement('button');
             btn.type = 'button';
-            btn.className = 'sku-btn';
+            btn.className = 'px-6 py-3 rounded-xl border-2 text-sm font-bold transition-all duration-200 size-btn border-gray-100 text-gray-600 hover:border-brand/30 hover:bg-gray-50';
+            
             if (sku.stock <= 0) {
                 btn.innerText = sku.size + ' (已售罄)';
                 btn.disabled = true;
-                btn.style.opacity = '0.5';
-                btn.style.cursor = 'not-allowed';
+                btn.classList.add('opacity-40', 'cursor-not-allowed', 'bg-gray-50');
             } else {
                 btn.innerText = sku.size;
                 btn.onclick = function() { selectSku(sku.id, sku.price, this); };
@@ -287,19 +272,22 @@
             sizeOptions.appendChild(btn);
         });
         
-        // 重設選擇的 SKU
         document.getElementById('selected-sku-id').value = '';
-        document.getElementById('selected-price').style.display = 'none';
+        document.getElementById('selected-price').classList.add('opacity-0');
     }
 
     function selectSku(skuId, price, el) {
-        document.querySelectorAll('#size-options .sku-btn').forEach(b => b.classList.remove('active'));
-        el.classList.add('active');
+        document.querySelectorAll('.size-btn').forEach(b => {
+            b.classList.remove('border-brand', 'text-brand', 'bg-brand/5');
+            b.classList.add('border-gray-100', 'text-gray-600');
+        });
+        el.classList.add('border-brand', 'text-brand', 'bg-brand/5');
+        el.classList.remove('border-gray-100', 'text-gray-600');
         
         document.getElementById('selected-sku-id').value = skuId;
         const priceDiv = document.getElementById('selected-price');
-        priceDiv.style.display = 'block';
-        priceDiv.innerText = '$' + price.toLocaleString();
+        priceDiv.innerText = 'NT$ ' + price.toLocaleString();
+        priceDiv.classList.remove('opacity-0');
     }
 
     function updateQty(delta) {
@@ -314,13 +302,15 @@
         event.preventDefault();
         const skuId = document.getElementById('selected-sku-id').value;
         if (!skuId) {
-            alert('請先選擇規格');
+            showToast('請先選擇顏色與尺寸', 'error');
             return;
         }
 
         const form = event.target;
         const formData = new FormData(form);
-        const messageDiv = document.getElementById('cart-message');
+        const btn = document.getElementById('add-to-cart-btn');
+        btn.disabled = true;
+        btn.innerText = '處理中...';
 
         try {
             const response = await fetch("{{ url_for('home.checkout.add_to_cart') }}", {
@@ -329,34 +319,22 @@
             });
             const result = await response.json();
 
-            // 1. 顯示訊息
-            messageDiv.style.display = 'block';
-            messageDiv.innerText = result.message;
-            messageDiv.style.backgroundColor = result.success ? '#d4edda' : '#f8d7da';
-            messageDiv.style.color = result.success ? '#155724' : '#721c24';
-            
-            // 2. 自動隱藏訊息
             if (result.success) {
-                setTimeout(() => {
-                    messageDiv.style.display = 'none';
-                }, 2000); // 2秒後隱藏
-
-                // 3. 更新購物車圖標數字
-                const cartCountEl = document.querySelector('.cart-count');
-                if (cartCountEl) {
-                    const currentCount = parseInt(cartCountEl.innerText) || 0;
+                showToast(result.message);
+                const cartCountEls = document.querySelectorAll('.cart-count');
+                cartCountEls.forEach(el => {
+                    const currentCount = parseInt(el.innerText) || 0;
                     const addedQty = parseInt(document.getElementById('buy-qty').value) || 0;
-                    cartCountEl.innerText = currentCount + addedQty;
-                }
+                    el.innerText = currentCount + addedQty;
+                });
+            } else {
+                showToast(result.message, 'error');
             }
         } catch (error) {
-            messageDiv.style.display = 'block';
-            messageDiv.innerText = '系統錯誤，請稍後再試';
-            messageDiv.style.backgroundColor = '#f8d7da';
-            
-            setTimeout(() => {
-                messageDiv.style.display = 'none';
-            }, 3000);
+            showToast('系統錯誤，請稍後再試', 'error');
+        } finally {
+            btn.disabled = false;
+            btn.innerText = '加入購物車';
         }
     }
     
@@ -365,25 +343,28 @@
             const response = await fetch("{{ url_for('home.wishlist.toggle', product_id=product.id) }}", {
                 method: 'POST'
             });
-            const result = await response.json();
-
+            
             if (response.status === 401) {
-                alert('請先登入後再加入願望清單');
-                window.location.href = "{{ url_for('auth.login') }}?next=" + encodeURIComponent(window.location.pathname);
+                showToast('請先登入後再加入願望清單', 'error');
+                setTimeout(() => {
+                    window.location.href = "{{ url_for('auth.login') }}?next=" + encodeURIComponent(window.location.pathname);
+                }, 1500);
                 return;
             }
 
+            const result = await response.json();
             if (result.success) {
                 const btn = document.getElementById('wishlist-btn');
-                const icon = btn.querySelector('.heart-icon');
+                const icon = btn.querySelector('i');
                 if (result.action === 'added') {
-                    btn.classList.add('active');
-                    icon.innerText = '❤️';
+                    btn.classList.add('bg-red-50', 'border-red-100', 'text-brand');
+                    btn.classList.remove('bg-white', 'border-gray-100', 'text-gray-400');
+                    icon.classList.replace('fa-regular', 'fa-solid');
                 } else {
-                    btn.classList.remove('active');
-                    icon.innerText = '🤍';
+                    btn.classList.remove('bg-red-50', 'border-red-100', 'text-brand');
+                    btn.classList.add('bg-white', 'border-gray-100', 'text-gray-400');
+                    icon.classList.replace('fa-solid', 'fa-regular');
                 }
-                
                 showToast(result.message);
             }
         } catch (error) {
@@ -391,24 +372,11 @@
         }
     }
 
-    function showToast(message) {
-        const toast = document.createElement('div');
-        toast.style.cssText = `
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0,0,0,0.7);
-            color: white;
-            padding: 10px 20px;
-            border-radius: 5px;
-            z-index: 1000;
-        `;
-        toast.innerText = message;
-        document.body.appendChild(toast);
-        setTimeout(() => toast.remove(), 2000);
-    }
-    
     document.getElementById('add-to-cart-form').onsubmit = addToCart;
 </script>
+
+<style>
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+</style>
 {% endblock %}

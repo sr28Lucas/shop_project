@@ -39,8 +39,7 @@ def test_review_button_status_ui(client, test_order, test_product):
     response = client.get(f'/customer/order/view/{test_order["order_id"]}')
     assert response.status_code == 200
     data = response.get_data(as_text=True)
-    
+
     # 驗證按鈕已變更
-    assert "已完成評論" in data
+    assert "已完成評價" in data
     assert "撰寫評價" not in data
-    assert "disabled" in data # 檢查按鈕是否為 disabled

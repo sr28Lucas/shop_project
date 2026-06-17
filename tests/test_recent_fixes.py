@@ -32,7 +32,8 @@ def test_full_checkout_flow_with_review(client, test_product):
         'cvv': '123'
     }, follow_redirects=True)
     assert response.status_code == 200
-    assert "訂單總檢查" in response.get_data(as_text=True)
+    # 修正：確認實際頁面內容，應包含訂單確認標題
+    assert "訂單確認" in response.get_data(as_text=True)
     assert "測試者" in response.get_data(as_text=True)
     
     # 5. 確認下單 (POST) -> 預期導向完成頁面

@@ -1,69 +1,97 @@
-<!DOCTYPE html>
-<html lang="zh-Hant">
-<head>
-    <meta charset="UTF-8">
-    <title>申請退貨 - 訂單 #{{ order.id }}</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/customer/common.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/customer/order.css') }}">
-    <style>
-        .item-row { display: flex; align-items: center; border-bottom: 1px solid #eee; padding: 10px 0; }
-        .item-info { flex: 2; }
-        .item-action { flex: 3; display: flex; gap: 10px; align-items: center; }
-        .qty-input { width: 60px; }
-        .reason-input { flex: 1; }
-        .overall-section { margin-top: 20px; border-top: 2px solid #333; padding-top: 20px; }
-        textarea { width: 100%; height: 80px; margin-top: 10px; }
-    </style>
-</head>
-<body>
-    <div style="max-width: 900px; margin: 0 auto; padding: 20px;">
-        <h1>申請退貨 - 訂單 #{{ order.id }}</h1>
-        <p>請選擇您要退貨的商品、數量以及退貨原因。</p>
+{% extends "home/base.html" %}
 
-        {% with messages = get_flashed_messages() %}
-            {% if messages %}
+{% block title %}申請退貨 - 訂單 #{{ order.id }} - 會員中心{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto py-10">
+    <!-- Header -->
+    <div class="mb-12">
+        <nav class="flex text-xs text-gray-400 mb-2 space-x-2">
+            <a href="{{ url_for('home.index') }}" class="hover:text-brand">首頁</a>
+            <span>/</span>
+            <a href="{{ url_for('customer.center') }}" class="hover:text-brand">會員中心</a>
+            <span>/</span>
+            <a href="{{ url_for('customer.customer_order.order_view', id=order.id) }}" class="hover:text-brand">訂單 #{{ order.id }}</a>
+            <span>/</span>
+            <span class="text-gray-600 font-medium">申請退貨</span>
+        </nav>
+        <h1 class="text-3xl font-black text-gray-900 tracking-tight mb-4">申請退貨</h1>
+        <p class="text-gray-500 text-sm leading-relaxed max-w-2xl">
+            請選擇您要退貨的商品、數量以及退貨原因。我們將在收到申請後的 3 個工作天內完成審核。
+        </p>
+    </div>
+
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <div class="mb-6 space-y-2">
                 {% for message in messages %}
-                    <div style="color: red; margin-bottom: 10px;">{{ message }}</div>
+                    <div class="p-4 rounded-xl bg-red-50 text-red-700 border border-red-100 flex items-center">
+                        <i class="fa-solid fa-circle-exclamation mr-3"></i>
+                        <p class="text-sm font-medium">{{ message }}</p>
+                    </div>
                 {% endfor %}
-            {% endif %}
-        {% endwith %}
+            </div>
+        {% endif %}
+    {% endwith %}
 
-        <form method="post">
-            <div class="order-card">
-                <h3>商品清單</h3>
+    <form method="post" class="space-y-8">
+        <div class="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
+            <div class="p-8 border-b border-gray-50">
+                <h3 class="text-sm font-black text-gray-400 uppercase tracking-widest">可退貨商品清單</h3>
+            </div>
+            
+            <div class="divide-y divide-gray-50">
                 {% for item in items %}
                 {% if item.remaining_qty > 0 %}
-                <div class="item-row">
-                    <div style="margin-right: 15px;">
-                        <input type="checkbox" name="item_ids" value="{{ item.id }}" id="item_{{ item.id }}">
-                    </div>
-                    <div class="item-info">
-                        <label for="item_{{ item.id }}">
-                            <strong>{{ item.product_name }}</strong><br>
-                            <small>{{ item.color }} / {{ item.size }} (剩餘可退: {{ item.remaining_qty }})</small>
-                        </label>
-                    </div>
-                    <div class="item-action">
-                        <span>數量:</span>
-                        <input type="number" name="qty_{{ item.id }}" class="qty-input" value="{{ item.remaining_qty }}" min="1" max="{{ item.remaining_qty }}">
-                        <span>原因:</span>
-                        <input type="text" name="reason_{{ item.id }}" class="reason-input" placeholder="單項退貨原因 (選填)">
+                <div class="p-8 hover:bg-gray-50/50 transition-colors">
+                    <div class="flex flex-col lg:flex-row lg:items-center gap-8">
+                        <!-- Selector & Name -->
+                        <div class="flex items-center gap-6 flex-1">
+                            <input type="checkbox" name="item_ids" value="{{ item.id }}" id="item_{{ item.id }}" 
+                                   class="w-6 h-6 rounded-full border-gray-300 text-brand focus:ring-brand cursor-pointer transition-all">
+                            <label for="item_{{ item.id }}" class="cursor-pointer">
+                                <span class="block text-lg font-black text-gray-900 tracking-tight">{{ item.product_name }}</span>
+                                <span class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">{{ item.color }} / {{ item.size }} <span class="text-brand ml-2">(剩餘可退: {{ item.remaining_qty }})</span></span>
+                            </label>
+                        </div>
+                        
+                        <!-- Inputs -->
+                        <div class="flex flex-col sm:flex-row gap-4 items-end sm:items-center">
+                            <div class="space-y-1">
+                                <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">退貨數量</label>
+                                <input type="number" name="qty_{{ item.id }}" value="{{ item.remaining_qty }}" min="1" max="{{ item.remaining_qty }}" 
+                                       class="w-24 px-4 py-2 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-brand/20 outline-none text-gray-900 font-bold text-center">
+                            </div>
+                            <div class="space-y-1 flex-1 min-w-[250px]">
+                                <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">品項原因 (選填)</label>
+                                <input type="text" name="reason_{{ item.id }}" placeholder="例如：尺寸不合" 
+                                       class="w-full px-4 py-2 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-brand/20 outline-none text-sm font-medium">
+                            </div>
+                        </div>
                     </div>
                 </div>
                 {% endif %}
                 {% endfor %}
+            </div>
 
-                <div class="overall-section">
-                    <label><strong>整體退貨說明 (必填)：</strong></label>
-                    <textarea name="overall_reason" required placeholder="請詳細說明退貨原因..."></textarea>
-                </div>
-
-                <div style="margin-top: 20px; text-align: right;">
-                    <a href="{{ url_for('customer.customer_order.order_view', id=order.id) }}" class="btn btn-outline">取消</a>
-                    <button type="submit" class="btn btn-primary" style="background: #333; color: white; padding: 10px 20px; border: none; cursor: pointer;">送出申請</button>
+            <!-- Overall Reason -->
+            <div class="p-8 border-t border-gray-50">
+                <div class="max-w-2xl">
+                    <label class="text-xs font-black text-gray-400 uppercase tracking-widest block mb-4">整體退貨說明 <span class="text-brand">*</span></label>
+                    <textarea name="overall_reason" required placeholder="請詳細說明退貨原因（必填）..." 
+                              class="w-full h-32 bg-gray-50 border-none rounded-2xl p-5 text-sm font-medium focus:ring-2 focus:ring-brand/20 transition-all outline-none"></textarea>
                 </div>
             </div>
-        </form>
-    </div>
-</body>
-</html>
+        </div>
+
+        <div class="flex items-center justify-between">
+            <a href="{{ url_for('customer.customer_order.order_view', id=order.id) }}" class="text-sm font-bold text-gray-400 hover:text-gray-900 transition-all uppercase tracking-widest flex items-center">
+                <i class="fa-solid fa-xmark mr-2"></i> 取消申請
+            </a>
+            <button type="submit" class="px-12 py-4 bg-brand text-white rounded-2xl font-bold text-lg hover:bg-brand-dark transition-all shadow-xl shadow-brand/20">
+                送出退貨申請
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

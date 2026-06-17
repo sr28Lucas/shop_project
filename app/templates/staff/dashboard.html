@@ -1,6 +1,21 @@
 <!DOCTYPE html>
-<html lang="zh-Hant">
+<html lang="zh-Hant" style="display: none;">
 <head>
+    <script>
+        (function() {
+            function breakout() {
+                if (window.top !== window.self) {
+                    window.top.location.replace(window.self.location.href);
+                } else {
+                    document.documentElement.style.display = 'block';
+                }
+            }
+            breakout();
+            window.addEventListener('pageshow', function(event) {
+                if (event.persisted) breakout();
+            });
+        })();
+    </script>
     <meta charset="UTF-8">
     <title>後台儀錶板</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">

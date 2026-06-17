@@ -2,68 +2,79 @@
 
 {% block title %}編輯基本資料 - 會員中心{% endblock %}
 
-{% block head %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/customer/common.css') }}">
-{% endblock %}
-
 {% block content %}
-<div class="container-small">
-    <div class="flex-between mb-20">
-        <h1>編輯個人基本資料</h1>
-        <a href="{{ url_for('customer.center') }}" class="btn btn-secondary">返回會員中心</a>
+<div class="max-w-3xl mx-auto py-10">
+    <div class="flex items-center justify-between mb-8">
+        <div>
+            <nav class="flex text-xs text-gray-400 mb-2 space-x-2">
+                <a href="{{ url_for('home.index') }}" class="hover:text-brand">首頁</a>
+                <span>/</span>
+                <a href="{{ url_for('customer.center') }}" class="hover:text-brand">會員中心</a>
+                <span>/</span>
+                <span class="text-gray-600 font-medium">編輯基本資料</span>
+            </nav>
+            <h1 class="text-3xl font-black text-gray-900 tracking-tight">編輯個人基本資料</h1>
+        </div>
+        <a href="{{ url_for('customer.center') }}" class="text-xs font-bold text-gray-400 hover:text-brand flex items-center bg-white px-4 py-2 rounded-xl border border-gray-100 transition-all shadow-sm">
+            <i class="fa-solid fa-chevron-left mr-2"></i> 返回會員中心
+        </a>
     </div>
 
-    {% with messages = get_flashed_messages(with_categories=true) %}
-      {% if messages %}
-        {% for category, message in messages %}
-          <div class="flash-message {% if category == 'success' %}flash-success{% else %}flash-error{% endif %}">
-            {{ message }}
-          </div>
-        {% endfor %}
-      {% endif %}
-    {% endwith %}
-
-    <form method="POST">
-        <div class="card">
-            <div class="card-header">基本資訊</div>
-            <div class="form-group">
-                <label>Email (帳號，不可修改)</label>
-                <input type="text" value="{{ user.email }}" class="form-control" disabled>
+    <form method="POST" class="space-y-8">
+        <!-- Basic Info Section -->
+        <div class="bg-white rounded-3xl border border-gray-100 p-8 shadow-sm">
+            <div class="flex items-center gap-4 mb-8">
+                <div class="w-1.5 h-6 bg-brand rounded-full"></div>
+                <h3 class="text-sm font-black text-gray-400 uppercase tracking-widest">基本資訊</h3>
             </div>
-            <div class="form-group">
-                <label>姓名 <span style="color: red;">*</span></label>
-                <input type="text" name="name" value="{{ user.name }}" class="form-control" maxlength="30" required>
-            </div>
-            <div class="form-group">
-                <label>電話</label>
-                <input type="text" name="phone" value="{{ user.phone or '' }}" class="form-control" pattern="[0-9\-]{8,20}" maxlength="20" title="請輸入 8-20 碼數字或符號 -">
+            
+            <div class="space-y-6">
+                <div class="space-y-2">
+                    <label class="text-xs font-black text-gray-400 uppercase tracking-widest ml-1">Email (帳號，不可修改)</label>
+                    <input type="text" value="{{ user.email }}" class="w-full px-5 py-4 bg-gray-50 border-none rounded-2xl text-gray-400 font-medium cursor-not-allowed" disabled>
+                </div>
+                <div class="space-y-2">
+                    <label class="text-xs font-black text-gray-400 uppercase tracking-widest ml-1">姓名 <span class="text-brand">*</span></label>
+                    <input type="text" name="name" value="{{ user.name }}" class="w-full px-5 py-4 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-brand/20 transition-all outline-none text-gray-900 font-medium" maxlength="30" required>
+                </div>
+                <div class="space-y-2">
+                    <label class="text-xs font-black text-gray-400 uppercase tracking-widest ml-1">電話</label>
+                    <input type="text" name="phone" value="{{ user.phone or '' }}" class="w-full px-5 py-4 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-brand/20 transition-all outline-none text-gray-900 font-medium" pattern="[0-9\-]{8,20}" maxlength="20" title="請輸入 8-20 碼數字或符號 -">
+                </div>
             </div>
         </div>
 
-        <div class="card">
-            <div class="card-header">地址資訊</div>
-            <div style="display: flex; gap: 15px;">
-                <div class="form-group" style="flex: 1;">
-                    <label>縣市</label>
-                    <select name="region" class="form-control">
+        <!-- Address Section -->
+        <div class="bg-white rounded-3xl border border-gray-100 p-8 shadow-sm">
+            <div class="flex items-center gap-4 mb-8">
+                <div class="w-1.5 h-6 bg-brand rounded-full"></div>
+                <h3 class="text-sm font-black text-gray-400 uppercase tracking-widest">地址資訊 (選填)</h3>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="space-y-2">
+                    <label class="text-xs font-black text-gray-400 uppercase tracking-widest ml-1">縣市</label>
+                    <select name="region" class="w-full px-5 py-4 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-brand/20 transition-all outline-none text-gray-900 font-medium appearance-none">
                         <option value="">請選擇縣市</option>
                     </select>
                 </div>
-                <div class="form-group" style="flex: 1;">
-                    <label>鄉鎮市區</label>
-                    <select name="locality" class="form-control">
+                <div class="space-y-2">
+                    <label class="text-xs font-black text-gray-400 uppercase tracking-widest ml-1">鄉鎮市區</label>
+                    <select name="locality" class="w-full px-5 py-4 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-brand/20 transition-all outline-none text-gray-900 font-medium appearance-none">
                         <option value="">請選擇鄉鎮市區</option>
                     </select>
                 </div>
-            </div>
-            <div class="form-group">
-                <label>詳細地址</label>
-                <input type="text" name="address" value="{{ user.address or '' }}" class="form-control" maxlength="100" placeholder="道路名、巷弄、門牌號碼...">
+                <div class="md:col-span-2 space-y-2">
+                    <label class="text-xs font-black text-gray-400 uppercase tracking-widest ml-1">詳細地址 (若輸入需至少 5 字)</label>
+                    <input type="text" name="address" value="{{ user.address or '' }}" class="w-full px-5 py-4 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-brand/20 transition-all outline-none text-gray-900 font-medium" minlength="5" maxlength="100" placeholder="道路名、巷弄、門牌號碼...">
+                </div>
             </div>
         </div>
 
-        <div class="text-right">
-            <button type="submit" class="btn btn-primary">儲存變更</button>
+        <div class="flex justify-end pt-4">
+            <button type="submit" class="px-10 py-4 bg-gray-900 text-white rounded-2xl font-bold text-lg hover:bg-brand transition-all duration-300 shadow-xl shadow-gray-200 hover:shadow-brand/20">
+                儲存變更
+            </button>
         </div>
     </form>
 </div>

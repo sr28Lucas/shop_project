@@ -1,127 +1,99 @@
 {% extends "home/base.html" %}
 
-{% block title %}客服對話歷史{% endblock %}
+{% block title %}客服中心 - VIVID{% endblock %}
 
 {% block content %}
-<style>
-    .support-container {
-        max-width: 1000px;
-        margin: 30px auto;
-        background: white;
-        padding: 30px;
-        border-radius: 8px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.08);
-    }
+<div class="max-w-5xl mx-auto py-10 px-4">
+    <div class="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
+        <div>
+            <nav class="flex text-xs text-gray-400 mb-2 space-x-2">
+                <a href="{{ url_for('home.index') }}" class="hover:text-brand transition-colors">首頁</a>
+                <span>/</span>
+                <a href="{{ url_for('customer.center') }}" class="hover:text-brand transition-colors">會員中心</a>
+                <span>/</span>
+                <span class="text-gray-600 font-medium">客服歷史</span>
+            </nav>
+            <h1 class="text-3xl font-black text-gray-900 tracking-tight">客服對話紀錄</h1>
+        </div>
+        <a href="{{ url_for('home.support.new_inquiry') }}" 
+           class="px-8 py-4 bg-brand text-white rounded-2xl font-bold text-sm hover:bg-brand-dark transition-all shadow-xl shadow-brand/20 flex items-center">
+            <i class="fa-solid fa-plus mr-2"></i> 新增客服諮詢
+        </a>
+    </div>
 
-    .btn {
-        display: inline-block;
-        padding: 8px 14px;
-        border-radius: 4px;
-        background: #d63384;
-        color: white;
-        text-decoration: none;
-    }
-
-    .btn-gray {
-        background: #6c757d;
-    }
-
-    table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-top: 18px;
-    }
-
-    th, td {
-        padding: 12px;
-        border-bottom: 1px solid #eee;
-        text-align: left;
-    }
-
-    th {
-        background: #f3f4f6;
-    }
-
-    .badge {
-        display: inline-block;
-        padding: 3px 8px;
-        border-radius: 12px;
-        background: #dc3545;
-        color: white;
-        font-size: 12px;
-    }
-
-    .status-open {
-        color: #dc3545;
-        font-weight: bold;
-    }
-
-    .status-replied {
-        color: #007bff;
-        font-weight: bold;
-    }
-
-    .status-closed {
-        color: #28a745;
-        font-weight: bold;
-    }
-</style>
-
-<div class="support-container">
-    <h2>客服對話歷史</h2>
-
-    <a href="{{ url_for('home.support.new_inquiry') }}" class="btn">新增客服問題</a>
-
-    <table>
-        <thead>
-            <tr>
-                <th>案件 ID</th>
-                <th>問題類型</th>
-                <th>狀態</th>
-                <th>未讀回覆</th>
-                <th>最後訊息</th>
-                <th>更新時間</th>
-                <th>操作</th>
-            </tr>
-        </thead>
-
-        <tbody>
-        {% for inquiry in inquiries %}
-            <tr>
-                <td>{{ inquiry.id }}</td>
-                <td>{{ inquiry.purpose }}</td>
-                <td>
-                    {% if inquiry.status == 'open' %}
-                        <span class="status-open">待客服回覆</span>
-                    {% elif inquiry.status == 'replied' %}
-                        <span class="status-replied">客服已回覆</span>
-                    {% elif inquiry.status == 'closed' %}
-                        <span class="status-closed">已結案</span>
+    <div class="bg-white rounded-[32px] border border-gray-100 overflow-hidden shadow-sm">
+        <div class="overflow-x-auto">
+            <table class="w-full">
+                <thead>
+                    <tr class="bg-gray-50/50">
+                        <th class="px-8 py-5 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">案件資訊</th>
+                        <th class="px-8 py-5 text-center text-[10px] font-black text-gray-400 uppercase tracking-widest">狀態</th>
+                        <th class="px-8 py-5 text-center text-[10px] font-black text-gray-400 uppercase tracking-widest">未讀</th>
+                        <th class="px-8 py-5 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">最後訊息</th>
+                        <th class="px-8 py-5 text-right text-[10px] font-black text-gray-400 uppercase tracking-widest">操作</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-50">
+                    {% for inquiry in inquiries %}
+                    <tr class="group hover:bg-gray-50/30 transition-colors">
+                        <td class="px-8 py-6">
+                            <div class="flex flex-col">
+                                <span class="text-sm font-black text-gray-900 mb-1">#{{ inquiry.id }}</span>
+                                <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{{ inquiry.purpose }}</span>
+                            </div>
+                        </td>
+                        <td class="px-8 py-6 text-center">
+                            {% if inquiry.status == 'open' %}
+                                <span class="inline-flex items-center px-3 py-1 rounded-full bg-amber-50 text-amber-600 text-[10px] font-bold border border-amber-100">待回覆</span>
+                            {% elif inquiry.status == 'replied' %}
+                                <span class="inline-flex items-center px-3 py-1 rounded-full bg-blue-50 text-blue-600 text-[10px] font-bold border border-blue-100">已回覆</span>
+                            {% elif inquiry.status == 'closed' %}
+                                <span class="inline-flex items-center px-3 py-1 rounded-full bg-gray-100 text-gray-500 text-[10px] font-bold border border-gray-200">已結案</span>
+                            {% else %}
+                                <span class="text-xs font-bold text-gray-400">{{ inquiry.status }}</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-8 py-6 text-center">
+                            {% if inquiry.unread_count and inquiry.unread_count > 0 %}
+                                <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-brand text-white text-[10px] font-black shadow-lg shadow-brand/20 animate-bounce">
+                                    {{ inquiry.unread_count }}
+                                </span>
+                            {% else %}
+                                <span class="text-gray-200 text-xs">-</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-8 py-6">
+                            <div class="max-w-[200px]">
+                                <p class="text-xs text-gray-600 font-medium line-clamp-1 mb-1">{{ inquiry.last_message or '-' }}</p>
+                                <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">
+                                    {{ inquiry.last_message_time.strftime('%Y/%m/%d %H:%M') if inquiry.last_message_time else '-' }}
+                                </p>
+                            </div>
+                        </td>
+                        <td class="px-8 py-6 text-right">
+                            <a href="{{ url_for('home.support.detail', id=inquiry.id) }}" 
+                               class="inline-flex items-center px-5 py-2.5 bg-white text-gray-900 border border-gray-200 rounded-xl font-bold text-xs hover:bg-gray-900 hover:text-white transition-all shadow-sm">
+                                查看對話 <i class="fa-solid fa-arrow-right ml-2 text-[10px]"></i>
+                            </a>
+                        </td>
+                    </tr>
                     {% else %}
-                        {{ inquiry.status }}
-                    {% endif %}
-                </td>
-                <td>
-                    {% if inquiry.unread_count and inquiry.unread_count > 0 %}
-                        <span class="badge">{{ inquiry.unread_count }}</span>
-                    {% else %}
-                        -
-                    {% endif %}
-                </td>
-                <td>{{ inquiry.last_message or '-' }}</td>
-                <td>
-                    {{ inquiry.last_message_time.strftime('%Y-%m-%d %H:%M') if inquiry.last_message_time else '-' }}
-                </td>
-                <td>
-                    <a href="{{ url_for('home.support.detail', id=inquiry.id) }}" class="btn btn-gray">查看對話</a>
-                </td>
-            </tr>
-        {% else %}
-            <tr>
-                <td colspan="7" style="text-align:center;">目前沒有客服對話紀錄</td>
-            </tr>
-        {% endfor %}
-        </tbody>
-    </table>
+                    <tr>
+                        <td colspan="5" class="py-32 text-center">
+                            <div class="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-6 text-gray-200">
+                                <i class="fa-solid fa-comments text-4xl"></i>
+                            </div>
+                            <h3 class="text-xl font-bold text-gray-900 mb-2">尚無諮詢紀錄</h3>
+                            <p class="text-gray-400 mb-8 font-medium">有任何商品或訂單上的問題，歡迎隨時向我們提問。</p>
+                            <a href="{{ url_for('home.support.new_inquiry') }}" class="inline-flex items-center justify-center px-10 py-4 bg-brand text-white rounded-full font-bold shadow-xl shadow-brand/20 hover:scale-105 transition-all">
+                                建立新問題
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>
 {% endblock %}

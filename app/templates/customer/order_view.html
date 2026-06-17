@@ -1,150 +1,237 @@
-<!DOCTYPE html>
-<html lang="zh-Hant">
-<head>
-    <meta charset="UTF-8">
-    <title>訂單詳情 #{{ order.id }} - 會員中心</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/customer/common.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/customer/order.css') }}">
-</head>
-<body>
-    <div style="max-width: 800px; margin: 0 auto; padding: 20px;">
-        <h1>訂單詳情 #{{ order.id }}</h1>
-        
-        {% with messages = get_flashed_messages() %}
-            {% if messages %}
-                {% for message in messages %}
-                    <div style="background: #d4edda; color: #155724; padding: 10px; border-radius: 4px; margin-bottom: 20px; border: 1px solid #c3e6cb;">
-                        {{ message }}
-                    </div>
-                {% endfor %}
-            {% endif %}
-        {% endwith %}
+{% extends "home/base.html" %}
 
-        <div class="action-bar" style="margin-bottom: 20px;">
-            <a href="{{ url_for('customer.customer_order.order_list') }}" class="btn btn-outline">← 返回列表</a>
-            
+{% block title %}訂單詳情 #{{ order.id }} - 會員中心{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto py-10">
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-6">
+        <div>
+            <nav class="flex text-xs text-gray-400 mb-2 space-x-2">
+                <a href="{{ url_for('home.index') }}" class="hover:text-brand">首頁</a>
+                <span>/</span>
+                <a href="{{ url_for('customer.center') }}" class="hover:text-brand">會員中心</a>
+                <span>/</span>
+                <a href="{{ url_for('customer.customer_order.order_list') }}" class="hover:text-brand">我的訂單</a>
+                <span>/</span>
+                <span class="text-gray-600 font-medium">訂單詳情</span>
+            </nav>
+            <div class="flex items-center gap-4">
+                <h1 class="text-3xl font-black text-gray-900 tracking-tight">訂單詳情 #{{ order.id }}</h1>
+                {% if order.status == 'pending' %}
+                    <span class="bg-amber-50 text-amber-600 text-[10px] font-bold px-3 py-1 rounded-full border border-amber-100">待處理</span>
+                {% elif order.status == 'shipped' %}
+                    <span class="bg-blue-50 text-blue-600 text-[10px] font-bold px-3 py-1 rounded-full border border-blue-100">已出貨</span>
+                {% elif order.status == 'completed' %}
+                    <span class="bg-green-50 text-green-600 text-[10px] font-bold px-3 py-1 rounded-full border border-green-100">已完成</span>
+                {% elif order.status == 'cancelled' %}
+                    <span class="bg-gray-50 text-gray-400 text-[10px] font-bold px-3 py-1 rounded-full border border-gray-100">已取消</span>
+                {% elif order.status == 'refunded' %}
+                    <span class="bg-red-50 text-red-500 text-[10px] font-bold px-3 py-1 rounded-full border border-red-100">已退款</span>
+                {% endif %}
+            </div>
+        </div>
+        <div class="flex gap-3">
+            <a href="{{ url_for('customer.customer_order.order_list') }}" class="flex-1 md:flex-none px-6 py-3 bg-white text-gray-600 border border-gray-100 rounded-xl font-bold text-sm hover:bg-gray-50 transition-all text-center shadow-sm">
+                返回列表
+            </a>
             {% if order.status == 'shipped' %}
-            <form action="{{ url_for('customer.customer_order.complete_order', id=order.id) }}" method="POST" style="display: inline-block; margin-left: 10px;">
-                <button type="submit" class="btn btn-success" style="background: #27ae60; color: white; padding: 8px 15px; border: none; border-radius: 4px; cursor: pointer;" onclick="return confirm('確定已收到商品並要完成訂單嗎？完成後即可填寫評價！')">
-                    完成訂單 (確認收貨)
+            <form action="{{ url_for('customer.customer_order.complete_order', id=order.id) }}" method="POST" class="flex-1 md:flex-none">
+                <button type="submit" class="w-full px-6 py-3 bg-green-600 text-white rounded-xl font-bold text-sm hover:bg-green-700 transition-all text-center shadow-lg shadow-green-100" onclick="return confirm('確定已收到商品並要完成訂單嗎？')">
+                    確認收貨
                 </button>
             </form>
             {% endif %}
 
             {% set can_return = namespace(value=false) %}
             {% for item in items %}
-                {# 判斷是否有尚未申請退貨的餘額 #}
                 {% if item.qty - item.requested_qty > 0 %}
                     {% set can_return.value = true %}
                 {% endif %}
             {% endfor %}
             {% if order.status == 'completed' and can_return.value %}
-                <a href="{{ url_for('customer.customer_return.apply', order_id=order.id) }}" class="btn btn-primary" style="background: #e67e22; color: white; padding: 8px 15px; border-radius: 4px; text-decoration: none; margin-left: 10px;">申請退貨</a>
+                <a href="{{ url_for('customer.customer_return.apply', order_id=order.id) }}" class="flex-1 md:flex-none px-6 py-3 bg-brand text-white rounded-xl font-bold text-sm hover:bg-brand-dark transition-all text-center shadow-lg shadow-brand/10">
+                    申請退貨
+                </a>
             {% endif %}
         </div>
+    </div>
 
-        <div class="order-card">
-            <h3>訂單資訊</h3>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-                <div>
-                    <p><strong>收件人：</strong>{{ order.name }}</p>
-                    <p><strong>電話：</strong>{{ order.phone }}</p>
-                    <p><strong>地址：</strong>{{ order.region }} {{ order.locality }} {{ order.address }}</p>
-                    <p><strong>狀態：</strong>
-                        {% if order.status == 'pending' %}待處理
-                        {% elif order.status == 'shipped' %}已出貨
-                        {% elif order.status == 'completed' %}已完成
-                        {% elif order.status == 'cancelled' %}已取消
-                        {% elif order.status == 'refunded' %}已退款
-                        {% else %}{{ order.status }}{% endif %}
-                    </p>
-                    <p><strong>時間：</strong>{{ order.created_at.strftime('%Y-%m-%d %H:%M') if order.created_at else '-' }}</p>
+    <!-- Summary Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
+        <!-- Recipient Info -->
+        <div class="lg:col-span-2 bg-white rounded-3xl border border-gray-100 p-8 shadow-sm">
+            <div class="flex items-center gap-4 mb-8">
+                <div class="w-1.5 h-6 bg-brand rounded-full"></div>
+                <h3 class="text-xs font-black text-gray-400 uppercase tracking-widest">配送資訊</h3>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-y-6 gap-x-12">
+                <div class="space-y-1">
+                    <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest">收件姓名</p>
+                    <p class="text-sm font-bold text-gray-900">{{ order.name }}</p>
                 </div>
-                <div>
-                    <p><strong>成交價小計：</strong>${{ "{:,.0f}".format(order.subtotal) }}</p>
-                    <p><strong>總折扣：</strong>-${{ "{:,.0f}".format(order.discount_total) }}</p>
-                    <p><strong>運費：</strong>+${{ "{:,.0f}".format(order.shipping_fee) }}</p>
-                    <p><strong>實際總金額：</strong>${{ "{:,.0f}".format(order.total) }}</p>
-                    <p><strong>優惠碼：</strong>{{ order.promo_code_snapshot or '無' }}</p>
+                <div class="space-y-1">
+                    <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest">連絡電話</p>
+                    <p class="text-sm font-bold text-gray-900">{{ order.phone }}</p>
+                </div>
+                <div class="md:col-span-2 space-y-1">
+                    <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest">配送地址</p>
+                    <p class="text-sm font-bold text-gray-900">{{ order.region }} {{ order.locality }} {{ order.address }}</p>
                 </div>
             </div>
         </div>
 
-        <h3>訂單明細</h3>
-        <div class="order-card">
-            <table style="width: 100%; border-collapse: collapse;">
+        <!-- Price Info -->
+        <div class="bg-white rounded-3xl border border-gray-100 p-8 shadow-sm">
+            <div class="flex items-center gap-4 mb-8">
+                <div class="w-1.5 h-6 bg-brand rounded-full"></div>
+                <h3 class="text-xs font-black text-gray-400 uppercase tracking-widest">訂單金額計算</h3>
+            </div>
+            <div class="space-y-4">
+                <div class="flex justify-between text-sm font-medium text-gray-500">
+                    <span>商品原價 (Original)</span>
+                    <span class="text-gray-900 font-bold">NT$ {{ "{:,.0f}".format(order.subtotal) }}</span>
+                </div>
+                <div class="flex justify-between text-sm font-medium text-brand">
+                    <span>活動折扣 (Discount)</span>
+                    <span class="font-bold">- NT$ {{ "{:,.0f}".format(order.discount_total) }}</span>
+                </div>
+                <div class="flex justify-between text-sm font-medium text-gray-500">
+                    <span>物流費用 (Shipping)</span>
+                    <span class="text-gray-900 font-bold">+ NT$ {{ "{:,.0f}".format(original_shipping_fee) }}</span>
+                </div>
+                <div class="flex justify-between text-sm font-medium text-brand border-b border-gray-50 pb-4">
+                    <span>運費折抵 (Ship. Disc)</span>
+                    <span class="font-bold">- NT$ {{ "{:,.0f}".format(shipping_discount) }}</span>
+                </div>
+                <div class="flex justify-between items-end pt-2">
+                    <span class="text-xs font-black text-gray-400 uppercase tracking-widest">訂單總計 (Total)</span>
+                    <span class="text-3xl font-black tracking-tighter text-brand">NT$ {{ "{:,.0f}".format(order.total) }}</span>
+                </div>
+                {% if order.promo_code_snapshot %}
+                <div class="pt-4 flex items-center text-[10px] text-brand font-bold uppercase tracking-widest bg-brand/5 px-3 py-2 rounded-lg">
+                    <i class="fa-solid fa-tag mr-2"></i> 使用優惠碼: {{ order.promo_code_snapshot }}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Order Items -->
+    <div class="bg-white rounded-3xl border border-gray-100 overflow-hidden shadow-sm">
+        <div class="p-8 border-b border-gray-50">
+            <h3 class="text-sm font-black text-gray-400 uppercase tracking-widest">訂單明細</h3>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full">
                 <thead>
-                    <tr style="border-bottom: 2px solid #eee;">
-                        <th style="padding: 10px; text-align: left;">商品名稱</th>
-                        <th style="padding: 10px; text-align: left;">規格</th>
-                        <th style="padding: 10px; text-align: center;">購買數量</th>
-                        <th style="padding: 10px; text-align: center;">已退數量</th>
-                        <th style="padding: 10px; text-align: right;">成交單價</th>
+                    <tr class="bg-gray-50/50">
+                        <th class="px-8 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">商品資訊</th>
+                        <th class="px-8 py-4 text-center text-[10px] font-black text-gray-400 uppercase tracking-widest">數量</th>
+                        <th class="px-8 py-4 text-center text-[10px] font-black text-gray-400 uppercase tracking-widest">已退數量</th>
+                        <th class="px-8 py-4 text-right text-[10px] font-black text-gray-400 uppercase tracking-widest">單價</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody class="divide-y divide-gray-50">
                     {% for item in items %}
-                    <tr style="border-bottom: 1px solid #eee;">
-                        <td style="padding: 10px;">
-                            {{ item.product_name }}
-                            {% if order.status == 'completed' %}
-                            <div style="margin-top: 5px;">
-                                {% if item.is_reviewed > 0 %}
-                                <button disabled style="background: #e9ecef; border: 1px solid #ced4da; padding: 4px 10px; border-radius: 4px; color: #6c757d; font-size: 0.85em;">已完成評論</button>
-                                {% else %}
-                                <button onclick="document.getElementById('review-form-{{ item.id }}').style.display='table-row'" style="background: #fff; border: 1px solid #666; padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 0.85em;">撰寫評價</button>
+                    <tr class="group">
+                        <td class="px-8 py-6">
+                            <div class="flex flex-col">
+                                <span class="text-sm font-black text-gray-900 group-hover:text-brand transition-colors mb-1">{{ item.product_name }}</span>
+                                <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{{ item.color }} / {{ item.size }}</span>
+                                
+                                {% if order.status == 'completed' %}
+                                <div class="mt-4">
+                                    {% if item.is_reviewed > 0 %}
+                                    <span class="inline-flex items-center px-3 py-1 rounded-full bg-gray-50 text-gray-400 text-[10px] font-bold border border-gray-100">
+                                        <i class="fa-solid fa-check mr-1.5"></i> 已完成評價
+                                    </span>
+                                    {% else %}
+                                    <button onclick="document.getElementById('review-form-{{ item.id }}').classList.toggle('hidden')" 
+                                            class="inline-flex items-center px-3 py-1 rounded-full bg-white text-brand text-[10px] font-bold border border-brand/20 hover:bg-brand hover:text-white transition-all shadow-sm">
+                                        <i class="fa-regular fa-pen-to-square mr-1.5"></i> 撰寫評價
+                                    </button>
+                                    {% endif %}
+                                </div>
                                 {% endif %}
                             </div>
-                            {% endif %}
                         </td>
-                        <td style="padding: 10px;">{{ item.color }} / {{ item.size }}</td>
-                        <td style="padding: 10px; text-align: center;">{{ item.qty }}</td>
-                        <td style="padding: 10px; text-align: center;">{{ item.returned_qty }}</td>
-                        <td style="padding: 10px; text-align: right;">${{ "{:,.0f}".format(item.unit_price) }}</td>
+                        <td class="px-8 py-6 text-center text-sm font-bold text-gray-600">{{ item.qty }}</td>
+                        <td class="px-8 py-6 text-center text-sm font-bold text-red-400">{{ item.returned_qty if item.returned_qty else 0 }}</td>
+                        <td class="px-8 py-6 text-right text-sm font-black text-gray-900 tracking-tight">NT$ {{ "{:,.0f}".format(item.unit_price) }}</td>
                     </tr>
 
-                    {% if order.status == 'completed' %}
-                    <tr id="review-form-{{ item.id }}" style="display: none; background: #fafafa;">
-                        <td colspan="5" style="padding: 20px;">
-                            <form action="{{ url_for('home.add_review') }}" method="POST">
+                    <!-- Review Form Row -->
+                    <tr id="review-form-{{ item.id }}" class="hidden bg-gray-50">
+                        <td colspan="4" class="px-8 py-10">
+                            <form action="{{ url_for('home.add_review') }}" method="POST" class="max-w-2xl mx-auto bg-white rounded-3xl p-8 border border-gray-100 shadow-xl relative">
+                                <button type="button" onclick="document.getElementById('review-form-{{ item.id }}').classList.add('hidden')" 
+                                        class="absolute top-4 right-4 w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 hover:text-gray-900 transition-colors">
+                                    <i class="fa-solid fa-xmark"></i>
+                                </button>
+
                                 <input type="hidden" name="product_id" value="{{ item.product_id }}">
                                 <input type="hidden" name="order_item_id" value="{{ item.id }}">
                                 
-                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                                    <h4 style="margin: 0; color: #333;">為「{{ item.product_name }}」寫下評價</h4>
-                                    <button type="button" onclick="document.getElementById('review-form-{{ item.id }}').style.display='none'" style="background: none; border: none; font-size: 1.5em; cursor: pointer;">&times;</button>
+                                <h4 class="text-xl font-black text-gray-900 mb-8 tracking-tight">為商品寫下評價</h4>
+                                
+                                <div class="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8">
+                                    <div class="space-y-2">
+                                        <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest block">綜合評分</label>
+                                        <input type="number" name="overall_rating" min="1" max="5" value="5" step="0.1" 
+                                               class="w-full px-4 py-2 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-brand/20 outline-none font-bold text-gray-900">
+                                    </div>
+                                    <div class="space-y-2">
+                                        <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest block">品質</label>
+                                        <input type="number" name="quality_rating" min="1" max="5" value="5" 
+                                               class="w-full px-4 py-2 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-brand/20 outline-none font-bold text-gray-900">
+                                    </div>
+                                    <div class="space-y-2">
+                                        <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest block">舒適</label>
+                                        <input type="number" name="comfort_rating" min="1" max="5" value="5" 
+                                               class="w-full px-4 py-2 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-brand/20 outline-none font-bold text-gray-900">
+                                    </div>
+                                    <div class="space-y-2">
+                                        <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest block">價值</label>
+                                        <input type="number" name="value_rating" min="1" max="5" value="5" 
+                                               class="w-full px-4 py-2 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-brand/20 outline-none font-bold text-gray-900">
+                                    </div>
                                 </div>
                                 
-                                <div style="display: flex; gap: 20px; margin-bottom: 15px; flex-wrap: wrap;">
-                                    <label>綜合星數: <input type="number" name="overall_rating" min="1" max="5" value="5" step="0.1" style="width: 60px; padding: 5px; border: 1px solid #ccc; border-radius: 4px;" required></label>
-                                    <label>品質: <input type="number" name="quality_rating" min="1" max="5" value="5" style="width: 50px; padding: 5px; border: 1px solid #ccc; border-radius: 4px;" required></label>
-                                    <label>舒適: <input type="number" name="comfort_rating" min="1" max="5" value="5" style="width: 50px; padding: 5px; border: 1px solid #ccc; border-radius: 4px;" required></label>
-                                    <label>價值: <input type="number" name="value_rating" min="1" max="5" value="5" style="width: 50px; padding: 5px; border: 1px solid #ccc; border-radius: 4px;" required></label>
+                                <div class="mb-8 p-4 bg-gray-50 rounded-2xl flex items-center gap-6">
+                                    <span class="text-[10px] font-black text-gray-400 uppercase tracking-widest">版型回饋</span>
+                                    <div class="flex gap-4">
+                                        <label class="flex items-center gap-2 cursor-pointer group">
+                                            <input type="radio" name="fit_feedback" value="-1" class="hidden peer">
+                                            <span class="px-4 py-2 rounded-xl text-xs font-bold text-gray-500 border border-gray-200 peer-checked:bg-gray-900 peer-checked:text-white peer-checked:border-gray-900 transition-all">偏小</span>
+                                        </label>
+                                        <label class="flex items-center gap-2 cursor-pointer group">
+                                            <input type="radio" name="fit_feedback" value="0" checked class="hidden peer">
+                                            <span class="px-4 py-2 rounded-xl text-xs font-bold text-gray-500 border border-gray-200 peer-checked:bg-gray-900 peer-checked:text-white peer-checked:border-gray-900 transition-all">標準</span>
+                                        </label>
+                                        <label class="flex items-center gap-2 cursor-pointer group">
+                                            <input type="radio" name="fit_feedback" value="1" class="hidden peer">
+                                            <span class="px-4 py-2 rounded-xl text-xs font-bold text-gray-500 border border-gray-200 peer-checked:bg-gray-900 peer-checked:text-white peer-checked:border-gray-900 transition-all">偏大</span>
+                                        </label>
+                                    </div>
                                 </div>
                                 
-                                <div style="margin-bottom: 15px;">
-                                    <strong style="margin-right: 15px;">尺碼回饋：</strong>
-                                    <label style="margin-right: 10px; cursor: pointer;"><input type="radio" name="fit_feedback" value="-1"> 偏小</label>
-                                    <label style="margin-right: 10px; cursor: pointer;"><input type="radio" name="fit_feedback" value="0" checked> 標準</label>
-                                    <label style="cursor: pointer;"><input type="radio" name="fit_feedback" value="1"> 偏大</label>
+                                <div class="space-y-2 mb-8">
+                                    <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest block">評論內容</label>
+                                    <textarea name="comment" rows="4" placeholder="分享您的購買與穿著體驗..." 
+                                              class="w-full px-5 py-4 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-brand/20 outline-none font-medium text-gray-900"></textarea>
                                 </div>
                                 
-                                <textarea name="comment" rows="3" placeholder="分享您的購買與穿著體驗..." style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; margin-bottom: 15px; box-sizing: border-box;"></textarea>
-                                
-                                <button type="submit" style="background: #333; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer;">送出評價</button>
+                                <button type="submit" class="w-full py-4 bg-gray-900 text-white rounded-2xl font-bold hover:bg-brand transition-all shadow-xl shadow-gray-200 hover:shadow-brand/20">
+                                    送出評價
+                                </button>
                             </form>
                         </td>
-                    </tr>
-                    {% endif %}
-                    
-                    {% else %}
-                    <tr>
-                        <td colspan="5" style="text-align: center; padding: 20px;">無訂單項目</td>
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
     </div>
-</body>
-</html>
+</div>
+{% endblock %}

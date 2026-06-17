@@ -1,64 +1,135 @@
 {% extends "home/base.html" %}
 
-{% block title %}訂單確認{% endblock %}
-
-{% block head %}
-<style>
-    .checkout-container { max-width: 600px; margin: 40px auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-    .section { margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 15px; }
-    .summary-item { display: flex; justify-content: space-between; margin-bottom: 5px; }
-    .btn-submit { width: 100%; padding: 12px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; margin-top: 20px; }
-</style>
-{% endblock %}
+{% block title %}訂單確認 - VIVID{% endblock %}
 
 {% block content %}
-<div class="checkout-container">
-    {% with messages = get_flashed_messages() %}
-      {% if messages %}
-        <div style="background: #f8d7da; color: #721c24; padding: 10px; border-radius: 4px; margin-bottom: 15px; border: 1px solid #f5c6cb; font-size: 14px;">
-          {{ messages[0] }}
-        </div>
-      {% endif %}
-    {% endwith %}
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-        <h2>訂單總檢查</h2>
-        <a href="{{ url_for('home.checkout.payment') }}" style="padding: 8px 15px; background: #6c757d; color: white; border-radius: 4px; text-decoration: none;">返回</a>
-    </div>
-    
-    <div class="section">
-        <h3>寄送資訊</h3>
-        <p>{{ info.name }} ({{ info.phone }})</p>
-        <p>{{ info.region }}{{ info.locality }}{{ info.address }}</p>
-    </div>
-
-    <div class="section">
-        <h3>商品明細</h3>
-        {% for item in cart_items %}
-        <div class="summary-item" style="align-items: center; margin-bottom: 15px;">
-            <div style="display: flex; align-items: center;">
-                <img src="{{ url_for('static', filename='upload/' + item.image) if item.image else url_for('static', filename='img/no-image.png') }}" alt="{{ item.product_name }}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px; margin-right: 15px;">
-                <span>{{ item.product_name }} ({{ item.size }}/{{ item.color }}) x {{ item.qty }}</span>
+<div class="max-w-4xl mx-auto py-10 px-4">
+    <!-- Progress Stepper -->
+    <div class="mb-12">
+        <div class="flex items-center justify-between max-w-2xl mx-auto">
+            <div class="flex flex-col items-center gap-2">
+                <div class="w-10 h-10 rounded-full bg-green-500 text-white flex items-center justify-center font-bold"><i class="fa-solid fa-check"></i></div>
+                <span class="text-[10px] font-black text-green-500 uppercase tracking-widest">資訊</span>
             </div>
-            <span>${{ "{:,.0f}".format(item.qty * item.price) }}</span>
+            <div class="flex-1 h-px bg-green-200 mx-4 -mt-6"></div>
+            <div class="flex flex-col items-center gap-2">
+                <div class="w-10 h-10 rounded-full bg-green-500 text-white flex items-center justify-center font-bold"><i class="fa-solid fa-check"></i></div>
+                <span class="text-[10px] font-black text-green-500 uppercase tracking-widest">付款</span>
+            </div>
+            <div class="flex-1 h-px bg-green-200 mx-4 -mt-6"></div>
+            <div class="flex flex-col items-center gap-2">
+                <div class="w-10 h-10 rounded-full bg-brand text-white flex items-center justify-center font-bold shadow-lg shadow-brand/20">3</div>
+                <span class="text-[10px] font-black text-brand uppercase tracking-widest">確認</span>
+            </div>
         </div>
-        {% endfor %}
     </div>
 
-    <div class="section">
-        <div class="summary-item"><span>小計:</span> <span>${{ "{:,.0f}".format(subtotal) }}</span></div>
-        {% if info.promo_code %}
-            <div class="summary-item"><span>優惠碼:</span> <span>{{ info.promo_code }}</span></div>
-        {% endif %}
-        <div class="summary-item"><span>折扣:</span> <span>-${{ "{:,.0f}".format(discount) }}</span></div>
-        {% if shipping_discount > 0 %}
-            <div class="summary-item"><span>運費折扣:</span> <span>-${{ "{:,.0f}".format(shipping_discount) }}</span></div>
-        {% endif %}
-        <div class="summary-item"><span>運費:</span> <span>${{ "{:,.0f}".format(shipping_fee) }}</span></div>
-        <div class="summary-item total" style="font-weight: bold; font-size: 18px;"><span>總計:</span> <span>${{ "{:,.0f}".format(total) }}</span></div>
-    </div>
+    <div class="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden mb-12">
+        <div class="p-8 border-b border-gray-50 flex justify-between items-center">
+            <h1 class="text-2xl font-black text-gray-900 tracking-tight">最後確認您的訂單</h1>
+            <a href="{{ url_for('home.checkout.payment') }}" class="text-xs font-bold text-gray-400 hover:text-brand transition-all flex items-center uppercase tracking-widest">
+                <i class="fa-solid fa-chevron-left mr-2"></i> 返回修改
+            </a>
+        </div>
 
-    <form method="POST">
-        <button type="submit" class="btn-submit">確認下單</button>
-    </form>
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <div class="m-8 p-4 rounded-xl bg-red-50 text-red-700 border border-red-100 flex items-center text-sm font-medium">
+                    <i class="fa-solid fa-circle-exclamation mr-3"></i>
+                    {{ messages[0] }}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <div class="p-8 space-y-12">
+            <!-- Delivery Info -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="space-y-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-1 h-4 bg-brand rounded-full"></div>
+                        <h3 class="text-xs font-black text-gray-400 uppercase tracking-widest">寄送資訊</h3>
+                    </div>
+                    <div class="bg-gray-50 rounded-2xl p-6">
+                        <p class="text-sm font-bold text-gray-900 mb-1">{{ info.name }} <span class="text-gray-400 mx-2">|</span> {{ info.phone }}</p>
+                        <p class="text-sm text-gray-600 leading-relaxed">{{ info.region }}{{ info.locality }} {{ info.address }}</p>
+                    </div>
+                </div>
+
+                <div class="space-y-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-1 h-4 bg-brand rounded-full"></div>
+                        <h3 class="text-xs font-black text-gray-400 uppercase tracking-widest">付款方式</h3>
+                    </div>
+                    <div class="bg-gray-50 rounded-2xl p-6 flex items-center justify-between">
+                        <span class="text-sm font-bold text-gray-900 uppercase tracking-widest">信用卡支付</span>
+                        <div class="flex gap-2 text-gray-400">
+                            <i class="fa-brands fa-cc-visa text-xl"></i>
+                            <i class="fa-brands fa-cc-mastercard text-xl"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Items -->
+            <div class="space-y-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-1 h-4 bg-brand rounded-full"></div>
+                    <h3 class="text-xs font-black text-gray-400 uppercase tracking-widest">購買清單</h3>
+                </div>
+                <div class="divide-y divide-gray-50 border border-gray-50 rounded-3xl overflow-hidden">
+                    {% for item in cart_items %}
+                    <div class="flex items-center gap-6 p-6 bg-white hover:bg-gray-50/50 transition-colors">
+                        <div class="w-16 aspect-[3/4] rounded-xl overflow-hidden bg-gray-100 flex-shrink-0">
+                            <img src="{{ url_for('static', filename='upload/' + item.image) if item.image else url_for('static', filename='img/no-image.png') }}" 
+                                 class="w-full h-full object-cover">
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-sm font-black text-gray-900 line-clamp-1">{{ item.product_name }}</p>
+                            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{{ item.color }} / {{ item.size }} <span class="text-gray-300 ml-2">x {{ item.qty }}</span></p>
+                        </div>
+                        <p class="text-sm font-black text-gray-900 tracking-tight">NT$ {{ "{:,.0f}".format(item.qty * item.price) }}</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Summary -->
+            <div class="bg-gray-900 rounded-3xl p-8 text-white">
+                <div class="space-y-4">
+                    <div class="flex justify-between text-sm font-medium text-gray-400">
+                        <span>商品原價 (Subtotal)</span>
+                        <span class="text-white font-bold">NT$ {{ "{:,.0f}".format(subtotal or 0) }}</span>
+                    </div>
+                    <div class="flex justify-between text-sm font-medium text-brand">
+                        <span>活動折扣 (Discount)</span>
+                        <span class="font-bold">- NT$ {{ "{:,.0f}".format(discount or 0) }}</span>
+                    </div>
+                    <div class="flex justify-between text-sm font-medium text-gray-400">
+                        <span>物流費用 (Shipping)</span>
+                        <span class="text-white font-bold">+ NT$ {{ "{:,.0f}".format(shipping_fee or 0) }}</span>
+                    </div>
+                    <div class="flex justify-between text-sm font-medium text-brand border-b border-gray-800 pb-4">
+                        <span>運費折抵 (Ship. Disc)</span>
+                        <span class="font-bold">- NT$ {{ "{:,.0f}".format(shipping_discount or 0) }}</span>
+                    </div>
+                    <div class="flex justify-between items-end pt-2">
+                        <span class="text-xs font-black text-gray-400 uppercase tracking-widest">最終結帳總額</span>
+                        <span class="text-4xl font-black tracking-tighter text-white">NT$ {{ "{:,.0f}".format(total or 0) }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="p-8 bg-gray-50 flex flex-col md:flex-row gap-6 items-center">
+            <p class="text-[10px] text-gray-400 leading-relaxed flex-1">
+                點擊「確認下單」即代表您同意本站的 <a href="#" class="underline hover:text-brand">服務條款</a> 與 <a href="#" class="underline hover:text-brand">隱私權政策</a>。請確保您的收件資料正確，下單後將無法修改。
+            </p>
+            <form method="POST" class="w-full md:w-auto">
+                <button type="submit" class="w-full md:px-16 py-5 bg-brand text-white rounded-2xl font-bold text-lg hover:bg-brand-dark transition-all duration-300 shadow-xl shadow-brand/20">
+                    確認下單 <i class="fa-solid fa-circle-check ml-2"></i>
+                </button>
+            </form>
+        </div>
+    </div>
 </div>
 {% endblock %}
